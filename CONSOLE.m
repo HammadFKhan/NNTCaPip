@@ -1,5 +1,5 @@
 %% Run the CaimAn program
-% Github Version 2
+% Github Version 3
 clear
 clc
 close all;
