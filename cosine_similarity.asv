@@ -1,19 +1,18 @@
 function [vectorized,sim_index] = cosine_similarity(Spikes,bin)
 x = length(Spikes(:,1));
 y =length(Spikes(1,:));
-try
-    a = zeros(x,y/bin);
-catch ME
-    if strcmp(ME.identifier,'MATLAB:myCode:dimensions')
-        bin = bin+rem(y,bin);
-        warning(strcat('Bin size does not match vector. Assigning value new value: ',bin));
-    else
-        msg = ('Bin size do not match vector length');
-        causeException = MException('MATLAB:myCode:dimensions',msg);
-        ME = addCause(ME,causeException);
-        rethrow(ME);
-    end
-a = zeros(x,y/bin);
+% try
+%     a = zeros(x,y/bin);
+% 
+%     msg = ('Bin size do not match vector length');
+%     causeException = MException('MATLAB:myCode:dimensions',msg);
+%     ME = addCause(ME,causeException);
+%     rethrow(ME);
+% end
+
+if rem(y/bin) ~= 0
+    bin = bin+1;
+
 for i = 1:y/bin
     position = bin*(i-1)+1;
     for ii=1:bin
