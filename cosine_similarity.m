@@ -4,15 +4,16 @@ y =length(Spikes(1,:));
 try
     a = zeros(x,y/bin);
 catch ME
-    if strcmp(ME.identifier,'MATLAB:myCode:dimensions')
+    if rem(y,bin) ~= 0
         bin = bin+rem(y,bin);
-        warning(strcat('Bin size does not match vector. Assigning value new value: ',bin));
+        warning('Bin size does not match vector. Assigning new bin value');
     else
         msg = ('Bin size do not match vector length');
         causeException = MException('MATLAB:myCode:dimensions',msg);
         ME = addCause(ME,causeException);
         rethrow(ME);
     end
+end
 a = zeros(x,y/bin);
 for i = 1:y/bin
     position = bin*(i-1)+1;

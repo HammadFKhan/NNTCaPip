@@ -9,6 +9,13 @@ disp('Batch Analysis complete')
 toc
 %% Batch Data Analysis
 batchData_str = batchData_Analysis;
+%% CaimAn Single Batch Analysis
+clear
+clc
+close all;
+tic
+Start_CaImAn
+toc
 %% Single File Analysis
 % set(0,'DefaultFigureWindowStyle','normal')
     cell_count = length(ROI);
@@ -22,14 +29,14 @@ batchData_str = batchData_Analysis;
     corr_jaccard = correlation_jaccard(Spikes);
     [coactive_cells,detected_spikes] = coactive_index(Spikes);
     calcium_avg = STA(DeltaFoverF,Spikes,std_threshold,10);
-
+    bin = 4;
     Spikes_shuffled = tempShuffle(Spikes,num_images,cell_count);
     Event_shuffled = spatialShuffle(Spikes,num_images,cell_count);
     surrogate = 10;
     Total_shuffled = allShuffle(Spikes,num_images,cell_count,surrogate);
     shuff_corr = correlation_dice(Total_shuffled);
-    [vectorized,sim_index] = cosine_similarity(Spikes,20);
-    [shufvectorized,shufsim_index] = cosine_similarity(Total_shuffled,20);
+    [vectorized,sim_index] = cosine_similarity(Spikes,bin);
+    [shufvectorized,shufsim_index] = cosine_similarity(Total_shuffled,bin);
     shufsim_index = shufsim_index-mean(mean(shufsim_index,2));
     [NumActiveNodes,NumNodes,NumEdges,SpatialCentroid,SpatialCentroidVariance,ActivityCentroid,ActivityCentroidVariance]...
         = Network_Analysis(ROIcentroid,Connected_ROI);

@@ -39,9 +39,9 @@ for i = 1:length(centroids)
 end
 
 imshow(background)
-% map = [0.02 0.631 0.631
-%     1 1 1];
-% colormap(map);
+map = [0.02 0.631 0.631
+    1 1 1];
+colormap(map);
 hold on
 %%
 
@@ -51,17 +51,19 @@ if Connected_ROI(1,:) ~= [0,0,0]
         Cell1 = ROIbases(Connected_ROI(j,1),:);
         Cell2 = ROIbases(Connected_ROI(j,2),:);
         corr = Connected_ROI(j,3);
-        if corr > 0.8
+        if corr > 0.7
+            LineWidth = 2*EdgeSize;
+            Color = [0.05 0.2 0.76];
+        elseif corr >= 0.1 && corr <= 0.7
             LineWidth = EdgeSize;
-        elseif corr >= 0.1 && corr <= 0.5
-            LineWidth = EdgeSize;
+            Color = [0.02 0.631 0.8];
         end
         x1 = Cell1(1,1);
         x2 = Cell2(1,1);
         y1 = Cell1(1,2);
         y2 = Cell2(1,2);
 %         Color = [0.02 0.631 0.631];
-        Color = 'k';
+%         Color = 'k';
         x = line([y1,y2],[x1,x2],'LineWidth',LineWidth,'Color',Color);
         x.Color(4) = 0.4;
     end
