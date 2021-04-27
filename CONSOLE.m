@@ -17,7 +17,7 @@ tic
 Start_CaImAn
 toc
 %% Single File Analysis
-% set(0,'DefaultFigureWindowStyle','normal')
+% set(0,'DefaultFigureWindowStyle','docked')
     cell_count = length(ROI);
     time = time_adjust(num_images,15);
     std_threshold = 2.5;
