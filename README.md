@@ -1,5 +1,8 @@
 # NNTCaPip
-Image and data processing pipeline for calcium imaging
+
+![Neurons](https://user-images.githubusercontent.com/56140216/117201664-ea381b80-adba-11eb-9ffe-b2bed4401cf5.png)
+
+### Image and data processing pipeline for calcium imaging
 
 The main focus of this pipline is to create a one stop shop for analysis of in vivo calcium images. This data pipline includes general fluorescence mapping, spike sorting, and population spike rates. Along with more intensive coactive indexing, spatial temporal correlations, shuffling, and principle component analysis using singular value decomposition for network assemblies. More elaborate explainations are found later in this document. 
 
