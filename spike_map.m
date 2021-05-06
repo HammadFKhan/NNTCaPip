@@ -13,18 +13,18 @@ avgV = mean(v');
 spikeImage = zeros(y,x);
 for i = 1:x
     for ii = 1:y
-        spikeImage(ii,i) = ((DeltaFoverF(ii,i)-avgV(ii))/(maxV-minV)); 
+        spikeImage(ii,i) = ((DeltaFoverF(ii,i)-avgV(ii))/(maxV-minV));
     end
 end
 
 % if y<25
 ax = time;
-    imagesc(spikeImage,'Xdata',time);
-    h = colorbar;
-    set(get(h,'title'),'string','\Delta F/F (%)');
-    axis on;axis tight;box off;
-    xlabel('Time (s)');
-    ylabel('Neuron');
+imagesc(spikeImage,'Xdata',time);
+h = colorbar;
+set(get(h,'title'),'string','\Delta F/F (%)');
+axis on;axis tight;box off;
+xlabel('Time (s)');
+ylabel('Neuron');
 % else
 %     imshow(spikeImage);axis on;axis tight;box off;
 %     h = colorbar;
