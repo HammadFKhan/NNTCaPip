@@ -8,6 +8,7 @@ CaImAn_Conversion
 disp('Batch Analysis complete')
 toc
 %% Batch Data Analysis
+addpath(genpath('main'));
 batchData_str = batchData_Analysis;
 %% CaimAn Single Batch Analysis
 clear
@@ -17,32 +18,33 @@ tic
 Start_CaImAn
 toc
 %% Single File Analysis
-% set(0,'DefaultFigureWindowStyle','docked')
-    cell_count = length(ROI);
-    time = time_adjust(num_images,15);
-    std_threshold = 2.5;
-    static_threshold = .2;
-    Spikes = Spike_Detector_Single(dDeltaFoverF,std_threshold,static_threshold);
+set(0,'DefaultFigureWindowStyle','docked')
+addpath(genpath('main'));
+cell_count = length(ROI);
+time = time_adjust(num_images,15);
+std_threshold = 2.5;
+static_threshold = .2;
+Spikes = Spike_Detector_Single(dDeltaFoverF,std_threshold,static_threshold);
 
-    corr = correlation_dice(Spikes);
-    Connected_ROI = Connectivity_dice(corr, ROI);
-    corr_jaccard = correlation_jaccard(Spikes);
-    [coactive_cells,detected_spikes] = coactive_index(Spikes);
-    calcium_avg = STA(DeltaFoverF,Spikes,std_threshold,10);
-    bin = 4;
-    Spikes_shuffled = tempShuffle(Spikes,num_images,cell_count);
-    Event_shuffled = spatialShuffle(Spikes,num_images,cell_count);
-    surrogate = 10;
-    Total_shuffled = allShuffle(Spikes,num_images,cell_count,surrogate);
-    shuff_corr = correlation_dice(Total_shuffled);
-    [vectorized,sim_index] = cosine_similarity(Spikes,bin);
-    [shufvectorized,shufsim_index] = cosine_similarity(Total_shuffled,bin);
-    shufsim_index = shufsim_index-mean(mean(shufsim_index,2));
-    [NumActiveNodes,NumNodes,NumEdges,SpatialCentroid,SpatialCentroidVariance,ActivityCentroid,ActivityCentroidVariance]...
-        = Network_Analysis(ROIcentroid,Connected_ROI);
+corr = correlation_dice(Spikes);
+Connected_ROI = Connectivity_dice(corr, ROI);
+corr_jaccard = correlation_jaccard(Spikes);
+[coactive_cells,detected_spikes] = coactive_index(Spikes);
+calcium_avg = STA(DeltaFoverF,Spikes,std_threshold,10);
+bin = 4;
+Spikes_shuffled = tempShuffle(Spikes,num_images,cell_count);
+Event_shuffled = spatialShuffle(Spikes,num_images,cell_count);
+surrogate = 10;
+Total_shuffled = allShuffle(Spikes,num_images,cell_count,surrogate);
+shuff_corr = correlation_dice(Total_shuffled);
+[vectorized,sim_index] = cosine_similarity(Spikes,bin);
+[shufvectorized,shufsim_index] = cosine_similarity(Total_shuffled,bin);
+shufsim_index = shufsim_index-mean(mean(shufsim_index,2));
+[NumActiveNodes,NumNodes,NumEdges,SpatialCentroid,SpatialCentroidVariance,ActivityCentroid,ActivityCentroidVariance]...
+    = Network_Analysis(ROIcentroid,Connected_ROI);
 
-    a = mean(mean(sim_index,2));
-    b = mean(abs(mean(shufsim_index,2)));
+a = mean(mean(sim_index,2));
+b = mean(abs(mean(shufsim_index,2)));
 %% Plot all the Figures
 addpath('Figures');
 figure('Name','DeltaF/F'); stack_plot(DeltaFoverF);
