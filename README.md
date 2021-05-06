@@ -40,6 +40,8 @@ set(0,'DefaultFigureWindowStyle','docked')...
 addpath('Figures');...
 ```
 
-## Understanding the Data
+## Data Output
 
 All fluorescence data is analyzed using a ROI x Frame matrix. Further, the bulk of spike sorting analysis is done by converting arbitrary fluorescence values into a binary matrix. To understand what the data is telling you please refer to our [Wiki](https://github.com/Neurohm/NNTCaPip/wiki) page.
+
+For single file analysis, data is outputted as _global_ variables. For batch analysis, data is outputted as .mat files into a specified directory.
