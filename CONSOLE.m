@@ -1,5 +1,7 @@
 %% Run the CaimAn program
 % Github Version 4.1
+
+%####Batch Analysis for ROI Extaction####
 clear
 clc
 close all;
@@ -10,7 +12,7 @@ toc
 %% Batch Data Analysis
 addpath(genpath('main'));
 batchData_str = batchData_Analysis;
-%% CaimAn Single Batch Analysis
+%% CaimAn Single File ROI Extraction
 clear
 clc
 close all;
