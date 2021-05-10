@@ -9,7 +9,14 @@ for i = 3:L
      k = i-2;
      waitbar(k/(L-2),f)
      fullfile = strcat(directory(i).folder,'\',directory(i).name);
+     try 
      load(fullfile);
+     catch ME
+         disp('Directory does not contain Matlab files')
+         batchData = NaN;
+         close(f)
+         return
+     end
      Spikes = Spike_Detector_Single(dDeltaFoverF,std_threshold,static_threshold);
      cell_count = length(ROI);
      time = time_adjust(num_images,15);
