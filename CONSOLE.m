@@ -50,7 +50,7 @@ shufsim_index = shufsim_index-mean(mean(shufsim_index,2));
 a = mean(mean(sim_index,2));
 b = mean(abs(mean(shufsim_index,2)));
 %% Trial by Trial analysis
-
+batchSpikes = TrialByTrial(batchData); % Function call
 corr = correlation_dice(batchSpikes);
 bin = 20;
 [vectorized,sim_index] = cosine_similarity(batchSpikes,bin);
