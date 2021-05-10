@@ -29,7 +29,6 @@ time = time_adjust(num_images,15);
 std_threshold = 3.1;
 static_threshold = .2;
 Spikes = Spike_Detector_Single(dDeltaFoverF,std_threshold,static_threshold);
-
 corr = correlation_dice(Spikes);
 Connected_ROI = Connectivity_dice(corr, ROI);
 corr_jaccard = correlation_jaccard(Spikes);
@@ -50,14 +49,22 @@ shufsim_index = shufsim_index-mean(mean(shufsim_index,2));
 a = mean(mean(sim_index,2));
 b = mean(abs(mean(shufsim_index,2)));
 %% Trial by Trial analysis
-batchSpikes = TrialByTrial(batchData); % Function call
-corr = correlation_dice(batchSpikes);
-bin = 20;
-[vectorized,sim_index] = cosine_similarity(batchSpikes(:,1:7200),bin);
-figure('Name','Cosine-Similarity Index'); h = htmp(sim_index);caxis([0.3 .8]);
-
+addpath(genpath('Figures'));
+batchSpikes = TrialByTrial(batchData([2:6,12])); % Function call
+bin = 40;
+[vectorized,sim_index] = cosine_similarity(batchSpikes,bin);
+[z,mu,sigma] = zscore(sim_index);
+figure('Name','Cosine-Similarity Index'); h = htmp(sim_index);caxis([.3 0.9]);
 set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);...
      print(gcf,'-painters','-depsc', 'Figures/CSTrials.eps', '-r250');
+ 
+ %% Centroid
+for ii = 1:12
+    centroid(ii,1) = batchData(ii).ActivityCentroid(1);
+    centroid(ii,2) = batchData(ii).ActivityCentroid(2);
+    centroid(ii,3) = batchData(ii).ActivityCentroidVariAnce(1);
+    centroid(ii,4) = batchData(ii).ActivityCentroidVariAnce(2);
+end
 %% Plot all the Figures
 addpath('Figures');
 figure('Name','DeltaF/F'); stack_plot(DeltaFoverF);
