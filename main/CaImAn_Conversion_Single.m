@@ -26,17 +26,17 @@ d = d1*d2;                                          % total number of pixels
 
 %% Set parameters
 
-K = 200;                                           % number of components to be found
-tau = 5;                                          % std of gaussian kernel (half size of neuron) 
+K = 100;                                           % number of components to be found
+tau = 10;                                          % std of gaussian kernel (half size of neuron) 
 p = 2;
 
 options = CNMFSetParms(...   
     'd1',d1,'d2',d2,...                         % dimensionality of the FOV
     'p',p,...                                   % order of AR dynamics    
     'gSig',tau,...                              % half size of neuron
-    'merge_thr',0.70,...                        % merging threshold  
+    'merge_thr',0.80,...                        % merging threshold  
     'nb',2,...                                  % number of background components    
-    'min_SNR',1,...                             % minimum SNR threshold
+    'min_SNR',3,...                             % minimum SNR threshold
     'space_thresh',0.5,...                      % space correlation threshold
     'cnn_thr',0.2...                            % threshold for CNN classifier    
     );
@@ -96,33 +96,33 @@ keep = (ind_corr | ind_cnn) & ind_exc;
 %% display kept and discarded components
 A_keep = A(:,keep);
 C_keep = C(keep,:);
-% figure;
-%     subplot(121); montage(extract_patch(A(:,keep),[d1,d2],[30,30]),'DisplayRange',[0,0.15]);
-%         title('Kept Components');
-%     subplot(122); montage(extract_patch(A(:,~keep),[d1,d2],[30,30]),'DisplayRange',[0,0.15])
-%         title('Discarded Components');
+figure;
+    subplot(121); montage(extract_patch(A(:,keep),[d1,d2],[30,30]),'DisplayRange',[0,0.15]);
+        title('Kept Components');
+    subplot(122); montage(extract_patch(A(:,~keep),[d1,d2],[30,30]),'DisplayRange',[0,0.15])
+        title('Discarded Components');
 %% merge found components
 [Am,Cm,K_m,merged_ROIs,Pm,Sm] = merge_components(Yr,A_keep,b,C_keep,f,P,S,options);
 
 %%
-% display_merging = 1; % flag for displaying merging example
-% if and(display_merging, ~isempty(merged_ROIs))
-%     i = 1; %randi(length(merged_ROIs));
-%     ln = length(merged_ROIs{i});
-%     figure;
-%         set(gcf,'Position',[300,300,(ln+2)*300,300]);
-%         for j = 1:ln
-%             subplot(1,ln+2,j); imagesc(reshape(A_keep(:,merged_ROIs{i}(j)),d1,d2)); 
-%                 title(sprintf('Component %i',j),'fontsize',16,'fontweight','bold'); axis equal; axis tight;
-%         end
-%         subplot(1,ln+2,ln+1); imagesc(reshape(Am(:,K_m-length(merged_ROIs)+i),d1,d2));
-%                 title('Merged Component','fontsize',16,'fontweight','bold');axis equal; axis tight; 
-%         subplot(1,ln+2,ln+2);
-%             plot(1:T,(diag(max(C_keep(merged_ROIs{i},:),[],2))\C_keep(merged_ROIs{i},:))'); 
-%             hold all; plot(1:T,Cm(K_m-length(merged_ROIs)+i,:)/max(Cm(K_m-length(merged_ROIs)+i,:)),'--k')
-%             title('Temporal Components','fontsize',16,'fontweight','bold')
-%         drawnow;
-% end
+display_merging = 1; % flag for displaying merging example
+if and(display_merging, ~isempty(merged_ROIs))
+    i = 1; %randi(length(merged_ROIs));
+    ln = length(merged_ROIs{i});
+    figure;
+        set(gcf,'Position',[300,300,(ln+2)*300,300]);
+        for j = 1:ln
+            subplot(1,ln+2,j); imagesc(reshape(A_keep(:,merged_ROIs{i}(j)),d1,d2)); 
+                title(sprintf('Component %i',j),'fontsize',16,'fontweight','bold'); axis equal; axis tight;
+        end
+        subplot(1,ln+2,ln+1); imagesc(reshape(Am(:,K_m-length(merged_ROIs)+i),d1,d2));
+                title('Merged Component','fontsize',16,'fontweight','bold');axis equal; axis tight; 
+        subplot(1,ln+2,ln+2);
+            plot(1:T,(diag(max(C_keep(merged_ROIs{i},:),[],2))\C_keep(merged_ROIs{i},:))'); 
+            hold all; plot(1:T,Cm(K_m-length(merged_ROIs)+i,:)/max(Cm(K_m-length(merged_ROIs)+i,:)),'--k')
+            title('Temporal Components','fontsize',16,'fontweight','bold')
+        drawnow;
+end
 
 %% refine estimates excluding rejected components
 
