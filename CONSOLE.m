@@ -53,8 +53,10 @@ b = mean(abs(mean(shufsim_index,2)));
 batchSpikes = TrialByTrial(batchData); % Function call
 corr = correlation_dice(batchSpikes);
 bin = 20;
-[vectorized,sim_index] = cosine_similarity(batchSpikes,bin);
-figure('Name','Cosine-Similarity Index'); h = htmp(sim_index);caxis([0.35 .9]);set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);...
+[vectorized,sim_index] = cosine_similarity(batchSpikes(:,1:7200),bin);
+figure('Name','Cosine-Similarity Index'); h = htmp(sim_index);caxis([0.3 .8]);
+
+set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);...
      print(gcf,'-painters','-depsc', 'Figures/CSTrials.eps', '-r250');
 %% Plot all the Figures
 addpath('Figures');
