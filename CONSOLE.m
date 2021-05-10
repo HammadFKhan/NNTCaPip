@@ -59,12 +59,26 @@ set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);...
      print(gcf,'-painters','-depsc', 'Figures/CSTrials.eps', '-r250');
  
  %% Centroid
+ figure()
 for ii = 1:12
+    gradient = 0+ii/12;
     centroid(ii,1) = batchData(ii).ActivityCentroid(1);
     centroid(ii,2) = batchData(ii).ActivityCentroid(2);
     centroid(ii,3) = batchData(ii).ActivityCentroidVariAnce(1);
     centroid(ii,4) = batchData(ii).ActivityCentroidVariAnce(2);
+    r = rectangle('Position',[centroid(ii,1),centroid(ii,2),centroid(ii,1)+centroid(ii,3),...
+        centroid(ii,2)+centroid(ii,4)],...
+        'Curvature',[1 1]);
+    r.EdgeColor = [1 1 1 0.2];
+    r.FaceColor = [gradient 1-gradient .6 0.4];
+    r.LineWidth = 0.001;
 end
+axis equal
+set(gca,'XTickLabel','');
+set(gca,'YTickLabel','');
+set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);...
+     print(gcf,'-painters','-depsc', 'Figures/Centroids.eps', '-r250');
+ 
 %% Plot all the Figures
 addpath('Figures');
 figure('Name','DeltaF/F'); stack_plot(DeltaFoverF);
