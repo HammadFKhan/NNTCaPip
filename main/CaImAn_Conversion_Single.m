@@ -96,7 +96,7 @@ keep = (ind_corr | ind_cnn) & ind_exc;
 %% display kept and discarded components
 A_keep = A(:,keep);
 C_keep = C(keep,:);
-figure;
+figure('Name','Extracted Components');
     subplot(121); montage(extract_patch(A(:,keep),[d1,d2],[30,30]),'DisplayRange',[0,0.15]);
         title('Kept Components');
     subplot(122); montage(extract_patch(A(:,~keep),[d1,d2],[30,30]),'DisplayRange',[0,0.15])
@@ -105,7 +105,7 @@ figure;
 [Am,Cm,K_m,merged_ROIs,Pm,Sm] = merge_components(Yr,A_keep,b,C_keep,f,P,S,options);
 
 %%
-display_merging = 1; % flag for displaying merging example
+display_merging = 0; % flag for displaying merging example
 if and(display_merging, ~isempty(merged_ROIs))
     i = 1; %randi(length(merged_ROIs));
     ln = length(merged_ROIs{i});
@@ -137,7 +137,7 @@ Pm.p = p;    % restore AR value
 K_m = size(C_or,1);
 [C_df,~] = extract_DF_F(Yr,A_or,C_or,P_or,options); % extract DF/F values (optional)
 
-ROI_outline = figure(1);
+ROI_outline = figure('Name','Contour Plot');
 [Coor,json_file] = plot_contours(A_or,Cn,options,1); % contour plot of spatial footprints
 %savejson('jmesh',json_file,'filename');        % optional save json file with component coordinates (requires matlab json library)
 
