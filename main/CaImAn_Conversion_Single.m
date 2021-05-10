@@ -26,7 +26,7 @@ d = d1*d2;                                          % total number of pixels
 
 %% Set parameters
 
-K = 100;                                           % number of components to be found
+K = 125;                                           % number of components to be found
 tau = 10;                                          % std of gaussian kernel (half size of neuron) 
 p = 2;
 
