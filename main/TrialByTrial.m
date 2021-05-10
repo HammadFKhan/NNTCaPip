@@ -11,7 +11,6 @@ n = size(batchData,2); % number of matrices
 r = min(spikeSize); % row of matrices
 c = size(cellSpikes{1,i},2); % column of matrices
 batchSpikes = zeros(r,c,n);
-
 for ii = 1:n
     spikes = cellSpikes{1,ii};
     try
