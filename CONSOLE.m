@@ -16,6 +16,7 @@ batchData_str = batchData_Analysis;
 clear
 clc
 close all;
+set(0,'DefaultFigureWindowStyle','normal')
 addpath(genpath('main'));
 tic
 Start_CaImAn
@@ -34,7 +35,7 @@ Connected_ROI = Connectivity_dice(corr, ROI);
 corr_jaccard = correlation_jaccard(Spikes);
 [coactive_cells,detected_spikes] = coactive_index(Spikes);
 calcium_avg = STA(DeltaFoverF,Spikes,std_threshold,10);
-bin = 15;
+bin = 20;
 Spikes_shuffled = tempShuffle(Spikes,num_images,cell_count);
 Event_shuffled = spatialShuffle(Spikes,num_images,cell_count);
 surrogate = 10;
