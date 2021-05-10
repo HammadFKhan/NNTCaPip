@@ -24,7 +24,7 @@ set(0,'DefaultFigureWindowStyle','docked')
 addpath(genpath('main'));
 cell_count = length(ROI);
 time = time_adjust(num_images,15);
-std_threshold = 2.5;
+std_threshold = 3.1;
 static_threshold = .2;
 Spikes = Spike_Detector_Single(dDeltaFoverF,std_threshold,static_threshold);
 
@@ -33,7 +33,7 @@ Connected_ROI = Connectivity_dice(corr, ROI);
 corr_jaccard = correlation_jaccard(Spikes);
 [coactive_cells,detected_spikes] = coactive_index(Spikes);
 calcium_avg = STA(DeltaFoverF,Spikes,std_threshold,10);
-bin = 4;
+bin = 15;
 Spikes_shuffled = tempShuffle(Spikes,num_images,cell_count);
 Event_shuffled = spatialShuffle(Spikes,num_images,cell_count);
 surrogate = 10;
@@ -68,7 +68,7 @@ figure('Name','Dice-Similarity Index');h = htmp(corr,20);caxis([0 0.4]);set(gcf,
      print(gcf,'-painters','-depsc', 'Figures/DSC.eps', '-r250');
 figure('Name','Shuffled Dice-Similarity Index');h = htmp(shuff_corr,20);caxis([0 0.4]);set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);...
      print(gcf,'-painters','-depsc', 'Figures/sDCS.eps', '-r250');
-figure('Name','Cosine-Similarity Index'); h = htmp(sim_index);caxis([0 1]);set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);...
+figure('Name','Cosine-Similarity Index'); h = htmp(sim_index);caxis([0.35 .9]);set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);...
      print(gcf,'-painters','-depsc', 'Figures/CS.eps', '-r250');
 figure('Name','Shuffled Cosine-Similarity Index'); h = htmp(shufsim_index);caxis([0 1]);set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);...
      print(gcf,'-painters','-depsc', 'Figures/sCS.eps', '-r250');
