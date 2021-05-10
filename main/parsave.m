@@ -1,0 +1,6 @@
+function parsave(savepath,files,AverageImage,num_images,...
+    DeltaFoverF,dDeltaFoverF,ROIcentroid,ROI,Noise_Power)
+
+save(savepath,'files','AverageImage','num_images',...
+    'DeltaFoverF','dDeltaFoverF','ROIcentroid','ROI','Noise_Power');
+end
