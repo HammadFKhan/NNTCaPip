@@ -16,6 +16,7 @@ batchData_str = batchData_Analysis;
 clear
 clc
 close all;
+addpath(genpath('main'));
 tic
 Start_CaImAn
 toc
