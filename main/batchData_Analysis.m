@@ -63,7 +63,7 @@ for i = 3:L
     batchData(k).SpatialCentroid = SpatialCentroid;
     batchData(k).SpatialCentroidVariance = SpatialCentroidVariance;
     batchData(k).ActivityCentroid = ActivityCentroid;
-    batchData(k).ActivityCentroidVariAnce = ActivityCentroidVariance;
+    batchData(k).ActivityCentroidVariance = ActivityCentroidVariance;
 
 end
 close(f),disp('Batch Process Complete');
