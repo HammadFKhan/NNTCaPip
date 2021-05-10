@@ -35,10 +35,10 @@ options = CNMFSetParms(...
     'p',p,...                                   % order of AR dynamics    
     'gSig',tau,...                              % half size of neuron
     'merge_thr',0.80,...                        % merging threshold  
-    'nb',2,...                                  % number of background components    
+    'nb',3,...                                  % number of background components    
     'min_SNR',3,...                             % minimum SNR threshold
     'space_thresh',0.5,...                      % space correlation threshold
-    'cnn_thr',0.2...                            % threshold for CNN classifier    
+    'cnn_thr',0.4...                            % threshold for CNN classifier    
     );
 
 %% Data pre-processing
