@@ -11,7 +11,10 @@ directory = dir(pathname);
 L = length(directory);
 global dataPath
 dataPath = savepathname;
+f = waitbar(0,'ROI Extraction...');
 for idx = 3:L
+    k = idx-2;
+    waitbar(k/(idx-2),f)
     filename = directory(idx).name
 % [filename, pathname] = uigetfile({'*.tiff;*.tif'}, 'Pick a image video file');
 % if isequal(filename,0) || isequal(pathname,0)
@@ -184,6 +187,7 @@ savepath = strcat(savepathname,filename,'.mat');
 save(savepath,'files','AverageImage','num_images',...
     'DeltaFoverF','dDeltaFoverF','ROIcentroid','ROI','Noise_Power');
 end
+close(f)
 end
 
 
