@@ -19,11 +19,13 @@ end
 
 % if y<25
 ax = time;
+[grad,~]=colorGradient([.1 .1 .1],[1 1 1],64);
+colormap(grad);
 imagesc(spikeImage,'Xdata',time);
 h = colorbar;
 set(get(h,'title'),'string','\Delta F/F (%)');
 axis on;axis tight;box off;
-xlabel('Time (s)');
+xlabel('Time (s)'); 
 ylabel('Neuron');
 % else
 %     imshow(spikeImage);axis on;axis tight;box off;
@@ -35,5 +37,4 @@ ylabel('Neuron');
 
 % Colormap is not gray scale.
 % Apply some other colormap if you want
-colormap(jet(256));
 end
