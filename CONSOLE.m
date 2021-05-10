@@ -11,7 +11,7 @@ disp('Batch Analysis complete')
 toc
 %% Batch Data Analysis
 addpath(genpath('main'));
-batchData_str = batchData_Analysis;
+batchData = batchData_Analysis;
 %% CaimAn Single File ROI Extraction
 clear
 clc
@@ -49,6 +49,13 @@ shufsim_index = shufsim_index-mean(mean(shufsim_index,2));
 
 a = mean(mean(sim_index,2));
 b = mean(abs(mean(shufsim_index,2)));
+%% Trial by Trial analysis
+
+corr = correlation_dice(batchSpikes);
+bin = 20;
+[vectorized,sim_index] = cosine_similarity(batchSpikes,bin);
+figure('Name','Cosine-Similarity Index'); h = htmp(sim_index);caxis([0.35 .9]);set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);...
+     print(gcf,'-painters','-depsc', 'Figures/CSTrials.eps', '-r250');
 %% Plot all the Figures
 addpath('Figures');
 figure('Name','DeltaF/F'); stack_plot(DeltaFoverF);
@@ -59,7 +66,7 @@ figure('Name','Temporal Shuffled Spike Plot'); shuffledTspikePlot = Show_Spikes(
 figure('Name','Event Shuffled Spike Plot'); shuffledEspikePlot = Show_Spikes(Event_shuffled);
 figure('Name','Total Shuffled Spike Plot'); shuffledAspikePlot = Show_Spikes(Total_shuffled);
 % figure(7); htmp(corr_jaccard);
-figure('Name','Fluorescence Map'); spikeImage = spike_map(DeltaFoverF,time);...
+figure('Name','Fluorescence Map'); spikeImage = spike_map(DeltaFoverF,time);caxis([0 .4]);...
     print(gcf,'-painters','-depsc', 'Figures/Fluormap.eps', '-r250');
 figure('Name','Population Intensity');height = 10;rateImage = firing_rate(Spikes,height,time);caxis([0 0.5]);set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);...
     print(gcf,'-painters','-depsc', 'Figures/Population.eps', '-r250');
