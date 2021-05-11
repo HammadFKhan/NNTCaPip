@@ -61,28 +61,6 @@ set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);...
  for i = 1:size(batch_corr,3)
      subplot(2,2,i),h = htmp(batch_corr(:,:,i),20);caxis([0 0.4]);
  end
- 
- %% Centroid
- figure()
-for ii = 1:6
-    gradient = 0+ii/12;
-    centroid(ii,1) = batchData(ii).ActivityCentroid(1);
-    centroid(ii,2) = batchData(ii).ActivityCentroid(2);
-    centroid(ii,3) = batchData(ii).ActivityCentroidVariance(1);
-    centroid(ii,4) = batchData(ii).ActivityCentroidVariance(2);
-    r = rectangle('Position',[centroid(ii,1),centroid(ii,2),centroid(ii,1)+centroid(ii,3),...
-        centroid(ii,2)+centroid(ii,4)],...
-        'Curvature',[1 1]);
-    r.EdgeColor = [1 1 1 .1];
-    r.FaceColor = [.1 .1 .1 .3];
-    r.LineWidth = 0.001;
-end
-axis equal
-set(gca,'XTick','','XTickLabel','');
-set(gca,'YTick','','YTickLabel','');
-set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);...
-     print(gcf,'-painters','-depsc', 'Figures/Centroids.eps', '-r250');
- 
 %% Plot all the Figures
 addpath('Figures');
 figure('Name','DeltaF/F'); stack_plot(DeltaFoverF);
