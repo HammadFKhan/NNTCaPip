@@ -23,5 +23,5 @@ for i = 1:H
     end
 end
 
-corr(isnan(corr))=0;
+corr(isnan(corr))=1;
 end
