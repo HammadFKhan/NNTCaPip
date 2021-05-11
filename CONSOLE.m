@@ -50,7 +50,7 @@ a = mean(mean(sim_index,2));
 b = mean(abs(mean(shufsim_index,2)));
 %% Trial by Trial analysis
 addpath(genpath('Figures'));
-batchSpikes = TrialByTrial(batchData([2:6,12])); % Function call
+batchSpikes = TrialByTrial(batchData(1:6)); % Function call
 bin = 40;
 [vectorized,sim_index] = cosine_similarity(batchSpikes,bin);
 [z,mu,sigma] = zscore(sim_index);
@@ -60,22 +60,22 @@ set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);...
  
  %% Centroid
  figure()
-for ii = 1:12
+for ii = 1:6
     gradient = 0+ii/12;
     centroid(ii,1) = batchData(ii).ActivityCentroid(1);
     centroid(ii,2) = batchData(ii).ActivityCentroid(2);
-    centroid(ii,3) = batchData(ii).ActivityCentroidVariAnce(1);
-    centroid(ii,4) = batchData(ii).ActivityCentroidVariAnce(2);
+    centroid(ii,3) = batchData(ii).ActivityCentroidVariance(1);
+    centroid(ii,4) = batchData(ii).ActivityCentroidVariance(2);
     r = rectangle('Position',[centroid(ii,1),centroid(ii,2),centroid(ii,1)+centroid(ii,3),...
         centroid(ii,2)+centroid(ii,4)],...
         'Curvature',[1 1]);
-    r.EdgeColor = [1 1 1 0.2];
-    r.FaceColor = [gradient 1-gradient .6 0.4];
+    r.EdgeColor = [1 1 1 .1];
+    r.FaceColor = [.1 .1 .1 .3];
     r.LineWidth = 0.001;
 end
 axis equal
-set(gca,'XTickLabel','');
-set(gca,'YTickLabel','');
+set(gca,'XTick','','XTickLabel','');
+set(gca,'YTick','','YTickLabel','');
 set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);...
      print(gcf,'-painters','-depsc', 'Figures/Centroids.eps', '-r250');
  
