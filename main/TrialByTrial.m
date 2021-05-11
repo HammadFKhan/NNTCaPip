@@ -1,4 +1,4 @@
-function batchSpikes = TrialByTrial(batchData)
+function [batchSpikes,batch_corr] = TrialByTrial(batchData)
 
 % ### Requires Batch Structure ###
 cellSpikes = struct2cell(batchData(:));
@@ -11,6 +11,7 @@ n = size(batchData,2); % number of matrices
 r = min(spikeSize); % row of matrices
 c = size(cellSpikes{1,i},2); % column of matrices
 batchSpikes = zeros(r,c,n);
+batch_corr = zeros(r,r,n);
 for ii = 1:n
     spikes = cellSpikes{1,ii};
     try
@@ -20,6 +21,7 @@ for ii = 1:n
         disp('Not all trials were analyzed!')
         break
     end
+    batch_corr(:,:,ii) = correlation_dice(batchSpikes(:,:,ii)); % Dice Correlation
 end
 
 batchSpikes = reshape(batchSpikes,r,c*n); % Reshape into single matrix
