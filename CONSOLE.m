@@ -2,6 +2,7 @@
 % Github Version 4.1
 
 %####Batch Analysis for ROI Extaction####
+addpath(genpath('main'));
 clear
 clc
 close all;
@@ -50,16 +51,17 @@ a = mean(mean(sim_index,2));
 b = mean(abs(mean(shufsim_index,2)));
 %% Trial by Trial analysis
 addpath(genpath('Figures'));
-[batchSpikes,batch_corr] = TrialByTrial(batchData); % Function call
+[batchSpikes,batch_corr] = TrialByTrial(batchData([1,4,5,6,7,8])); % Function call
 bin = 20;
 [vectorized,sim_index] = cosine_similarity(batchSpikes,bin);
 [z,mu,sigma] = zscore(sim_index);
-figure('Name','Cosine-Similarity Index'); h = htmp(sim_index);caxis([.5 0.9]);
+figure('Name','Cosine-Similarity Index'); h = htmp(sim_index);
+% caxis([.5 0.9]);
 set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);...
      print(gcf,'-painters','-depsc', 'Figures/CSTrials.eps', '-r250');
  figure('Name','Dice Correlation')
  for i = 1:size(batch_corr,3)
-     subplot(2,2,i),h = htmp(batch_corr(:,:,i),20);caxis([0 0.4]);
+     subplot(2,3,i),h = htmp(batch_corr(:,:,i),20);caxis([0 0.4]);
  end
 %% Plot all the Figures
 addpath('Figures');
