@@ -44,7 +44,7 @@ options = CNMFSetParms(...
     'nb',3,...                                  % number of background components    
     'min_SNR',3,...                             % minimum SNR threshold
     'space_thresh',0.5,...                      % space correlation threshold
-    'cnn_thr',0.4...                            % threshold for CNN classifier    
+    'cnn_thr',0.3...                            % threshold for CNN classifier    
     );
 
 %% Data pre-processing
