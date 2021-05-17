@@ -2,6 +2,7 @@
 % Github Version 4.1
 
 %####Batch Analysis for ROI Extaction####
+addpath(genpath('main'));
 clear
 clc
 close all;
@@ -26,7 +27,7 @@ set(0,'DefaultFigureWindowStyle','docked')
 addpath(genpath('main'));
 cell_count = length(ROI);
 time = time_adjust(num_images,15);
-std_threshold = 3.1;
+std_threshold = 5;
 static_threshold = .2;
 Spikes = Spike_Detector_Single(dDeltaFoverF,std_threshold,static_threshold);
 corr = correlation_dice(Spikes);
@@ -50,39 +51,18 @@ a = mean(mean(sim_index,2));
 b = mean(abs(mean(shufsim_index,2)));
 %% Trial by Trial analysis
 addpath(genpath('Figures'));
-[batchSpikes,batch_corr] = TrialByTrial(batchData); % Function call
+[batchSpikes,batch_corr] = TrialByTrial(batchData([1,4,5,6,7,8])); % Function call
 bin = 20;
 [vectorized,sim_index] = cosine_similarity(batchSpikes,bin);
 [z,mu,sigma] = zscore(sim_index);
-figure('Name','Cosine-Similarity Index'); h = htmp(sim_index);caxis([.5 0.9]);
+figure('Name','Cosine-Similarity Index'); h = htmp(sim_index);
+% caxis([.5 0.9]);
 set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);...
      print(gcf,'-painters','-depsc', 'Figures/CSTrials.eps', '-r250');
  figure('Name','Dice Correlation')
  for i = 1:size(batch_corr,3)
-     subplot(2,2,i),h = htmp(batch_corr(:,:,i),20);caxis([0 0.4]);
+     subplot(2,3,i),h = htmp(batch_corr(:,:,i),20);caxis([0 0.4]);
  end
- 
- %% Centroid
- figure()
-for ii = 1:6
-    gradient = 0+ii/12;
-    centroid(ii,1) = batchData(ii).ActivityCentroid(1);
-    centroid(ii,2) = batchData(ii).ActivityCentroid(2);
-    centroid(ii,3) = batchData(ii).ActivityCentroidVariance(1);
-    centroid(ii,4) = batchData(ii).ActivityCentroidVariance(2);
-    r = rectangle('Position',[centroid(ii,1),centroid(ii,2),centroid(ii,1)+centroid(ii,3),...
-        centroid(ii,2)+centroid(ii,4)],...
-        'Curvature',[1 1]);
-    r.EdgeColor = [1 1 1 .1];
-    r.FaceColor = [.1 .1 .1 .3];
-    r.LineWidth = 0.001;
-end
-axis equal
-set(gca,'XTick','','XTickLabel','');
-set(gca,'YTick','','YTickLabel','');
-set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);...
-     print(gcf,'-painters','-depsc', 'Figures/Centroids.eps', '-r250');
- 
 %% Plot all the Figures
 addpath('Figures');
 figure('Name','DeltaF/F'); stack_plot(DeltaFoverF);

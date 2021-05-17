@@ -27,14 +27,14 @@ set(0,'DefaultFigureWindowStyle','docked')
 addpath(genpath('main'));
 cell_count = length(ROI);
 time = time_adjust(num_images,15);
-std_threshold = 3.1;
+std_threshold = 5;
 static_threshold = .2;
 Spikes = Spike_Detector_Single(dDeltaFoverF,std_threshold,static_threshold);
 corr = correlation_dice(Spikes);
 Connected_ROI = Connectivity_dice(corr, ROI);
 corr_jaccard = correlation_jaccard(Spikes);
 [coactive_cells,detected_spikes] = coactive_index(Spikes);
-calcium_avg = STA(DeltaFoverF,Spikes,std_threshold,10);
+calcium_avg = STA(DeltaFoverF,Spikes,std_threshold,5);
 bin = 20;
 Spikes_shuffled = tempShuffle(Spikes,num_images,cell_count);
 Event_shuffled = spatialShuffle(Spikes,num_images,cell_count);
