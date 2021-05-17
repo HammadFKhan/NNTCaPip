@@ -36,7 +36,7 @@ options = CNMFSetParms(...
     'gSig',tau,...                              % half size of neuron
     'merge_thr',0.80,...                        % merging threshold  
     'nb',3,...                                  % number of background components    
-    'min_SNR',3,...                             % minimum SNR threshold
+    'min_SNR',2,...                             % minimum SNR threshold
     'space_thresh',0.5,...                      % space correlation threshold
     'cnn_thr',0.4...                            % threshold for CNN classifier    
     );
