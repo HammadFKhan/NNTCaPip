@@ -36,13 +36,15 @@ K = 125;                                           % number of components to be 
 tau = 10;                                          % std of gaussian kernel (half size of neuron) 
 p = 2;
 
-options = CNMFSetParms(...   
+options = CNMFSetParms(... 
+    'init_method','greedy_corr',...             % greedy correlation method (Soma detection)
+    'min_corr',0.2,...                          % Correlation dimension
     'd1',d1,'d2',d2,...                         % dimensionality of the FOV
     'p',p,...                                   % order of AR dynamics    
     'gSig',tau,...                              % half size of neuron
     'merge_thr',0.80,...                        % merging threshold  
-    'nb',3,...                                  % number of background components    
-    'min_SNR',3,...                             % minimum SNR threshold
+    'nb',2,...                                  % number of background components    
+    'min_SNR',1,...                             % minimum SNR threshold
     'space_thresh',0.5,...                      % space correlation threshold
     'cnn_thr',0.3...                            % threshold for CNN classifier    
     );
