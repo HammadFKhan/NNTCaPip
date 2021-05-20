@@ -7,7 +7,7 @@ y = length(DeltaFoverF(:,1));
 baseline = spacing*max(DeltaFoverF,[],'all');
 for i = 1:y
     gradient = i/y;
-    plot(DeltaFoverF(i,:)+(spacing*baseline),'LineWidth',1,'Color',[.30 .835 .384]); hold on;
+    plot(DeltaFoverF(i,:)+(spacing*baseline),'LineWidth',2,'Color',[.30 .835 .384]); hold on;
     baseline = baseline + spacing*max(DeltaFoverF,[],'all');
     axis tight, box off,...
             set(gca,'YTick','','YTickLabel','');

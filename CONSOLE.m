@@ -44,16 +44,19 @@ Connected_ROI = Connectivity_dice(corr, ROI);
 corr_jaccard = correlation_jaccard(Spikes);
 [coactive_cells,detected_spikes] = coactive_index(Spikes);
 calcium_avg = STA(DeltaFoverF,Spikes,std_threshold,5);
-bin = 20;
+bin = 20; %Vector sizes for similarity indexing (Num frames should be devisable by this)           
+
 Spikes_shuffled = tempShuffle(Spikes,num_images,cell_count);
 Event_shuffled = spatialShuffle(Spikes,num_images,cell_count);
 surrogate = 10;
 Total_shuffled = allShuffle(Spikes,num_images,cell_count,surrogate);
 shuff_corr = correlation_dice(Total_shuffled);
+
 [vectorized,sim_index] = cosine_similarity(Spikes,bin);
 [shufvectorized,shufsim_index] = cosine_similarity(Total_shuffled,bin);
 shufsim_index = shufsim_index-mean(mean(shufsim_index,2));
-[NumActiveNodes,NumNodes,NumEdges,SpatialCentroid,SpatialCentroidVariance,ActivityCentroid,ActivityCentroidVariance]...
+[NumActiveNodes,NumNodes,NumEdges,SpatialCentroid,SpatialCentroidVariance,...
+    ActivityCentroid,ActivityCentroidVariance]...
     = Network_Analysis(ROIcentroid,Connected_ROI);
 
 a = mean(mean(sim_index,2));
@@ -74,14 +77,13 @@ set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);...
  end
 %% Plot all the Figures
 addpath('Figures');
-figure('Name','DeltaF/F'); stack_plot(DeltaFoverF,0.6);
+figure('Name','DeltaF/F'); stack_plot(DeltaFoverF,0.8); 
 % figure('Name','Convolved Spikes'); plot(dDeltaFoverF');
 % figure('Name','Threshold Detection');DeltaFoverFplotter(dDeltaFoverF,std_threshold,static_threshold)
 figure('Name','Spike Plot'); spikePlot = Show_Spikes(Spikes);
 figure('Name','Temporal Shuffled Spike Plot'); shuffledTspikePlot = Show_Spikes(Spikes_shuffled);
 figure('Name','Event Shuffled Spike Plot'); shuffledEspikePlot = Show_Spikes(Event_shuffled);
 figure('Name','Total Shuffled Spike Plot'); shuffledAspikePlot = Show_Spikes(Total_shuffled);
-% figure(7); htmp(corr_jaccard);
 figure('Name','Fluorescence Map'); spikeImage = spike_map(DeltaFoverF,time);caxis([0 .4]);...
     print(gcf,'-painters','-depsc', 'Figures/Fluormap.eps', '-r250');
 figure('Name','Population Intensity');height = 10;rateImage = firing_rate(Spikes,height,time);caxis([0 0.5]);set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);...
