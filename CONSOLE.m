@@ -13,7 +13,7 @@ toc
 %% Batch Data Analysis
 addpath(genpath('main'));
 batchData = batchData_Analysis;
-%% CaimAn Single File ROI Extraction
+%% CaimAn Single File ROI Extraction 
 clear
 clc
 close all;
@@ -21,6 +21,15 @@ set(0,'DefaultFigureWindowStyle','normal')
 addpath(genpath('main'));
 tic
 Start_CaImAn
+toc
+%% CaimAn Single File ROI Extraction from Dendrites
+clear
+clc
+close all;
+set(0,'DefaultFigureWindowStyle','normal')
+addpath(genpath('main'));
+tic
+Start_CaImAn_Dendrites
 toc
 %% Single File Analysis
 set(0,'DefaultFigureWindowStyle','docked')
@@ -65,7 +74,7 @@ set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);...
  end
 %% Plot all the Figures
 addpath('Figures');
-figure('Name','DeltaF/F'); stack_plot(DeltaFoverF);
+figure('Name','DeltaF/F'); stack_plot(DeltaFoverF,0.6);
 % figure('Name','Convolved Spikes'); plot(dDeltaFoverF');
 % figure('Name','Threshold Detection');DeltaFoverFplotter(dDeltaFoverF,std_threshold,static_threshold)
 figure('Name','Spike Plot'); spikePlot = Show_Spikes(Spikes);
@@ -80,16 +89,15 @@ figure('Name','Population Intensity');height = 10;rateImage = firing_rate(Spikes
 figure('Name','Coactivity Index'); B = bar(time,coactive_cells);...
     ax = gca;ax.TickDir = 'out';ax.Box = 'off';axis off;...
     print(gcf,'-painters','-depsc', 'Figures/Coactive.eps', '-r250');
-figure('Name','Dice-Similarity Index');h = htmp(corr,20);caxis([0 0.4]);set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);...
+figure('Name','Dice-Similarity Index');h = htmp(corr,10);caxis([0 0.4]);set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);...
      print(gcf,'-painters','-depsc', 'Figures/DSC.eps', '-r250');
-figure('Name','Shuffled Dice-Similarity Index');h = htmp(shuff_corr,20);caxis([0 0.4]);set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);...
+figure('Name','Shuffled Dice-Similarity Index');h = htmp(shuff_corr,10);caxis([0 0.4]);set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);...
      print(gcf,'-painters','-depsc', 'Figures/sDCS.eps', '-r250');
 figure('Name','Cosine-Similarity Index'); h = htmp(sim_index);caxis([0.35 .9]);set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);...
      print(gcf,'-painters','-depsc', 'Figures/CS.eps', '-r250');
 figure('Name','Shuffled Cosine-Similarity Index'); h = htmp(shufsim_index);caxis([0 1]);set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);...
      print(gcf,'-painters','-depsc', 'Figures/sCS.eps', '-r250');
 figure('Name','Network Map'); NodeSize = 6;EdgeSize = 2;Cell_Map_Dice(AverageImage,Connected_ROI,ROIcentroid,NodeSize,EdgeSize)
-
 
 %% Rotary Encoder
 figure('Name','Pulse Data');plot(encoder_data.rotate_pulse);
