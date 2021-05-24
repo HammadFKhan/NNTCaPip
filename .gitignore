@@ -1,3 +1,9 @@
 *.eps
 *.eps
 CONSOLE.asv
+Figures/sDCS.eps
+Figures/sCS.eps
+Figures/Population.eps
+Figures/Fluormap.eps
+Figures/DSC.eps
+Figures/CS.eps

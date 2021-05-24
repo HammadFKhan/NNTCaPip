@@ -61,7 +61,7 @@ shufsim_index = shufsim_index-mean(mean(shufsim_index,2));
 
 a = mean(mean(sim_index,2));
 b = mean(abs(mean(shufsim_index,2)));
-%% Trial by Trial analysis
+%% Trial by Trial analysis ##Only use with batch processed files##
 addpath(genpath('Figures'));
 [batchSpikes,batch_corr] = TrialByTrial(batchData([1,4,5,6,7,8])); % Function call
 bin = 20;
