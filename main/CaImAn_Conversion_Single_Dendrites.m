@@ -31,7 +31,7 @@ tau = 3;                                          % std of gaussian kernel (half
 p = 2;
 
 options = CNMFSetParms(... 
-    'init_method','sparse_NMF',...              % greedy correlation method (Soma detection)
+    'init_method','sparse_NMF',...              % Non-negative matrix factorization (Dendrite detection)
     'snmf_max_iter',50,...                      % NMF interations
     'd1',d1,'d2',d2,...                         % dimensionality of the FOV
     'p',p,...                                   % order of AR dynamics    
