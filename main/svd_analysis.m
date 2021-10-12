@@ -1,9 +1,9 @@
 %% SVD test
 function svd_analysis
 figure,subplot(2,2,1), axis off
-h = htmp(sim_index);
+h = htmp(Wi);
 plotind = 2;
-X = sim_index;
+X = Wi;
 [U,S,V] = svd(X);
 for r = [2 3 5]
 Xapprox = U(:,r)*S(r,r)*V(:,r)';
@@ -76,7 +76,21 @@ scatter3(x,y,z,sz,'MarkerEdgeColor',[0 .5 .5],...
   'LineWidth',1.5),view(-50,50);
 xlabel('PC1'),ylabel('PC2'),zlabel('PC3');
 grid on,axis([-.5 .5 -.5 .5 -.5 .5]);
+%%
+figure,
 
+hold on
+for j = 1:58
+    for i = 1:size(X,1)
+        x(i) = V(:,j)'*X(i,:)';
+        y(i) = V(:,j+1)'*X(i,:)';
+        z(i) = V(:,j+2)'*X(i,:)';
+    end
+    sz = 5;
+    scatter3(x,y,z,sz,'filled'),view(-50,50);
+end
+xlabel('PC1'),ylabel('PC2'),zlabel('PC3');
+axis([-.5 .5 -.5 .5 -.5 .5]);
 %%
 PCX = x';
 PCY = y';
