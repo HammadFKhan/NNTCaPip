@@ -19,8 +19,8 @@ end
 
 % if y<25
 ax = time;
-[grad,~]=colorGradient([.1 .1 .1],[1 1 1],64);
-colormap(grad);
+% [grad,~]=colorGradient([.1 .1 .1],[1 1 1],64);
+colormap(jet);
 imagesc(spikeImage,'Xdata',time);
 h = colorbar;
 set(get(h,'title'),'string','\Delta F/F (%)');
