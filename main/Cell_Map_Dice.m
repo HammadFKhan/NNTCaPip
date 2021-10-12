@@ -51,10 +51,10 @@ if Connected_ROI(1,:) ~= [0,0,0]
         Cell1 = ROIbases(Connected_ROI(j,1),:);
         Cell2 = ROIbases(Connected_ROI(j,2),:);
         corr = Connected_ROI(j,3);
-        if corr > 0.7
+        if corr > 0.5
             LineWidth = 2*EdgeSize;
             Color = [0.05 0.2 0.76];
-        elseif corr >= 0.1 && corr <= 0.7
+        elseif corr >= 0.1 && corr <= 0.5
             LineWidth = EdgeSize;
             Color = [0.02 0.631 0.8];
         end
