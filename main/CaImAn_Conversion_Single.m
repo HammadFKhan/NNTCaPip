@@ -44,8 +44,8 @@ options = CNMFSetParms(...
     'nb',2,...                                  % number of background components    
     'min_SNR',2,...                             % minimum SNR threshold
     'space_thresh',0.3,...                      % space correlation threshold
-    'cnn_thr',0.2...                            % threshold for CNN classifier    
-    );
+    'cnn_thr',0.2...                            % threshold for CNN classifier  
+  );
 %% Data pre-processing
 
 [P,Y] = preprocess_data(Y,p,options);
