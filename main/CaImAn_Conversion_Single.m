@@ -18,9 +18,9 @@ sframe=1;						% user input: first frame to read (optional, default 1)
 % num2read=226;					% user input: how many frames to read   (optional, default until the end)
 %% Motion Correction
 disp('Reading File...')
-% Y = motionCorrection(nam);
+Y = motionCorrection(nam);
 
-Y = read_file(nam,sframe);
+% Y = read_file(nam,sframe);
 
 %Y = Y - min(Y(:)); 
 if ~isa(Y,'single');    Y = single(Y);  end         % convert to single
@@ -30,24 +30,24 @@ d = d1*d2;                                          % total number of pixels
 
 %% Set parameters
 disp('Setting Parameters...')
-K = 120;                                           % number of components to be found
+K = 250;                                           % number of components to be found
 tau = 5;                                          % std of gaussian kernel (half size of neuron) 
 p = 2;
 
 options = CNMFSetParms(...   
-    'init_method','sparse_NMF',...
+    'init_method','greedy',...
+    'beta',0.75,...
     'min_corr',0.3,...
     'd1',d1,'d2',d2,...                         % dimensionality of the FOV
     'p',p,...                                   % order of AR dynamics    
     'gSig',tau,...                              % half size of neuron
     'merge_thr',0.90,...                        % merging threshold  
-    'nb',2,...                                  % number of background components    
+    'nb',3,...                                  % number of background components    
     'min_SNR',2,...                             % minimum SNR threshold
     'space_thresh',0.3,...                      % space correlation threshold
-    'cnn_thr',0.2...                            % threshold for CNN classifier  
+    'cnn_thr',0.6...                           % threshold for CNN classifier 
   );
 %% Data pre-processing
-
 [P,Y] = preprocess_data(Y,p,options);
 %% fast initialization of spatial components using greedyROI and HALS
 
@@ -138,7 +138,7 @@ Pm.p = p;    % restore AR value
 
 %% do some plotting
 
-[A_or,C_or,S_or,P_or] = order_ROIs(A2,C2,S2,P2); % order components
+[A_or,C_or,S_or,P_or] = order_ROIs(A2,C2); % order components
 K_m = size(C_or,1);
 [C_df,~] = extract_DF_F(Yr,A_or,C_or,P_or,options); % extract DF/F values (optional)
 
