@@ -58,9 +58,6 @@ shufsim_index = shufsim_index-mean(mean(shufsim_index,2));
 [NumActiveNodes,NumNodes,NumEdges,SpatialCentroid,SpatialCentroidVariance,...
     ActivityCentroid,ActivityCentroidVariance]...
     = Network_Analysis(ROIcentroid,Connected_ROI);
-
-a = mean(mean(sim_index,2));
-b = mean(abs(mean(shufsim_index,2)));
 %% Trial by Trial analysis ##Only use with batch processed files##
 addpath(genpath('Figures'));
 [batchSpikes,batch_corr] = TrialByTrial(batchData([1,2,4])); % Function call
@@ -85,14 +82,19 @@ figure('Name','Spike Plot'); spikePlot = Show_Spikes(Spikes);
 % figure('Name','Event Shuffled Spike Plot'); shuffledEspikePlot = Show_Spikes(Event_shuffled);
 % figure('Name','Total Shuffled Spike Plot'); shuffledAspikePlot = Show_Spikes(Total_shuffled);
 figure('Name','Fluorescence Map'); spikeImage = spike_map(DeltaFoverF,time);caxis([0 .4]);
-figure('Name','Population Intensity');height = 10;rateImage = firing_rate(Spikes,height,time);caxis([0 0.5]);set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);...
+figure('Name','Population Intensity');height = 10;rateImage = firing_rate(Spikes,height,time);caxis([0 0.5]);set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);
 figure('Name','Coactivity Index'); B = bar(time,coactive_cells);ax = gca;ax.TickDir = 'out';ax.Box = 'off';axis off;
-figure('Name','Dice-Similarity Index');h = htmp(corr,10);caxis([0 0.3]);set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);...
+figure('Name','Dice-Similarity Index');h = htmp(corr,10);caxis([0 0.3]);set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);
 figure('Name','Shuffled Dice-Similarity Index');h = htmp(shuff_corr,10);caxis([0 0.4]);set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);
 figure('Name','Cosine-Similarity Index'); h = htmp(sim_index);caxis([0.35 .9]);set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);
 figure('Name','Shuffled Cosine-Similarity Index'); h = htmp(shufsim_index);caxis([0 1]);set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);
 figure('Name','Network Map'); NodeSize = 3;EdgeSize = 2;Cell_Map_Dice(AverageImage,Connected_ROI,ROIcentroid,NodeSize,EdgeSize)
-
+%% Linkage
+X = sim_index;
+Z = linkage(X,'centroid');
+c = cluster(Z,'Maxclust',2);
+scatter(X(:,1),X(:,2),10,c);
+dendrogram(Z);
 %% Rotary Encoder
 figure('Name','Pulse Data');plot(encoder_data.rotate_pulse);
 figure('Name','Angular Distance');bar(encoder_data.ang_distance);
