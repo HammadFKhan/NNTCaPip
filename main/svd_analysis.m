@@ -1,16 +1,16 @@
 %% SVD test
-function svd_analysis
-figure,subplot(2,2,1), axis off
-h = htmp(Wi);
-plotind = 2;
-X = Wi;
-[U,S,V] = svd(X);
-for r = [2 3 5]
-Xapprox = U(:,r)*S(r,r)*V(:,r)';
-subplot(2,2,plotind), plotind = plotind+1;
-htmp(Xapprox);
-caxis([0 1]);
-end
+function svd_analysis(data)
+% figure,subplot(2,2,1), axis off
+% h = htmp(data);
+% plotind = 2;
+% X = data;
+% [U,S,V] = svd(X);
+% for r = [2 3 5]
+% Xapprox = U(:,r)*S(r,r)*V(:,r)';
+% subplot(2,2,plotind), plotind = plotind+1;
+% htmp(Xapprox);
+% caxis([0 1]);
+% end
 %% Mean-substracted data
 % figure,subplot(2,2,1), axis off
 % h = htmp(sim_index);h.ColorbarVisible = 'off';
@@ -24,34 +24,32 @@ end
 % h = htmp(Xapprox);
 % h.ColorbarVisible = 'off';caxis([0 0.15]);saveas(gcf,'myName','png');
 % end
-
-figure,subplot(2,2,1), axis off
-h = htmp(sim_index);caxis([0 1]);h.ColorbarVisible = 'off';
-plotind = 2;
-avgSim = mean(sim_index,2);
-X = sim_index - avgSim*ones(1,size(sim_index,2));
+figure,axis off
+h = htmp(data),caxis([.3 1]);
+plotind = 3;
+avgSim = mean(data,2);
+X = data;
 [U,S,V] = svd(X);
-for r = [1 3 5]
+figure,
+for r = 1:plotind
 Xapprox = U(:,r)*S(r,r)*V(:,r)';
-subplot(2,2,plotind), plotind = plotind+1;
-h = htmp(Xapprox);caxis([0 1]);
-h.ColorbarVisible = 'off';caxis([0 0.15]);h.Colormap = flipud(gray(5));saveas(gcf,'myName','png');
+subplot(1,3,r),h = htmp(Xapprox);
 end
 %% truncate 40x40
-
-figure,subplot(2,2,1), axis off
-sim_index2 = sim_index1(1:40,1:40);
-h = htmp(sim_index2);h.ColorbarVisible = 'off';
-plotind = 2;
-avgSim2 = mean(sim_index2,2);
-X = sim_index2 - avgSim2*ones(1,size(sim_index2,2));
-[U,S,V] = svd(X);
-for r = [1 2 3 4 5 6 7 8 9 10]
-Xapprox = U(:,r)*S(r,r)*V(:,r)';
-subplot(2,2,plotind), plotind = plotind+1;
-h = htmp(Xapprox);
-h.ColorbarVisible = 'off';caxis([0 0.15]);h.Colormap = flipud(gray(5));saveas(gcf,'myName','png');
-end
+% 
+% figure,subplot(2,2,1), axis off
+% sim_index2 = sim_index1(1:40,1:40);
+% h = htmp(sim_index2);h.ColorbarVisible = 'off';
+% plotind = 2;
+% avgSim2 = mean(sim_index2,2);
+% X = sim_index2 - avgSim2*ones(1,size(sim_index2,2));
+% [U,S,V] = svd(X);
+% for r = [1 2 3 4 5 6 7 8 9 10]
+% Xapprox = U(:,r)*S(r,r)*V(:,r)';
+% subplot(2,2,plotind), plotind = plotind+1;
+% h = htmp(Xapprox);
+% h.ColorbarVisible = 'off';caxis([0 0.15]);h.Colormap = flipud(gray(5));saveas(gcf,'myName','png');
+% end
 
 %% Singular Values
 figure,subplot(1,2,1)
@@ -75,7 +73,7 @@ scatter3(x,y,z,sz,'MarkerEdgeColor',[0 .5 .5],...
   'MarkerFaceColor',[0 .7 .7],...
   'LineWidth',1.5),view(-50,50);
 xlabel('PC1'),ylabel('PC2'),zlabel('PC3');
-grid on,axis([-.5 .5 -.5 .5 -.5 .5]);
+grid on
 %%
 figure,
 
@@ -116,9 +114,9 @@ set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);...
 
 %% Shuffle
 
-[vectorized,sim_index] = cosine_similarity(Spikes,20);
-avgSim = mean(sim_index,2);
-X = sim_index - avgSim*ones(1,size(sim_index,2));
+[vectorized,data] = cosine_similarity(Spikes,20);
+avgSim = mean(data,2);
+X = data - avgSim*ones(1,size(data,2));
 [U,S,V] = svd(X);
 figure,plot(cumsum(diag(S))/sum(diag(S)),'k','LineWidth',2),grid on;hold on;
 xlabel('PC #'); ylabel('Cumulative Energy');
@@ -174,7 +172,7 @@ set(gca,'FontSize',14);box off;
 [coeff, score,~,~,explained] = pca(batchData(1).sim_index);
 figure(),plot(cumsum(explained))
 %%
-X = sim_index;
+X = data;
 XXt = X*X';
 XtX = X'*X;
 figure,subplot(1,2,1)
