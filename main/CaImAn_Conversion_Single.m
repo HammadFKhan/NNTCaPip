@@ -45,8 +45,9 @@ options = CNMFSetParms(...
     'nb',3,...                                  % number of background components    
     'min_SNR',2,...                             % minimum SNR threshold
     'space_thresh',0.3,...                      % space correlation threshold
-    'cnn_thr',0.6...                           % threshold for CNN classifier 
-  );
+    'cnn_thr',0.6,...                           % threshold for CNN classifier 
+    'tsub',2 ...                                % Downsample temporal data (will resample later)
+    );
 %% Data pre-processing
 [P,Y] = preprocess_data(Y,p,options);
 %% fast initialization of spatial components using greedyROI and HALS
