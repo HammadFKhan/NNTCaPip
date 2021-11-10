@@ -35,22 +35,24 @@ d = d1*d2;                                          % total number of pixels
 
 %% Set parameters
 
-K = 125;                                           % number of components to be found
-tau = 10;                                          % std of gaussian kernel (half size of neuron) 
+disp('Setting Parameters...')
+K = 120;                                           % number of components to be found
+tau = 5;                                          % std of gaussian kernel (half size of neuron) 
 p = 2;
 
 options = CNMFSetParms(...   
-    'init_method','sparse_NMF',...
+    'init_method','greedy',...
+    'beta',0.75,...
     'min_corr',0.3,...
     'd1',d1,'d2',d2,...                         % dimensionality of the FOV
     'p',p,...                                   % order of AR dynamics    
     'gSig',tau,...                              % half size of neuron
-    'merge_thr',0.80,...                        % merging threshold  
-    'nb',2,...                                  % number of background components    
+    'merge_thr',0.90,...                        % merging threshold  
+    'nb',3,...                                  % number of background components    
     'min_SNR',2,...                             % minimum SNR threshold
-    'space_thresh',0.5,...                      % space correlation threshold
-    'cnn_thr',0.2...                            % threshold for CNN classifier    
-    );
+    'space_thresh',0.3,...                      % space correlation threshold
+    'cnn_thr',0.6...                           % threshold for CNN classifier 
+  );
 
 %% Data pre-processing
 
