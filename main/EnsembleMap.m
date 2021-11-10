@@ -1,8 +1,6 @@
 function EnsembleMap(AverageImage,ROIbases,NodeList,NodeSize)
 
-if nargin < 6; Edgesize = 5;end
-if nargin < 5; NodeSize = 5;end
-
+if nargin < 4; NodeSize = 6;end
 
 % Centroid = regionprops(AverageImage,'centroid');
 % centroids = cat(1, Centroid.Centroid);
@@ -11,7 +9,8 @@ centroids = ROIbases;
 
 [H,W] = size(AverageImage);
 background = ones(H,W);
-
+xlim([0 H])
+ylim([0 W])
 %%
 % imshow(mat2gray(background))
 % axis on
@@ -20,7 +19,7 @@ hold on;
 radius = NodeSize*ones(size(centroids,1),1);
 centerX = centroids(:,1);
 centerY = centroids(:,2);
-viscircles([centerX, centerY], radius,'Color','k');
+viscircles([centerX, centerY], radius,'Color','k','LineWidth',1);
 clear centerX centerY 
 count = 1;
 for i = 1:length(centroids)
@@ -31,9 +30,8 @@ for i = 1:length(centroids)
     end
 end
 if  length(NodeList)>1
-    sz = pi*(NodeSize+1)^2;
-    scatter(centerX, centerY,sz,'MarkerFaceColor',[0 0 1],'MarkerFaceAlpha',1,'MarkerEdgeAlpha',0);
-    drawnow
+    sz = pi*(NodeSize-1)^2;
+    scatter(centerX, centerY,sz,'MarkerFaceColor',[1 0 0],'MarkerFaceAlpha',1,'MarkerEdgeAlpha',0);
 end
 hold off;
 % imshow(background)
