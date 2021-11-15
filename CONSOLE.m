@@ -10,17 +10,29 @@ addpath(genpath('main'));
 tic
 Start_CaImAn
 toc
-
+%% CaimAn Single File ROI Extraction (Large Dataset)
+clear
+clc
+close all;
+set(0,'DefaultFigureWindowStyle','normal')
+addpath(genpath('main'));
+tic
+Start_MemMap_CaImAn
+toc
 %% Single File Analysis
 set(0,'DefaultFigureWindowStyle','docked')
 addpath(genpath('main'));
-cell_count = length(ROI);
-time = time_adjust(num_images,15);
-std_threshold = 2.5;
+std_threshold = 4;
 static_threshold = .2;
 Spikes = Spike_Detector_Single(dDeltaFoverF,std_threshold,static_threshold);
+%Excude inactive cells
+% numSpikes = sum(Spikes,2);
+% keepSpikes = find(numSpikes>(.01*mean(numSpikes)));
+% Spikes = Spikes(keepSpikes,:);
 [coactive_cells,detected_spikes] = coactive_index(Spikes,length(Spikes));
-calcium_avg = STA(DeltaFoverF,Spikes,std_threshold,5);
+cell_count = length(ROI);
+time = time_adjust(num_images,15);
+% calcium_avg = STA(DeltaFoverF,Spikes,std_threshold,5);
 bin = 10; %Vector sizes for similarity indexing (Num frames should be devisable by this)           
 
 % Spikes_shuffled = tempShuffle(Spikes,10000);
@@ -32,7 +44,7 @@ bin = 10; %Vector sizes for similarity indexing (Num frames should be devisable 
 % [shufvectorized,shufsim_index] = cosine_similarity(Total_shuffled,bin);
 % shufsim_index = shufsim_index-mean(mean(shufsim_index,2));
 
-[vectorized,sim_index] = cosine_similarity(Spikes(:,1:1800),bin);
+[vectorized,sim_index] = cosine_similarity(Spikes(:,1:17920),bin);
 corr = correlation_dice(Spikes);
 Connected_ROI = Connectivity_dice(corr, ROI);
 [NumActiveNodes,NodeList,NumNodes,NumEdges,SpatialCentroid,SpatialCentroidVariance,...
@@ -87,7 +99,7 @@ set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);
  end
 %% Plot all the Figures
 addpath('Figures');
-figure('Name','DeltaF/F'); stack_plot(DeltaFoverF,1.5,25); 
+figure('Name','DeltaF/F'); stack_plot(DeltaFoverF,1,6); 
 figure('Name','Convolved Spikes'); plot(dDeltaFoverF');
 figure('Name','Threshold Detection');DeltaFoverFplotter(dDeltaFoverF,std_threshold,static_threshold)
 figure('Name','Spike Plot'); Show_Spikes(Spikes);
