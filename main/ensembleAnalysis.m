@@ -2,7 +2,7 @@ function Ensemble = ensembleAnalysis(Spikes,ROI,ROIcentroid)
 surrogate = 10000;
 % Calculate threshold for coactive activations
 disp(['Shuffling data ' num2str(surrogate) ' times to find optimal ensemble cutoff']);
-shufSpikes = tempShuffle(Spikes,surrogate);
+shufSpikes = tempShuffle(Spikes,200);
 [coactive_cells,~] = coactive_index(Spikes,length(Spikes));
 [shufcoactive_cells,~] = coactive_index(shufSpikes,length(Spikes));
 bin = ceil(max(coactive_cells)*100);
@@ -16,11 +16,17 @@ if checkPadding>0
     [vectorized,sim_index] = cosine_similarity(horzcat(ensemble,zeros(size(ensemble,1),checkPadding)),1);
     sim_index = sim_index(1:size(ensembleCan,2),1:size(ensembleCan,2));
 else
-    [vectorized,sim_index] = cosine_similarity(ensemble,1);
+    [vectorized,sim_index] = cosine_similarity(ensemble,5);
 end
 
 % Refine ensemble nodes based on similarity
-[r,~] = find(tril(sim_index>0.6,-1));
+thres = 0.6;
+[r,~] = find(tril(sim_index>thres,-1));
+if isempty(r)
+    disp(['No ensembles detected at ' num2str(thres*100) '% threshold']);
+    return;
+end
+
 r = unique(r);
 fEnsemble = find(diff(r)~=1)+1;
 ensembleIndentified = 1 + length(fEnsemble);
