@@ -12,10 +12,13 @@ if isequal(filename,0) || isequal(pathname,0)
 else
    disp(['User selected ', fullfile(pathname, filename)])
 end
-  
-nam = strcat(pathname,filename);          % insert path to tiff stack here
+
+fullfilename=fullfile(pathname,filename);  
+[p,f,~]=fileparts(fullfilename);
+nam = strcat(p,f);          % insert path to tiff stack here
 sframe=1;						% user input: first frame to read (optional, default 1)
 % num2read=226;					% user input: how many frames to read   (optional, default until the end)
+clear p f 
 %% Motion Correction
 disp('Reading File...')
 Y = motionCorrection(nam);
