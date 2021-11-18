@@ -33,7 +33,7 @@ Spikes = Spike_Detector_Single(dDeltaFoverF,std_threshold,static_threshold);
 cell_count = length(ROI);
 time = time_adjust(num_images,15);
 % calcium_avg = STA(DeltaFoverF,Spikes,std_threshold,5);
-bin = 10; %Vector sizes for similarity indexing (Num frames should be devisable by this)           
+bin = 20; %Vector sizes for similarity indexing (Num frames should be devisable by this)           
 
 % Spikes_shuffled = tempShuffle(Spikes,10000);
 % Event_shuffled = spatialShuffle(Spikes,10000);
@@ -53,16 +53,24 @@ Connected_ROI = Connectivity_dice(corr, ROI);
 %% Ensemble Analysis
 Ensemble = ensembleAnalysis(Spikes,ROI,ROIcentroid);
 %% Plot Ensemble
+clear mov
+writerobj = VideoWriter('Ensemble.avi','Uncompressed AVI');
+writerobj.FrameRate = 8;
+open(writerobj);
 for i = 1:Ensemble.ensembleIndentified 
-    figure(1),
-    EnsembleMap(AverageImage,ROIcentroid,Ensemble.NodeList{2},5)
-    set(gcf, 'PaperSize', [4 4]);
+    axis off
+    figure(i)
+    axis off
+    color = [i/(Ensemble.ensembleIndentified+10) ,i/(Ensemble.ensembleIndentified+4),(i+10)/(Ensemble.ensembleIndentified+25)]; 
+    EnsembleMap(AverageImage,ROIcentroid,Ensemble.NodeList{i},5,color)
+    set(gcf, 'PaperSize', [20 20]);
     drawnow
-    hold on
+    mov(i) = getframe(gcf);
+    writeVideo(writerobj,mov(i));
 end
-
+close(writerobj)
 % Combine Maps
-
+figure,imagesc(Ensemble.sim_index),colormap(jet)
 %% Ensemble Analysis
 % win = find(t1==1);
 % UDS = find(diff(win)>1)
@@ -83,7 +91,8 @@ for j = 1:16
     drawnow
             hold off;
 end
-
+%% SVD/PCA of Ensembles
+[tProjq1, tProjq2, uProjq1, uProjq2] = featureProject(Ensemble.sim_index,15);
 %% Trial by Trial analysis ##Only use with batch processed files##
 addpath(genpath('Figures'));
 [batchSpikes,batch_corr] = TrialByTrial(batchData([1,2,4])); % Function call
@@ -99,14 +108,14 @@ set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);
  end
 %% Plot all the Figures
 addpath('Figures');
-figure('Name','DeltaF/F'); stack_plot(DeltaFoverF,1,6); 
+figure('Name','DeltaF/F'); stack_plot(DeltaFoverF(:,1:4000),1,16); 
 figure('Name','Convolved Spikes'); plot(dDeltaFoverF');
 figure('Name','Threshold Detection');DeltaFoverFplotter(dDeltaFoverF,std_threshold,static_threshold)
-figure('Name','Spike Plot'); Show_Spikes(Spikes);
+figure('Name','Spike Plot'); Show_Spikes(ensemble);
 % figure('Name','Temporal Shuffled Spike Plot'); shuffledTspikePlot = Show_Spikes(Spikes_shuffled);
 % figure('Name','Event Shuffled Spike Plot'); shuffledEspikePlot = Show_Spikes(Event_shuffled);
 % figure('Name','Total Shuffled Spike Plot'); shuffledAspikePlot = Show_Spikes(Total_shuffled);
-figure('Name','Fluorescence Map'); spikeImage = spike_map(DeltaFoverF,time);caxis([0 .45]);
+figure('Name','Fluorescence Map'); spike_map(DeltaFoverF(1:100,4500:5200));caxis([0 1]),set(gcf,'Position',[100 100 400 400])
 figure('Name','Population Intensity');height = 10;rateImage = firing_rate(Spikes,height,time);caxis([0 0.5]);set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);
 figure('Name','Coactivity Index'); B = bar(coactive_cells);ax = gca;ax.TickDir = 'out';ax.Box = 'off';
 figure('Name','Dice-Similarity Index');h = htmp(corr,10);caxis([0 0.3]);set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);
