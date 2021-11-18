@@ -1,13 +1,14 @@
 function Ensemble = ensembleAnalysis(Spikes,ROI,ROIcentroid)
-surrogate = 10000;
+surrogate = 1000;
 % Calculate threshold for coactive activations
 disp(['Shuffling data ' num2str(surrogate) ' times to find optimal ensemble cutoff']);
-shufSpikes = tempShuffle(Spikes,200);
-[coactive_cells,~] = coactive_index(Spikes,length(Spikes));
-[shufcoactive_cells,~] = coactive_index(shufSpikes,length(Spikes));
+shufSpikes = tempShuffle(Spikes,surrogate);
+[coactive_cells,~] = coactive_index(Spikes,length(Spikes)/4);
+[shufcoactive_cells,~] = coactive_index(shufSpikes,length(Spikes)/4);
 bin = ceil(max(coactive_cells)*100);
-% hold on,bar(coactive_cells),bar(shufcoactive_cells);
+hold on,bar(coactive_cells),bar(shufcoactive_cells);
 ensembleCan = find(coactive_cells>(2.5*std(shufcoactive_cells)+mean(shufcoactive_cells))); % 99% distribution threshold
+disp(['Ensemble Candidates: ' num2str(length(ensembleCan))])
 for i = 1:length(ensembleCan)
     ensemble(:,i) = Spikes(:,ensembleCan(i));
 end
@@ -16,7 +17,7 @@ if checkPadding>0
     [vectorized,sim_index] = cosine_similarity(horzcat(ensemble,zeros(size(ensemble,1),checkPadding)),1);
     sim_index = sim_index(1:size(ensembleCan,2),1:size(ensembleCan,2));
 else
-    [vectorized,sim_index] = cosine_similarity(ensemble,5);
+    [vectorized,sim_index] = cosine_similarity(ensemble,1);
 end
 
 % Refine ensemble nodes based on similarity
@@ -24,6 +25,7 @@ thres = 0.6;
 [r,~] = find(tril(sim_index>thres,-1));
 if isempty(r)
     disp(['No ensembles detected at ' num2str(thres*100) '% threshold']);
+    Ensemble = [];
     return;
 end
 
@@ -42,7 +44,8 @@ for i = 1:ensembleIndentified
     end
     
     corr = correlation_dice(ensembleId);
-    Connected_ROI{i} = Connectivity_dice(corr, ROI);
+    thres = 0.35;
+    Connected_ROI{i} = Connectivity_dice(corr, ROI,thres);
     [NumActiveNodes,NodeList{i},NumNodes,NumEdges,SpatialCentroid,SpatialCentroidVariance,...
         ActivityCentroid,ActivityCentroidVariance]...
         = Network_Analysis(ROIcentroid,Connected_ROI{i});
