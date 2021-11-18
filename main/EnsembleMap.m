@@ -1,7 +1,7 @@
-function EnsembleMap(AverageImage,ROIbases,NodeList,NodeSize)
+function EnsembleMap(AverageImage,ROIbases,NodeList,NodeSize,color)
 
 if nargin < 4; NodeSize = 6;end
-
+if nargin < 5; color = [1 0 0];end
 % Centroid = regionprops(AverageImage,'centroid');
 % centroids = cat(1, Centroid.Centroid);
 
@@ -31,7 +31,7 @@ for i = 1:length(centroids)
 end
 if  length(NodeList)>1
     sz = pi*(NodeSize-1)^2;
-    scatter(centerX, centerY,sz,'MarkerFaceColor',[1 0 0],'MarkerFaceAlpha',1,'MarkerEdgeAlpha',0);
+    scatter(centerX, centerY,sz,'MarkerFaceColor',color,'MarkerFaceAlpha',1,'MarkerEdgeAlpha',0);
 end
 hold off;
 % imshow(background)
