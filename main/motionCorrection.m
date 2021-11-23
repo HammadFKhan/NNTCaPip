@@ -9,7 +9,7 @@ T = size(Y,ndims(Y));
 Y = Y - min(Y(:));
 %% Downsample data
 disp('Downsampling data...');
-Y = downsample_data(Y,'spacetime',1,2); %tsub,ssub
+Y = downsample_data(Y,'spacetime',1,1); %tsub,ssub
 
 %% now try non-rigid motion correction (also in parallel)
 disp('Starting first motion correction pass...')
