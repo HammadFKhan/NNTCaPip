@@ -13,9 +13,7 @@ else
    disp(['User selected ', fullfile(pathname, filename)])
 end
 
-fullfilename=fullfile(pathname,filename);  
-[p,f,~]=fileparts(fullfilename);
-nam = strcat(p,f);          % insert path to tiff stack here
+nam=fullfile(pathname,filename);         % insert path to tiff stack here
 sframe=1;						% user input: first frame to read (optional, default 1)
 % num2read=226;					% user input: how many frames to read   (optional, default until the end)
 clear p f 
@@ -48,8 +46,8 @@ options = CNMFSetParms(...
     'nb',3,...                                  % number of background components    
     'min_SNR',2,...                             % minimum SNR threshold
     'space_thresh',0.3,...                      % space correlation threshold
-    'cnn_thr',0.6,...                           % threshold for CNN classifier 
-    'tsub',2 ...                                % Downsample temporal data (will resample later)
+    'cnn_thr',0.4,...                           % threshold for CNN classifier 
+    'tsub',4 ...                                % Downsample temporal data (will resample later)
     );
 %% Data pre-processing
 [P,Y] = preprocess_data(Y,p,options);
