@@ -30,7 +30,7 @@ for i = 1:length(centroids)
     end
 end
 if  length(NodeList)>1
-    sz = pi*(NodeSize-1)^2;
+    sz = pi*(NodeSize-2)^2;
     scatter(centerX, centerY,sz,'MarkerFaceColor',color,'MarkerFaceAlpha',1,'MarkerEdgeAlpha',0);
 end
 hold off;
