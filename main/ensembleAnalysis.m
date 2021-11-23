@@ -3,10 +3,11 @@ surrogate = 1000;
 % Calculate threshold for coactive activations
 disp(['Shuffling data ' num2str(surrogate) ' times to find optimal ensemble cutoff']);
 shufSpikes = tempShuffle(Spikes,surrogate);
-[coactive_cells,~] = coactive_index(Spikes,length(Spikes)/4);
-[shufcoactive_cells,~] = coactive_index(shufSpikes,length(Spikes)/4);
+[coactive_cells,~] = coactive_index(Spikes,length(Spikes)/5);
+[shufcoactive_cells,~] = coactive_index(shufSpikes,length(Spikes)/5);
 bin = ceil(max(coactive_cells)*100);
-hold on,bar(coactive_cells),bar(shufcoactive_cells);
+figure,hold on,bar(coactive_cells),bar(shufcoactive_cells);
+% figure,hold on,histogram(coactive_cells,100),histogram(shufcoactive_cells,100);
 ensembleCan = find(coactive_cells>(2.5*std(shufcoactive_cells)+mean(shufcoactive_cells))); % 99% distribution threshold
 disp(['Ensemble Candidates: ' num2str(length(ensembleCan))])
 for i = 1:length(ensembleCan)
@@ -46,8 +47,8 @@ for i = 1:ensembleIndentified
     corr = correlation_dice(ensembleId);
     thres = 0.35;
     Connected_ROI{i} = Connectivity_dice(corr, ROI,thres);
-    [NumActiveNodes,NodeList{i},NumNodes,NumEdges,SpatialCentroid,SpatialCentroidVariance,...
-        ActivityCentroid,ActivityCentroidVariance]...
+    [NumActiveNodes,NodeList{i},NumNodes{i},NumEdges{i},SpatialCentroid{i},SpatialCentroidVariance{i},...
+        ActivityCentroid{i},ActivityCentroidVariance{i}]...
         = Network_Analysis(ROIcentroid,Connected_ROI{i});
 end
 Ensemble.ensemble = ensemble;
@@ -61,6 +62,7 @@ Ensemble.SpatialCentroidVariance = SpatialCentroidVariance;
 Ensemble.ActivityCentroid = ActivityCentroid;
 Ensemble.ActivityCentroidVariance = ActivityCentroidVariance;
 Ensemble.ensembleIndentified = ensembleIndentified;
+Ensemble.Connected_ROI =  Connected_ROI;
 Ensemble.loc = r;
 disp(['Ensembles Identified: ' num2str(ensembleIndentified)])
 end
