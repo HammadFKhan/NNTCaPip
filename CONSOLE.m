@@ -44,33 +44,120 @@ bin = 20; %Vector sizes for similarity indexing (Num frames should be devisable 
 % [shufvectorized,shufsim_index] = cosine_similarity(Total_shuffled,bin);
 % shufsim_index = shufsim_index-mean(mean(shufsim_index,2));
 
-[vectorized,sim_index] = cosine_similarity(Spikes(:,1:17920),bin);
+[vectorized,sim_index] = cosine_similarity(Spikes(:,1:1800),20);
 corr = correlation_dice(Spikes);
 Connected_ROI = Connectivity_dice(corr, ROI);
 [NumActiveNodes,NodeList,NumNodes,NumEdges,SpatialCentroid,SpatialCentroidVariance,...
     ActivityCentroid,ActivityCentroidVariance]...
     = Network_Analysis(ROIcentroid,Connected_ROI);
-%% Ensemble Analysis
-Ensemble = ensembleAnalysis(Spikes,ROI,ROIcentroid);
-%% Plot Ensemble
+%%
+parfor i = 1:180
+    i
+    if i==1
+    corr = correlation_dice(Spikes(:,1:(i*10)));
+    else
+        corr = correlation_dice(Spikes(:,((i-1)*10):(i*10)));
+    end
+    Connected_ROI = Connectivity_dice(corr, ROI,0.15);
+    [NumActiveNodes,NodeList{i},NumNodes,NumEdges,SpatialCentroid,SpatialCentroidVariance,...
+        ActivityCentroid,ActivityCentroidVariance]...
+        = Network_Analysis(ROIcentroid,Connected_ROI);
+end
+%% Plot Vid
+set(0,'DefaultFigureWindowStyle','normal')
 clear mov
-writerobj = VideoWriter('Ensemble.avi','Uncompressed AVI');
+writerobj = VideoWriter('CalciumEvent_2Color.avi','Uncompressed AVI');
+writerobj.FrameRate = 10;
+open(writerobj);
+set(0,'DefaultFigureWindowStyle','normal')
+for i = 1:180
+    axis off
+    figure(i)
+    axis off
+    EnsembleMap(AverageImage,ROIcentroid,NodeList{i},8)
+    set(gcf,'Position',[100 100 500 500])
+    drawnow
+    mov(i) = getframe(gcf);
+    writeVideo(writerobj,mov(i));
+end
+close(writerobj)
+%% Ensemble Analysis
+Ensemble = ensembleAnalysis(Spikes(:,1:17990),ROI,ROIcentroid);
+Ensemble = ensembleNetworks(Ensemble);
+% Write centroid data
+count = 1;
+for i = 1:Ensemble.ensembleIndentified
+    if ~ischar(Ensemble.ActivityCentroid{i})
+    centroidData(count,1) = Ensemble.ActivityCentroid{i}(1);
+    centroidData(count,2) = Ensemble.ActivityCentroid{i}(2);
+    centroidData(count,3) = Ensemble.ActivityCentroidVariance{i}(1);
+    centroidData(count,4) = Ensemble.ActivityCentroidVariance{i}(2);
+    count = count+1;
+    end
+end
+%%
+figure,errorbar(centroidData(:,1),centroidData(:,2),...
+    centroidData(:,3),centroidData(:,3),centroidData(:,4),centroidData(:,4),'o'), hold on
+legend
+%% For loop for all Centroids
+figure
+for i = 1:5
+    errorbar(allCentroidData{i}(:,1),allCentroidData{i}(:,2),...
+    allCentroidData{i}(:,3),allCentroidData{i}(:,3),allCentroidData{i}(:,4),allCentroidData{i}(:,4),'o'), hold on
+end
+%% Linear fitting everything
+mdl = fitlm(centroidFit(:,1),centroidFit(:,2));
+figure,plot(mdl,'marker','o','Color','r'),legend off,box off,title('Activity Centroid Area')
+mdl = fitlm(centroidFit(:,3),centroidFit(:,4))
+figure,plot(mdl,'marker','o','Color','b'),legend off,box off,title('Activity Centroid Variance')
+hyp1 = sqrt(centroidFit(:,1).^2 + centroidFit(:,2).^2);
+hyp2 = sqrt(centroidFit(:,3).^2 + centroidFit(:,4).^2);
+figure,plot(mdl,'marker','o','Color','g'),legend off,box off,title('Euclidean Centroid Activity vs. Variance')
+for i = 1:5
+    hyp1 = sqrt(allCentroidData{i}(:,1).^2 + allCentroidData{i}(:,2).^2);
+    hyp2 = sqrt(allCentroidData{i}(:,3).^2 + allCentroidData{i}(:,4).^2);
+    mdl = fitlm(hyp1,hyp2);
+    figure,plot(mdl,'marker','o','Color','k'),legend off,box off,hold on
+    title('Euclidean Centroid between weeks')
+end
+mdl = fitlm(centroidFit(:,1),centroidFit(:,2))
+figure,
+h = plot(mdl);hold on;
+delete(h(1))
+for i = 1:5
+    plot(allCentroidData{i}(:,3),allCentroidData{i}(:,4),'o'),hold on
+end
+legend off
+
+%%
+avgW(:,1) = mean(sqrt(centroidData4(:,3).^2+centroidData4(:,4).^2));
+avgW(:,2) = mean(sqrt(centroidData6(:,3).^2+centroidData6(:,4).^2));
+avgW(:,3) = mean(sqrt(centroidData8(:,3).^2+centroidData8(:,4).^2));
+avgW(:,4) = mean(sqrt(centroidData12(:,3).^2+centroidData12(:,4).^2));
+%%
+figure,boxplot(avgW)
+%% Plot Ensemble
+set(0,'DefaultFigureWindowStyle','normal')
+clear mov
+writerobj = VideoWriter('CalciumEvent_2Color.avi','Uncompressed AVI');
 writerobj.FrameRate = 8;
 open(writerobj);
+set(0,'DefaultFigureWindowStyle','normal')
 for i = 1:Ensemble.ensembleIndentified 
     axis off
     figure(i)
     axis off
-    color = [i/(Ensemble.ensembleIndentified+10) ,i/(Ensemble.ensembleIndentified+4),(i+10)/(Ensemble.ensembleIndentified+25)]; 
-    EnsembleMap(AverageImage,ROIcentroid,Ensemble.NodeList{i},5,color)
-    set(gcf, 'PaperSize', [20 20]);
+    color = jet(Ensemble.ensembleIndentified);
+    EnsembleMap(AverageImage,ROIcentroid,Ensemble.NodeList{i},8,color(i,:))
+    set(gcf,'Position',[100 100 500 500])
     drawnow
     mov(i) = getframe(gcf);
     writeVideo(writerobj,mov(i));
 end
 close(writerobj)
 % Combine Maps
-figure,imagesc(Ensemble.sim_index),colormap(jet)
+% figure,imagesc(interp2(Ensemble.sim_index,2)),colormap(jet),caxis([0.10 0.9])
+
 %% Ensemble Analysis
 % win = find(t1==1);
 % UDS = find(diff(win)>1)
@@ -92,7 +179,7 @@ for j = 1:16
             hold off;
 end
 %% SVD/PCA of Ensembles
-[tProjq1, tProjq2, uProjq1, uProjq2] = featureProject(Ensemble.sim_index,15);
+[tProjq1, tProjq2, uProjq1, uProjq2] = featureProject(Ensemble.sim_index,10);
 %% Trial by Trial analysis ##Only use with batch processed files##
 addpath(genpath('Figures'));
 [batchSpikes,batch_corr] = TrialByTrial(batchData([1,2,4])); % Function call
@@ -108,16 +195,16 @@ set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);
  end
 %% Plot all the Figures
 addpath('Figures');
-figure('Name','DeltaF/F'); stack_plot(DeltaFoverF(:,1:4000),1,16); 
+figure('Name','DeltaF/F'); stack_plot(DeltaFoverF(:,:),1,16); 
 figure('Name','Convolved Spikes'); plot(dDeltaFoverF');
 figure('Name','Threshold Detection');DeltaFoverFplotter(dDeltaFoverF,std_threshold,static_threshold)
-figure('Name','Spike Plot'); Show_Spikes(ensemble);
+figure('Name','Spike Plot'); Show_Spikes(Spikes);
 % figure('Name','Temporal Shuffled Spike Plot'); shuffledTspikePlot = Show_Spikes(Spikes_shuffled);
 % figure('Name','Event Shuffled Spike Plot'); shuffledEspikePlot = Show_Spikes(Event_shuffled);
 % figure('Name','Total Shuffled Spike Plot'); shuffledAspikePlot = Show_Spikes(Total_shuffled);
-figure('Name','Fluorescence Map'); spike_map(DeltaFoverF(1:100,4500:5200));caxis([0 1]),set(gcf,'Position',[100 100 400 400])
+figure('Name','Fluorescence Map'); spike_map(DeltaFoverF);caxis([0 1]),set(gcf,'Position',[100 100 400 400])
 figure('Name','Population Intensity');height = 10;rateImage = firing_rate(Spikes,height,time);caxis([0 0.5]);set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);
-figure('Name','Coactivity Index'); B = bar(coactive_cells);ax = gca;ax.TickDir = 'out';ax.Box = 'off';
+figure('Name','Coactivity Index'); B = bar(coactive_cells,4);ax = gca;ax.TickDir = 'out';ax.Box = 'off';
 figure('Name','Dice-Similarity Index');h = htmp(corr,10);caxis([0 0.3]);set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);
 figure('Name','Shuffled Dice-Similarity Index');h = htmp(shuff_corr,10);caxis([0 0.4]);set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);
 figure('Name','Cosine-Similarity Index'); h = htmp(sim_index);caxis([0.35 .9]);set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);
