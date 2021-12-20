@@ -1,23 +1,32 @@
 function memMap_CaImAn()
+global nam
+global memfig
 %% setup path to file and package
 gcp;                            % start cluster
 addpath(genpath('utilities'));
 addpath(genpath('deconvolution'));
 addpath(genpath('NoRMCorre'));
 
-
-[filename, pathname] = uigetfile({'*.tiff;*.tif'}, 'Pick a image video file');
-if isequal(filename,0) || isequal(pathname,0)
-    disp('User pressed cancel')
-else
-    disp(['User selected ', fullfile(pathname, filename)])
+if isfile(nam) == 0
+    [filename, pathname] = uigetfile({'*.tiff;*.tif'}, 'Pick a image video file');
+    if isequal(filename,0) || isequal(pathname,0)
+        disp('User pressed cancel')
+    else
+        disp(['User selected ', fullfile(pathname, filename)])
+    end
+    nam = strcat(pathname,filename);          % insert path to tiff stack here
 end
 
-nam = strcat(pathname,filename);          % insert path to tiff stack here
 sframe=1;
 
 is_memmaped = true;        % choose whether you want to load the file in memory or not
 %% Motion correct and memMap Data
+%Checks if temporary motion correction file exists (deletes if it does)
+if isfile('motion_corrected.mat') && isfile('motion_corrected.tif')
+    delete('motion_corrected.mat')
+    delete('motion_corrected.tif')
+end
+
 M2 = memMapmotionCorrection(nam);
 
 %% load file
@@ -44,7 +53,7 @@ merge_thr = 0.8;         % merging threshold
 
 options = CNMFSetParms(...
     'init_method','sparse_NMF',...
-    'beta',0.8,...,
+    'beta',0.80,...,
     'snmf_max_iter',200,...                     % max # of sparse NMF iterations
     'd1',sizY(1),'d2',sizY(2),...
     'nb',1,...                                  % number of background components per patch
@@ -98,10 +107,10 @@ if run_GUI
     keep = GUIout{3};
 end
 %% plot results
-figure;
+global memfig
+memfig = figure(1);
 [Coor,json_file] = plot_contours(A2,Cn,options,1);
 %     plot_components_GUI(data,A2,C2,b,f2,Cn,options);
-
 %% Output Variables
 global AverageImage
 global ROIcentroid
@@ -111,7 +120,7 @@ global DeltaFoverF
 global dDeltaFoverF
 global Noise_Power
 global files
-files = filename;
+files = nam;
 [H,W] = size(Cn);
 AverageImage =ones(H,W);
 num_images = size(C2,1);
