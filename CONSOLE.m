@@ -16,9 +16,40 @@ clc
 close all;
 set(0,'DefaultFigureWindowStyle','normal')
 addpath(genpath('main'));
-tic
-Start_MemMap_CaImAn
-toc
+global nam
+global memfig
+batch = 1;
+if batch == 1
+    pathname = strcat(uigetdir(pwd,'Input Directory'),'\');
+    savepathname = strcat(uigetdir(pwd,'Output Directory'),'\');
+    directory = dir(pathname);
+    L = length(directory);
+    for idx = 3:L
+        clear files AverageImage num_images...
+            DeltaFoverF dDeltaFoverF ROIcentroid ROI Noise_Power
+        filename = directory(idx).name
+        nam = strcat(pathname,filename);
+        tic
+        Start_MemMap_CaImAn
+        toc
+        savepath = strcat(savepathname,filename,'.mat');
+        save(savepath,'files','AverageImage','num_images',...
+            'DeltaFoverF','dDeltaFoverF','ROIcentroid','ROI','Noise_Power');
+        try
+            savepathfig = strcat(savepathname,filename(1:end-4),'.png');
+            saveas(memfig,savepathfig);
+        catch ME
+            warning('Contour figure not saved')
+            continue
+        end
+        disp('Saved!')
+    end
+else
+    nam = '';
+    tic
+    Start_MemMap_CaImAn
+    toc
+end
 %% Single File Analysis
 set(0,'DefaultFigureWindowStyle','docked')
 addpath(genpath('main'));
@@ -50,92 +81,9 @@ Connected_ROI = Connectivity_dice(corr, ROI);
 [NumActiveNodes,NodeList,NumNodes,NumEdges,SpatialCentroid,SpatialCentroidVariance,...
     ActivityCentroid,ActivityCentroidVariance]...
     = Network_Analysis(ROIcentroid,Connected_ROI);
-%%
-parfor i = 1:180
-    i
-    if i==1
-    corr = correlation_dice(Spikes(:,1:(i*10)));
-    else
-        corr = correlation_dice(Spikes(:,((i-1)*10):(i*10)));
-    end
-    Connected_ROI = Connectivity_dice(corr, ROI,0.15);
-    [NumActiveNodes,NodeList{i},NumNodes,NumEdges,SpatialCentroid,SpatialCentroidVariance,...
-        ActivityCentroid,ActivityCentroidVariance]...
-        = Network_Analysis(ROIcentroid,Connected_ROI);
-end
-%% Plot Vid
-set(0,'DefaultFigureWindowStyle','normal')
-clear mov
-writerobj = VideoWriter('CalciumEvent_2Color.avi','Uncompressed AVI');
-writerobj.FrameRate = 10;
-open(writerobj);
-set(0,'DefaultFigureWindowStyle','normal')
-for i = 1:180
-    axis off
-    figure(i)
-    axis off
-    EnsembleMap(AverageImage,ROIcentroid,NodeList{i},8)
-    set(gcf,'Position',[100 100 500 500])
-    drawnow
-    mov(i) = getframe(gcf);
-    writeVideo(writerobj,mov(i));
-end
-close(writerobj)
 %% Ensemble Analysis
 Ensemble = ensembleAnalysis(Spikes(:,1:17990),ROI,ROIcentroid);
 Ensemble = ensembleNetworks(Ensemble);
-% Write centroid data
-count = 1;
-for i = 1:Ensemble.ensembleIndentified
-    if ~ischar(Ensemble.ActivityCentroid{i})
-    centroidData(count,1) = Ensemble.ActivityCentroid{i}(1);
-    centroidData(count,2) = Ensemble.ActivityCentroid{i}(2);
-    centroidData(count,3) = Ensemble.ActivityCentroidVariance{i}(1);
-    centroidData(count,4) = Ensemble.ActivityCentroidVariance{i}(2);
-    count = count+1;
-    end
-end
-%%
-figure,errorbar(centroidData(:,1),centroidData(:,2),...
-    centroidData(:,3),centroidData(:,3),centroidData(:,4),centroidData(:,4),'o'), hold on
-legend
-%% For loop for all Centroids
-figure
-for i = 1:5
-    errorbar(allCentroidData{i}(:,1),allCentroidData{i}(:,2),...
-    allCentroidData{i}(:,3),allCentroidData{i}(:,3),allCentroidData{i}(:,4),allCentroidData{i}(:,4),'o'), hold on
-end
-%% Linear fitting everything
-mdl = fitlm(centroidFit(:,1),centroidFit(:,2));
-figure,plot(mdl,'marker','o','Color','r'),legend off,box off,title('Activity Centroid Area')
-mdl = fitlm(centroidFit(:,3),centroidFit(:,4))
-figure,plot(mdl,'marker','o','Color','b'),legend off,box off,title('Activity Centroid Variance')
-hyp1 = sqrt(centroidFit(:,1).^2 + centroidFit(:,2).^2);
-hyp2 = sqrt(centroidFit(:,3).^2 + centroidFit(:,4).^2);
-figure,plot(mdl,'marker','o','Color','g'),legend off,box off,title('Euclidean Centroid Activity vs. Variance')
-for i = 1:5
-    hyp1 = sqrt(allCentroidData{i}(:,1).^2 + allCentroidData{i}(:,2).^2);
-    hyp2 = sqrt(allCentroidData{i}(:,3).^2 + allCentroidData{i}(:,4).^2);
-    mdl = fitlm(hyp1,hyp2);
-    figure,plot(mdl,'marker','o','Color','k'),legend off,box off,hold on
-    title('Euclidean Centroid between weeks')
-end
-mdl = fitlm(centroidFit(:,1),centroidFit(:,2))
-figure,
-h = plot(mdl);hold on;
-delete(h(1))
-for i = 1:5
-    plot(allCentroidData{i}(:,3),allCentroidData{i}(:,4),'o'),hold on
-end
-legend off
-
-%%
-avgW(:,1) = mean(sqrt(centroidData4(:,3).^2+centroidData4(:,4).^2));
-avgW(:,2) = mean(sqrt(centroidData6(:,3).^2+centroidData6(:,4).^2));
-avgW(:,3) = mean(sqrt(centroidData8(:,3).^2+centroidData8(:,4).^2));
-avgW(:,4) = mean(sqrt(centroidData12(:,3).^2+centroidData12(:,4).^2));
-%%
-figure,boxplot(avgW)
 %% Plot Ensemble
 set(0,'DefaultFigureWindowStyle','normal')
 clear mov
@@ -157,27 +105,8 @@ end
 close(writerobj)
 % Combine Maps
 % figure,imagesc(interp2(Ensemble.sim_index,2)),colormap(jet),caxis([0.10 0.9])
-
-%% Ensemble Analysis
-% win = find(t1==1);
-% UDS = find(diff(win)>1)
-% fh1 = figure;
-% fh2 = figure;
-countS = 1;
-j = 6;
-bins = discretize(1:length(Peristim{j}(1,:)),60); %~13 frames
-for j = 1:16
-    disp(['Detecting Ensembles in bin: '  num2str(i)])
-            Connected_ROI = Connectivity_dice(corr, ROI);
-            [NumActiveNodes,NodeList,NumNodes,NumEdges,SpatialCentroid,SpatialCentroidVariance,...
-                ActivityCentroid,ActivityCentroidVariance]...
-                = Network_Analysis(ROIcentroid,Connected_ROI);
-            hold on;
-            figure(2),
-            EnsembleMap(AverageImage,ROIcentroid,NodeList,NodeSize)
-    drawnow
-            hold off;
-end
+%% Behavioral Analysis
+Velocity = encoderVelocity(VR_data)
 %% SVD/PCA of Ensembles
 [tProjq1, tProjq2, uProjq1, uProjq2] = featureProject(Ensemble.sim_index,10);
 %% Trial by Trial analysis ##Only use with batch processed files##
