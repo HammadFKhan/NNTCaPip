@@ -75,36 +75,61 @@ bin = 20; %Vector sizes for similarity indexing (Num frames should be devisable 
 % [shufvectorized,shufsim_index] = cosine_similarity(Total_shuffled,bin);
 % shufsim_index = shufsim_index-mean(mean(shufsim_index,2));
 
-[vectorized,sim_index] = cosine_similarity(Spikes(:,1:1800),20);
+% [vectorized,sim_index] = cosine_similarity(Spikes(:,1:1800),20);
 corr = correlation_dice(Spikes);
 Connected_ROI = Connectivity_dice(corr, ROI);
 [NumActiveNodes,NodeList,NumNodes,NumEdges,SpatialCentroid,SpatialCentroidVariance,...
     ActivityCentroid,ActivityCentroidVariance]...
     = Network_Analysis(ROIcentroid,Connected_ROI);
-%% Ensemble Analysis
-Ensemble = ensembleAnalysis(Spikes(:,1:17990),ROI,ROIcentroid);
+% Ensemble Analysis
+factorCorrection = 5*floor(size(Spikes,2)/5);
+Ensemble = ensembleAnalysis(Spikes(:,1:factorCorrection),ROI,ROIcentroid);
 Ensemble = ensembleNetworks(Ensemble);
 %% Plot Ensemble
 set(0,'DefaultFigureWindowStyle','normal')
 clear mov
-writerobj = VideoWriter('CalciumEvent_2Color.avi','Uncompressed AVI');
-writerobj.FrameRate = 8;
-open(writerobj);
-set(0,'DefaultFigureWindowStyle','normal')
+% writerobj = VideoWriter('CalciumEvent_2Color.avi','Uncompressed AVI');
+% writerobj.FrameRate = 8;
+% open(writerobj);
 for i = 1:Ensemble.ensembleIndentified 
     axis off
-    figure(i)
+%     figure(i)
     axis off
     color = jet(Ensemble.ensembleIndentified);
     EnsembleMap(AverageImage,ROIcentroid,Ensemble.NodeList{i},8,color(i,:))
     set(gcf,'Position',[100 100 500 500])
     drawnow
     mov(i) = getframe(gcf);
-    writeVideo(writerobj,mov(i));
+%     writeVideo(writerobj,mov(i));
 end
-close(writerobj)
+% close(writerobj)
 % Combine Maps
 % figure,imagesc(interp2(Ensemble.sim_index,2)),colormap(jet),caxis([0.10 0.9])
+
+%% Set trial stats
+ConensembleSize = [];
+ConensembleRecruitment= [];
+ConminRecruitment = [];
+ConmaxRecruitment = [];
+%% Ensemble Stats
+for i = 1:size(Ensemble.NodeList,2)
+    ensembleSize(i) = length(Ensemble.NodeList{i});
+end
+ensembleSize(ensembleSize==1) = [];
+ensembleNum = length(ensembleSize);
+ensembleRecruitment = (mean(ensembleSize)/size(ROI,1))
+minRecruitment = (min(ensembleSize)/size(ROI,1))
+maxRecruitment = (max(ensembleSize)/size(ROI,1))
+
+
+ConensembleSize = vertcat(ConensembleSize,ensembleNum);
+ConensembleRecruitment= vertcat(ConensembleRecruitment,ensembleRecruitment);
+ConminRecruitment = vertcat(ConminRecruitment,minRecruitment);
+ConmaxRecruitment = vertcat(ConmaxRecruitment,maxRecruitment);
+%%
+clearvars -except W2ensembleSize W2ensembleRecruitment W2minRecruitment W2maxRecruitment files...
+    W4ensembleSize W4ensembleRecruitment W4minRecruitment W4maxRecruitment...
+    ConensembleSize ConensembleRecruitment ConminRecruitment ConmaxRecruitment
 %% Behavioral Analysis
 Velocity = encoderVelocity(VR_data)
 %% SVD/PCA of Ensembles
