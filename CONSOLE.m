@@ -82,36 +82,36 @@ Connected_ROI = Connectivity_dice(corr, ROI);
     ActivityCentroid,ActivityCentroidVariance]...
     = Network_Analysis(ROIcentroid,Connected_ROI);
 % Ensemble Analysis
-factorCorrection = 5*floor(size(Spikes,2)/5);
+factorCorrection = 5*floor(size(Spikes,2)/5); % Correct for frame size aquisition
 Ensemble = ensembleAnalysis(Spikes(:,1:factorCorrection),ROI,ROIcentroid);
 Ensemble = ensembleNetworks(Ensemble);
-%% Plot Ensemble
-set(0,'DefaultFigureWindowStyle','normal')
-clear mov
-% writerobj = VideoWriter('CalciumEvent_2Color.avi','Uncompressed AVI');
-% writerobj.FrameRate = 8;
-% open(writerobj);
-for i = 1:Ensemble.ensembleIndentified 
-    axis off
-%     figure(i)
-    axis off
-    color = jet(Ensemble.ensembleIndentified);
-    EnsembleMap(AverageImage,ROIcentroid,Ensemble.NodeList{i},8,color(i,:))
-    set(gcf,'Position',[100 100 500 500])
-    drawnow
-    mov(i) = getframe(gcf);
-%     writeVideo(writerobj,mov(i));
-end
-% close(writerobj)
-% Combine Maps
-% figure,imagesc(interp2(Ensemble.sim_index,2)),colormap(jet),caxis([0.10 0.9])
-
-%% Set trial stats
-ConensembleSize = [];
-ConensembleRecruitment= [];
-ConminRecruitment = [];
-ConmaxRecruitment = [];
-%% Ensemble Stats
+% %% Plot Ensemble
+% set(0,'DefaultFigureWindowStyle','normal')
+% clear mov
+% % writerobj = VideoWriter('CalciumEvent_2Color.avi','Uncompressed AVI');
+% % writerobj.FrameRate = 8;
+% % open(writerobj);
+% for i = 1:Ensemble.ensembleIndentified 
+%     axis off
+% %     figure(i)
+%     axis off
+%     color = jet(Ensemble.ensembleIndentified);
+%     EnsembleMap(AverageImage,ROIcentroid,Ensemble.NodeList{i},8,color(i,:))
+%     set(gcf,'Position',[100 100 500 500])
+%     drawnow
+%     mov(i) = getframe(gcf);
+% %     writeVideo(writerobj,mov(i));
+% end
+% % close(writerobj)
+% % Combine Maps
+% % figure,imagesc(interp2(Ensemble.sim_index,2)),colormap(jet),caxis([0.10 0.9])
+% 
+% Set trial stats
+% W12ensembleSize = [];
+% W12ensembleRecruitment= [];
+% W12minRecruitment = [];
+% W12maxRecruitment = [];
+% Ensemble stats for trial processing
 for i = 1:size(Ensemble.NodeList,2)
     ensembleSize(i) = length(Ensemble.NodeList{i});
 end
@@ -121,15 +121,36 @@ ensembleRecruitment = (mean(ensembleSize)/size(ROI,1))
 minRecruitment = (min(ensembleSize)/size(ROI,1))
 maxRecruitment = (max(ensembleSize)/size(ROI,1))
 
+W12ensembleSize = vertcat(W12ensembleSize,ensembleSize);
+W12ensembleNum = vertcat(W12ensembleNum,ensembleNum);
+W12ensembleRecruitment= vertcat(W12ensembleRecruitment,ensembleRecruitment);
+W12minRecruitment = vertcat(W12minRecruitment,minRecruitment);
+W12maxRecruitment = vertcat(W12maxRecruitment,maxRecruitment);
 
-ConensembleSize = vertcat(ConensembleSize,ensembleNum);
-ConensembleRecruitment= vertcat(ConensembleRecruitment,ensembleRecruitment);
-ConminRecruitment = vertcat(ConminRecruitment,minRecruitment);
-ConmaxRecruitment = vertcat(ConmaxRecruitment,maxRecruitment);
 %%
-clearvars -except W2ensembleSize W2ensembleRecruitment W2minRecruitment W2maxRecruitment files...
-    W4ensembleSize W4ensembleRecruitment W4minRecruitment W4maxRecruitment...
-    ConensembleSize ConensembleRecruitment ConminRecruitment ConmaxRecruitment
+clearvars -except W12ensembleSize W12ensembleRecruitment W12minRecruitment W12maxRecruitment files
+%     W8ensembleSize W8ensembleRecruitment W8minRecruitment W8maxRecruitment...
+%     ConensembleSize ConensembleRecruitment ConminRecruitment ConmaxRecruitment
+%% Ensemble stats
+ensembleRecruitment = [W2ensembleRecruitment;W4ensembleRecruitment;W6ensembleRecruitment;...
+    W8ensembleRecruitment;W12ensembleRecruitment];
+eRx = [repmat({'W2'},length(W2ensembleRecruitment), 1); repmat({'W4'},length(W4ensembleRecruitment), 1); repmat({'W6'},length(W6ensembleRecruitment), 1);...
+    repmat({'W8'},length(W8ensembleRecruitment), 1);repmat({'W12'},length(W12ensembleRecruitment), 1)];
+
+ensembleMax = [W2maxRecruitment;W4maxRecruitment;W6maxRecruitment;...
+    W8maxRecruitment;W12maxRecruitment];
+eMaxx = [repmat({'W2'},length(W2maxRecruitment), 1); repmat({'W4'},length(W4maxRecruitment), 1); repmat({'W6'},length(W6maxRecruitment), 1);...
+    repmat({'W8'},length(W8maxRecruitment), 1);repmat({'W12'},length(W12maxRecruitment), 1)];
+
+ensembleSize = [W2ensembleSize;W4ensembleSize;W6ensembleSize;...
+    W8ensembleRecruitment;W12ensembleSize];
+eSx = [repmat({'W2'},length(W2ensembleSize), 1); repmat({'W4'},length(W4ensembleSize), 1); repmat({'W6'},length(W6ensembleSize), 1);...
+    repmat({'W8'},length(W8ensembleSize), 1);repmat({'W12'},length(W12ensembleSize), 1)];
+
+
+figure,boxplot(ensembleRecruitment,eRx,'PlotStyle','compact')
+figure,boxplot(ensembleMax,eMaxx,'PlotStyle','compact')
+figure,boxplot(ensembleSize,eSx,'PlotStyle','compact')
 %% Behavioral Analysis
 Velocity = encoderVelocity(VR_data)
 %% SVD/PCA of Ensembles
@@ -211,3 +232,4 @@ scatter3(uProjq1,uProjq2,uProjq3,200,'r.');
 ylabel('bk')
 xlabel('ak');
 end
+
