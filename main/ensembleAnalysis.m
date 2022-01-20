@@ -22,31 +22,41 @@ else
 end
 
 % Refine ensemble nodes based on similarity
-thres = 0.6;
-[r,~] = find(tril(sim_index>thres,-1));
-if isempty(r)
-    disp(['No ensembles detected at ' num2str(thres*100) '% threshold']);
+thresh = .6;
+[r,~] = find(tril(sim_index>thresh,-1));
+while isempty(r) % Checks to see if we found any ensembles
+    thresh = thresh-0.05;
+    [r,~] = find(tril(sim_index>thresh,-1));
+end
+if thresh == 0.25 % returns function if thereshold is too low
+    disp(['Weak ensembles detected at ' num2str(thresh*100) '% threshold']);
+    warning('High false positives detected, stopping analysis...')
     Ensemble = [];
     return;
 end
-
+disp(['Ensembles detected at ' num2str(thresh*100) '% threshold']);
 r = unique(r);
-fEnsemble = find(diff(r)~=1)+1;
-ensembleIndentified = 1 + length(fEnsemble);
+fEnsemble = find(diff(r)~=1)+1; % Find ensemble index location
+if isempty(fEnsemble) % means there is only 1 ensemble with contineous index
+    fEnsemble = length(r)+1; % 1 ensemble that ends at the end of index r
+    ensembleIndentified = 1;
+else
+    ensembleIndentified = 1 + length(fEnsemble);
+end
 
 for i = 1:ensembleIndentified
     % Once ensemble periods are detected find nodes
-    if i == 1
+    if i == 1 
         ensembleId = ensemble(:,r(1:fEnsemble(i)-1)); % Idx ensemble position for the first seperation
-    elseif i == ensembleIndentified
+    elseif i == ensembleIndentified && ensembleIndentified>1
         ensembleId = ensemble(:,r(fEnsemble(i-1):end)); % Idx ensemble position for last seperation
     else
         ensembleId = ensemble(:,r(fEnsemble(i-1):fEnsemble(i)-1)); % Idx ensemble position for all other seperation
     end
     
     corr = correlation_dice(ensembleId);
-    thres = 0.35;
-    Connected_ROI{i} = Connectivity_dice(corr, ROI,thres);
+    thresh = 0.35;
+    Connected_ROI{i} = Connectivity_dice(corr, ROI,thresh);
     [NumActiveNodes,NodeList{i},NumNodes{i},NumEdges{i},SpatialCentroid{i},SpatialCentroidVariance{i},...
         ActivityCentroid{i},ActivityCentroidVariance{i}]...
         = Network_Analysis(ROIcentroid,Connected_ROI{i});
