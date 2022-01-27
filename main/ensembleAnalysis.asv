@@ -21,8 +21,19 @@ else
     [vectorized,sim_index] = cosine_similarity(ensemble,1);
 end
 
-% Refine ensemble nodes based on similarity
-thresh = .6;
+% Generate ROC curve
+thresh = 1;
+[r,~] = find(tril(sim_index>thresh,-1));
+count = 1;
+while thresh>.25 % Cycles threshold value
+    count = count+1;
+    thresh = thresh-0.025;
+    [r,~] = find(tril(sim_index>thresh,-1));
+    rocEnsembles(count) = length(r)+1;
+end
+figure,plot(flip(.25:.025:1),rocEnsembles,'LineWidth',2)
+% Refine ensemble nodes based on similarity and ROC
+thresh = .675;
 [r,~] = find(tril(sim_index>thresh,-1));
 while isempty(r) % Checks to see if we found any ensembles
     thresh = thresh-0.05;
@@ -35,10 +46,11 @@ if thresh == 0.25 % returns function if thereshold is too low
     return;
 end
 disp(['Ensembles detected at ' num2str(thresh*100) '% threshold']);
+
 r = unique(r);
 fEnsemble = find(diff(r)~=1)+1; % Find ensemble index location
 if isempty(fEnsemble) % means there is only 1 ensemble with contineous index
-    fEnsemble = length; % 1 ensemble that ends at index 3
+    fEnsemble = length(r)+1; % 1 ensemble that ends at the end of index r
     ensembleIndentified = 1;
 else
     ensembleIndentified = 1 + length(fEnsemble);
