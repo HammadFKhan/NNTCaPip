@@ -51,7 +51,6 @@ else
     toc
 end
 %% Single File Analysis
-set(0,'DefaultFigureWindowStyle','docked')
 addpath(genpath('main'));
 std_threshold = 4;
 static_threshold = .2;
@@ -74,8 +73,8 @@ bin = 20; %Vector sizes for similarity indexing (Num frames should be devisable 
 % shuff_corr = correlation_dice(Event_shuffled);
 % [shufvectorized,shufsim_index] = cosine_similarity(Total_shuffled,bin);
 % shufsim_index = shufsim_index-mean(mean(shufsim_index,2));
-
-% [vectorized,sim_index] = cosine_similarity(Spikes(:,1:1800),20);
+factorCorrection = 5*floor(size(Spikes,2)/5); % Correct for frame size aquisition
+[vectorized,sim_index] = cosine_similarity(Spikes(:,1:factorCorrection),10);
 corr = correlation_dice(Spikes);
 Connected_ROI = Connectivity_dice(corr, ROI);
 [NumActiveNodes,NodeList,NumNodes,NumEdges,SpatialCentroid,SpatialCentroidVariance,...
@@ -84,73 +83,31 @@ Connected_ROI = Connectivity_dice(corr, ROI);
 % Ensemble Analysis
 factorCorrection = 5*floor(size(Spikes,2)/5); % Correct for frame size aquisition
 Ensemble = ensembleAnalysis(Spikes(:,1:factorCorrection),ROI,ROIcentroid);
-Ensemble = ensembleNetworks(Ensemble);
-% %% Plot Ensemble
-% set(0,'DefaultFigureWindowStyle','normal')
-% clear mov
-% % writerobj = VideoWriter('CalciumEvent_2Color.avi','Uncompressed AVI');
-% % writerobj.FrameRate = 8;
-% % open(writerobj);
-% for i = 1:Ensemble.ensembleIndentified 
-%     axis off
-% %     figure(i)
-%     axis off
-%     color = jet(Ensemble.ensembleIndentified);
-%     EnsembleMap(AverageImage,ROIcentroid,Ensemble.NodeList{i},8,color(i,:))
-%     set(gcf,'Position',[100 100 500 500])
-%     drawnow
-%     mov(i) = getframe(gcf);
-% %     writeVideo(writerobj,mov(i));
-% end
-% % close(writerobj)
-% % Combine Maps
-% % figure,imagesc(interp2(Ensemble.sim_index,2)),colormap(jet),caxis([0.10 0.9])
-% 
-% Set trial stats
-% W12ensembleSize = [];
-% W12ensembleRecruitment= [];
-% W12minRecruitment = [];
-% W12maxRecruitment = [];
-% Ensemble stats for trial processing
-for i = 1:size(Ensemble.NodeList,2)
-    ensembleSize(i) = length(Ensemble.NodeList{i});
-end
-ensembleSize(ensembleSize==1) = [];
-ensembleNum = length(ensembleSize);
-ensembleRecruitment = (mean(ensembleSize)/size(ROI,1))
-minRecruitment = (min(ensembleSize)/size(ROI,1))
-maxRecruitment = (max(ensembleSize)/size(ROI,1))
+% Ensemble = ensembleNetworks(Ensemble);
 
-W12ensembleSize = vertcat(W12ensembleSize,ensembleSize);
-W12ensembleNum = vertcat(W12ensembleNum,ensembleNum);
-W12ensembleRecruitment= vertcat(W12ensembleRecruitment,ensembleRecruitment);
-W12minRecruitment = vertcat(W12minRecruitment,minRecruitment);
-W12maxRecruitment = vertcat(W12maxRecruitment,maxRecruitment);
+%% Plot Ensemble
+ensembleVid(Ensemble,AverageImage,ROIcentroid,files);
 
-%%
-clearvars -except W12ensembleSize W12ensembleRecruitment W12minRecruitment W12maxRecruitment files
-%     W8ensembleSize W8ensembleRecruitment W8minRecruitment W8maxRecruitment...
-%     ConensembleSize ConensembleRecruitment ConminRecruitment ConmaxRecruitment
+% Combine Maps
+figure,imagesc(interp2(Ensemble.sim_index,2)),colormap(jet),caxis([0.13 0.4])
+K = (1/25)*ones(5);
+figure,imagesc(interp2(conv2(Ensemble.sim_index,K,'same'),2)),colormap(jet),caxis([.08 .15])
+
+
 %% Ensemble stats
-ensembleRecruitment = [W2ensembleRecruitment;W4ensembleRecruitment;W6ensembleRecruitment;...
-    W8ensembleRecruitment;W12ensembleRecruitment];
-eRx = [repmat({'W2'},length(W2ensembleRecruitment), 1); repmat({'W4'},length(W4ensembleRecruitment), 1); repmat({'W6'},length(W6ensembleRecruitment), 1);...
-    repmat({'W8'},length(W8ensembleRecruitment), 1);repmat({'W12'},length(W12ensembleRecruitment), 1)];
+ensembleRecruitment = [W2ensembleRecruitment;W4ensembleRecruitment;W12ensembleRecruitment];
+eRx = [repmat({'W2'},length(W2ensembleRecruitment), 1); repmat({'W4'},length(W4ensembleRecruitment), 1); repmat({'W6'},length(W12ensembleRecruitment), 1)];
 
-ensembleMax = [W2maxRecruitment;W4maxRecruitment;W6maxRecruitment;...
-    W8maxRecruitment;W12maxRecruitment];
-eMaxx = [repmat({'W2'},length(W2maxRecruitment), 1); repmat({'W4'},length(W4maxRecruitment), 1); repmat({'W6'},length(W6maxRecruitment), 1);...
-    repmat({'W8'},length(W8maxRecruitment), 1);repmat({'W12'},length(W12maxRecruitment), 1)];
-
-ensembleSize = [W2ensembleSize;W4ensembleSize;W6ensembleSize;...
-    W8ensembleRecruitment;W12ensembleSize];
-eSx = [repmat({'W2'},length(W2ensembleSize), 1); repmat({'W4'},length(W4ensembleSize), 1); repmat({'W6'},length(W6ensembleSize), 1);...
-    repmat({'W8'},length(W8ensembleSize), 1);repmat({'W12'},length(W12ensembleSize), 1)];
-
+numEnsemble = [W2ensembleNum;W4ensembleNum;W6ensembleNum;W8ensembleNum;W12ensembleNum];
+eNumx = [repmat({'W2'},length(W2ensembleNum), 1); repmat({'W4'},length(W4ensembleNum), 1); repmat({'W6'},length(W6ensembleNum), 1);...
+    repmat({'W8'},length(W8ensembleNum), 1); repmat({'W12'},length(W12ensembleNum), 1)];
+eCosine =  [W2eCosine;W4eCosine;W6eCosine;W8eCosine;W12eCosine;];
+eCosinex = [repmat({'W2'},length(W2eCosine), 1); repmat({'W4'},length(W4eCosine), 1); repmat({'W6'},length(W6eCosine), 1);...
+    repmat({'W8'},length(W8eCosine), 1); repmat({'W12'},length(W12eCosine), 1)];
 
 figure,boxplot(ensembleRecruitment,eRx,'PlotStyle','compact')
-figure,boxplot(ensembleMax,eMaxx,'PlotStyle','compact')
-figure,boxplot(ensembleSize,eSx,'PlotStyle','compact')
+figure,boxplot(numEnsemble,eNumx,'PlotStyle','compact')
+figure,boxplot(eCosine,eCosinex,'PlotStyle','compact')
 %% Behavioral Analysis
 Velocity = encoderVelocity(VR_data)
 %% SVD/PCA of Ensembles
@@ -170,7 +127,7 @@ set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);
  end
 %% Plot all the Figures
 addpath('Figures');
-figure('Name','DeltaF/F'); stack_plot(DeltaFoverF(:,:),1,16); 
+figure('Name','DeltaF/F'); stack_plot(DeltaFoverF(5:20,1:8000),1.5,8); 
 figure('Name','Convolved Spikes'); plot(dDeltaFoverF');
 figure('Name','Threshold Detection');DeltaFoverFplotter(dDeltaFoverF,std_threshold,static_threshold)
 figure('Name','Spike Plot'); Show_Spikes(Spikes);
