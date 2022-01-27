@@ -1,6 +1,7 @@
 function centroidAnalysis(Ensemble)
 %%
 % Write centroid data
+centroidData = [];
 count = 1;
 for i = 1:Ensemble.ensembleIndentified
     if ~ischar(Ensemble.ActivityCentroid{i})
@@ -16,10 +17,12 @@ figure,errorbar(centroidData(:,1),centroidData(:,2),...
     centroidData(:,3),centroidData(:,3),centroidData(:,4),centroidData(:,4),'o'), hold on
 legend
 %% For loop for all Centroids
-figure
+
 for i = 1:5
+figure(i)
     errorbar(allCentroidData{i}(:,1),allCentroidData{i}(:,2),...
         allCentroidData{i}(:,3),allCentroidData{i}(:,3),allCentroidData{i}(:,4),allCentroidData{i}(:,4),'o'), hold on
+    axis([0 400 0 350])
 end
 %% Linear fitting everything
 mdl = fitlm(centroidFit(:,1),centroidFit(:,2));
