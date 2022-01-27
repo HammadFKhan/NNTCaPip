@@ -21,10 +21,21 @@ else
     [vectorized,sim_index] = cosine_similarity(ensemble,1);
 end
 
-% Refine ensemble nodes based on similarity
+% Generate ROC curve
+thresh = 1;
+[r,~] = find(tril(sim_index>thresh,-1));
+count = 1;
+while thresh>.25 % Cycles threshold value
+    count = count+1;
+    thresh = thresh-0.025;
+    [r,~] = find(tril(sim_index>thresh,-1));
+    rocEnsembles(count) = length(r)+1;
+end
+figure,plot(flip(.25:.025:1),rocEnsembles,'LineWidth',2)
+% Refine ensemble nodes based on similarity and ROC
 thresh = .6;
 [r,~] = find(tril(sim_index>thresh,-1));
-while isempty(r) % Checks to see if we found any ensembles
+while isempty(r) || length(r)<2 % Checks to see if we found any ensembles
     thresh = thresh-0.05;
     [r,~] = find(tril(sim_index>thresh,-1));
 end
@@ -35,6 +46,7 @@ if thresh == 0.25 % returns function if thereshold is too low
     return;
 end
 disp(['Ensembles detected at ' num2str(thresh*100) '% threshold']);
+
 r = unique(r);
 fEnsemble = find(diff(r)~=1)+1; % Find ensemble index location
 if isempty(fEnsemble) % means there is only 1 ensemble with contineous index
@@ -55,7 +67,7 @@ for i = 1:ensembleIndentified
     end
     
     corr = correlation_dice(ensembleId);
-    thresh = 0.35;
+    thresh = 0.1;
     Connected_ROI{i} = Connectivity_dice(corr, ROI,thresh);
     [NumActiveNodes,NodeList{i},NumNodes{i},NumEdges{i},SpatialCentroid{i},SpatialCentroidVariance{i},...
         ActivityCentroid{i},ActivityCentroidVariance{i}]...
