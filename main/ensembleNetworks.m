@@ -9,15 +9,15 @@ for ii = 1:Ensemble.ensembleIndentified
         refList(refList==diNodeList(i,1))= i;
     end
     G{ii} = graph(refList(:,1),refList(:,2));
-%     %%
-%     d = distances(G{ii});
-%     figure,p = plot(G{ii});
-%     bins = conncomp(G{ii});
-%     p.MarkerSize = 7;
-% %     p.EdgeColor = [0.5 0.5 .5];
-%     p.LineWidth = 1;
-%     p.NodeCData = bins;
-%     colormap(hsv(4))
+    %%
+    d = distances(G{ii});
+    figure,p = plot(G{ii});
+    bins = conncomp(G{ii});
+    p.MarkerSize = 7;
+%     p.EdgeColor = [0.5 0.5 .5];
+    p.LineWidth = 1;
+    p.NodeCData = bins;
+    colormap(hsv(4))
     clear refList diNodeList
 end
 Ensemble.G = G;
