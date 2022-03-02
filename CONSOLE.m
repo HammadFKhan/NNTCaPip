@@ -1,10 +1,10 @@
-%% Run the CaimAn program
+%% NNT Calcium Pipeline
 % Github Version 4.1
 
-%% CaimAn Single File ROI Extraction 
+% CaimAn Single File ROI Extraction 
 clear
 clc
-close all;
+close all; 
 set(0,'DefaultFigureWindowStyle','normal')
 addpath(genpath('main'));
 tic
@@ -18,7 +18,7 @@ set(0,'DefaultFigureWindowStyle','normal')
 addpath(genpath('main'));
 global nam
 global memfig
-batch = 1;
+batch = 0;
 if batch == 1
     pathname = strcat(uigetdir(pwd,'Input Directory'),'\');
     savepathname = strcat(uigetdir(pwd,'Output Directory'),'\');
@@ -50,7 +50,7 @@ else
     Start_MemMap_CaImAn
     toc
 end
-%% Single File Analysis
+%% Analysis
 addpath(genpath('main'));
 std_threshold = 4;
 static_threshold = .2;
@@ -61,55 +61,97 @@ Spikes = Spike_Detector_Single(dDeltaFoverF,std_threshold,static_threshold);
 % Spikes = Spikes(keepSpikes,:);
 [coactive_cells,detected_spikes] = coactive_index(Spikes,length(Spikes));
 cell_count = length(ROI);
-time = time_adjust(num_images,15);
-% calcium_avg = STA(DeltaFoverF,Spikes,std_threshold,5);
-bin = 20; %Vector sizes for similarity indexing (Num frames should be devisable by this)           
+time = time_adjust(size(DeltaFoverF,2),30);
+calcium_avg = STA(DeltaFoverF,Spikes,std_threshold,5);
 
-% Spikes_shuffled = tempShuffle(Spikes,10000);
-% Event_shuffled = spatialShuffle(Spikes,10000);
-% surrogate = 10;
-% Total_shuffled = allShuffle(Spikes,10000);
-% [shufcoactive_cells,detected_spikes] = coactive_index(Spikes_shuffled,length(Spikes_shuffled));
-% shuff_corr = correlation_dice(Event_shuffled);
-% [shufvectorized,shufsim_index] = cosine_similarity(Total_shuffled,bin);
-% shufsim_index = shufsim_index-mean(mean(shufsim_index,2));
-factorCorrection = 5*floor(size(Spikes,2)/5); % Correct for frame size aquisition
-[vectorized,sim_index] = cosine_similarity(Spikes(:,1:factorCorrection),10);
-corr = correlation_dice(Spikes);
-Connected_ROI = Connectivity_dice(corr, ROI);
-[NumActiveNodes,NodeList,NumNodes,NumEdges,SpatialCentroid,SpatialCentroidVariance,...
-    ActivityCentroid,ActivityCentroidVariance]...
-    = Network_Analysis(ROIcentroid,Connected_ROI);
-% Ensemble Analysis
+% Perform shuffling and pairwise if data is small enough
+if num_images<2000    
+%     Spikes_shuffled = tempShuffle(Spikes,1000);
+%     Event_shuffled = spatialShuffle(Spikes,1000);
+%     surrogate = 10;
+%     Total_shuffled = allShuffle(Spikes,1000);
+%     [shufcoactive_cells,detected_spikes] = coactive_index(Spikes_shuffled,length(Spikes_shuffled));
+%     shuff_corr = correlation_dice(Event_shuffled);
+%     [shufvectorized,shufsim_index] = cosine_similarity(Total_shuffled,bin);
+%     shufsim_index = shufsim_index-mean(mean(shufsim_index,2));
+    factorCorrection = 10*floor(size(Spikes,2)/10); % Correct for frame size aquisition
+    [vectorized,sim_index] = cosine_similarity(Spikes(:,1:factorCorrection),10);
+    corr = correlation_dice(Spikes);
+    Connected_ROI = Connectivity_dice(corr, ROI,0.3);
+    [NumActiveNodes,NodeList,NumNodes,NumEdges,SpatialCentroid,SpatialCentroidVariance,...
+        ActivityCentroid,ActivityCentroidVariance]...
+        = Network_Analysis(ROIcentroid,Connected_ROI);
+end
+
+%% Pairwise synchronization as velocity
+Velocity = encoderVelocity(VR_data); % Bin width of 4 (ie. average every 4 readings)
+% Extract window during velocity threshold
+thresh = find(abs(Velocity(:,2))>1);
+thresh = thresh*4; %multiply by bin width of the encoder time
+% Now match threshold to the calcium time by window
+for i = 1:length(thresh)
+    CaTime = find(round(time)==thresh(i));
+    syncWin{i} = Spikes(:,CaTime-30:CaTime+30);
+    corr{i} = correlation_dice(syncWin{i});
+    figure(i),htmp(corr{i});caxis([0.0 .5]);
+end
+%total pairwise Synchronization
+velCorr = correlation_dice(horzcat(syncWin{:}));
+figure,htmp(velCorr);caxis([0.0 .5]);
+% Connectivity analysis during locomotion
+%pairwise synchornization during rest
+threshRest = find(Velocity(:,2)<1);
+threshRest = threshRest*4; %multiply by bin width of the encoder time
+% Now match threshold to the calcium time by window
+for i = 1:length(threshRest)
+    CaTime = find(round(time)==threshRest(i));
+    syncWinRest{i} = Spikes(:,CaTime-30:CaTime+30);
+end
+%total pairwise Synchronization
+velCorrRest = correlation_dice(horzcat(syncWinRest{:}));
+figure,htmp(velCorrRest);caxis([0.0 .5]);
+% Connectivity analyis at rest
+
+%% Ensemble Analysis
+figure,[Coor,json_file] = plot_contours(A,C,ops,0); % contour plot of spatial footprints
 factorCorrection = 5*floor(size(Spikes,2)/5); % Correct for frame size aquisition
 Ensemble = ensembleAnalysis(Spikes(:,1:factorCorrection),ROI,ROIcentroid);
 % Ensemble = ensembleNetworks(Ensemble);
-
 %% Plot Ensemble
-ensembleVid(Ensemble,AverageImage,ROIcentroid,files);
-
+% ensembleVid(Ensemble,AverageImage,ROIcentroid,files);
+% Displays ensemble overlay
+[~,I] = sort(cellfun(@length,Ensemble.NodeList),'descend'); %sort max node size
+rankEdges = Ensemble.NumEdges(:,I);
+rankEnsembles = Ensemble.NodeList(:,I); 
+[grad,~]=colorGradient([1 0 0],[0 0 0],4)
+figure,
+for i = 1:3
+    axis off
+    color = jet(3);
+    EnsembleMap(AverageImage,ROIcentroid,rankEnsembles{i},4,grad(i,:))
+    set(gcf,'Position',[100 100 500 500])
+    drawnow
+    hold on
+end
 % Combine Maps
-figure,imagesc(interp2(Ensemble.sim_index,2)),colormap(jet),caxis([0.13 0.4])
+figure,imagesc(interp2(Ensemble.sim_index,2)),colormap(jet),caxis([0.13 .4])
 K = (1/25)*ones(5);
-figure,imagesc(interp2(conv2(Ensemble.sim_index,K,'same'),2)),colormap(jet),caxis([.08 .15])
+figure,imagesc(interp2(conv2(Ensemble.sim_index,K,'same'),2)),colormap(jet),caxis([.08 .3])
 
+%%
+sizeE = cellfun(@size,rankEnsembles,'UniformOutput',false);
+sizeE = cell2mat(sizeE);
+sizeE(sizeE==1) = [];
+sizeE = sizeE/max(sizeE);
+figure,plot(sizeE)
 
-%% Ensemble stats
-ensembleRecruitment = [W2ensembleRecruitment;W4ensembleRecruitment;W12ensembleRecruitment];
-eRx = [repmat({'W2'},length(W2ensembleRecruitment), 1); repmat({'W4'},length(W4ensembleRecruitment), 1); repmat({'W6'},length(W12ensembleRecruitment), 1)];
-
-numEnsemble = [W2ensembleNum;W4ensembleNum;W6ensembleNum;W8ensembleNum;W12ensembleNum];
-eNumx = [repmat({'W2'},length(W2ensembleNum), 1); repmat({'W4'},length(W4ensembleNum), 1); repmat({'W6'},length(W6ensembleNum), 1);...
-    repmat({'W8'},length(W8ensembleNum), 1); repmat({'W12'},length(W12ensembleNum), 1)];
-eCosine =  [W2eCosine;W4eCosine;W6eCosine;W8eCosine;W12eCosine;];
-eCosinex = [repmat({'W2'},length(W2eCosine), 1); repmat({'W4'},length(W4eCosine), 1); repmat({'W6'},length(W6eCosine), 1);...
-    repmat({'W8'},length(W8eCosine), 1); repmat({'W12'},length(W12eCosine), 1)];
-
-figure,boxplot(ensembleRecruitment,eRx,'PlotStyle','compact')
-figure,boxplot(numEnsemble,eNumx,'PlotStyle','compact')
-figure,boxplot(eCosine,eCosinex,'PlotStyle','compact')
-%% Behavioral Analysis
-Velocity = encoderVelocity(VR_data)
+sizeEdge = cell2mat(rankEdges);
+sizeEdge = sizeEdge/max(sizeEdge);
+figure,plot(sizeEdge)
+%% Ensemble Stats
+EnsembleStats
+%% Information Entropy
+informationEntropy = shannonEntropy(rankEnsembles);
 %% SVD/PCA of Ensembles
 [tProjq1, tProjq2, uProjq1, uProjq2] = featureProject(Ensemble.sim_index,10);
 %% Trial by Trial analysis ##Only use with batch processed files##
@@ -137,7 +179,7 @@ figure('Name','Spike Plot'); Show_Spikes(Spikes);
 figure('Name','Fluorescence Map'); spike_map(DeltaFoverF);caxis([0 1]),set(gcf,'Position',[100 100 400 400])
 figure('Name','Population Intensity');height = 10;rateImage = firing_rate(Spikes,height,time);caxis([0 0.5]);set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);
 figure('Name','Coactivity Index'); B = bar(coactive_cells,4);ax = gca;ax.TickDir = 'out';ax.Box = 'off';
-figure('Name','Dice-Similarity Index');h = htmp(corr,10);caxis([0 0.3]);set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);
+figure('Name','Dice-Similarity Index');h = htmp(corr,10);caxis([0 0.8]);set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);
 figure('Name','Shuffled Dice-Similarity Index');h = htmp(shuff_corr,10);caxis([0 0.4]);set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);
 figure('Name','Cosine-Similarity Index'); h = htmp(sim_index);caxis([0.35 .9]);set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);
 figure('Name','Shuffled Cosine-Similarity Index'); h = htmp(shufsim_index);caxis([0 1]);set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);
@@ -150,7 +192,12 @@ figure('Name','Angular Velocity');bar(encoder_data.ang_velocity,'FaceColor',[.16
 figure('Name','Avg. Angular Velocity');avgV = movmean(encoder_data.ang_velocity,2);bar(avgV,'FaceColor',[.16 .835 .384],'EdgeColor','none');
 
 %%
-image_movie = mat2gray(Image_Stack);
+A    = M2;
+imwrite(A(:, :, 1), 'test.tiff');
+for k = 2:size(A, 3)
+  imwrite(A(:, :, k), 'test.tiff', 'WriteMode', 'append');
+end
+image_movie = mat2gray(M2);
 implay(image_movie);
 %%
 plot_raster(1:120,Spikes(5,1:120))
