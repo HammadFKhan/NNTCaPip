@@ -12,7 +12,7 @@ if Connected_ROI(1,3) ~= 0
     NumEdges = length(Connected_ROI);
     Cell_1=Connected_ROI(1,1);
     Cell_2=Connected_ROI(1,2);
-    NodeList=[Cell_1,Cell_2];
+    NodeList=[Cell_1;Cell_2];
     %Count all Nodes with Edges
     if size(Connected_ROI,1) > 1
         NodeList = vertcat(Connected_ROI(:,1),Connected_ROI(:,2));
