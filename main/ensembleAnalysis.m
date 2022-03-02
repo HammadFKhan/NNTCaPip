@@ -8,17 +8,27 @@ shufSpikes = tempShuffle(Spikes,surrogate);
 bin = ceil(max(coactive_cells)*100);
 figure,hold on,bar(coactive_cells),bar(shufcoactive_cells);
 % figure,hold on,histogram(coactive_cells,100),histogram(shufcoactive_cells,100);
-ensembleCan = find(coactive_cells>(2.5*std(shufcoactive_cells)+mean(shufcoactive_cells))); % 99% distribution threshold
+ensembleCan = 5*find(coactive_cells>(2.5*std(shufcoactive_cells)+mean(shufcoactive_cells))); % 99% distribution threshold
 disp(['Ensemble Candidates: ' num2str(length(ensembleCan))])
+% Grab window around ensembles
+ensembleWin = 5;
+ensemble = [];
 for i = 1:length(ensembleCan)
-    ensemble(:,i) = Spikes(:,ensembleCan(i));
+    ensemble = horzcat(ensemble,Spikes(:,ensembleCan(i)-ensembleWin:ensembleCan(i)+ensembleWin));
+    % Condition if window is outside array bound
+    if ensembleCan<ensembleWin
+            ensemble = horzcat(ensemble,Spikes(:,ensembleCan(i):ensembleCan(i)+ensembleWin));
+    elseif (size(Spikes,2)-ensembleCan)<ensembleWin
+            ensemble = horzcat(ensemble,Spikes(:,ensembleCan(i)-ensembleWin:end));
+    end
 end
 checkPadding = size(ensemble,1)-size(ensemble,2);
+factorCorrection = ensembleWin*floor(size(ensemble,2)/ensembleWin); % Correct for frame size aquisition
 if checkPadding>0
     [vectorized,sim_index] = cosine_similarity(horzcat(ensemble,zeros(size(ensemble,1),checkPadding)),1);
     sim_index = sim_index(1:size(ensembleCan,2),1:size(ensembleCan,2));
 else
-    [vectorized,sim_index] = cosine_similarity(ensemble,1);
+    [vectorized,sim_index] = cosine_similarity(ensemble(:,1:factorCorrection),ensembleWin);
 end
 
 % Generate ROC curve
@@ -35,15 +45,20 @@ figure,plot(flip(.25:.025:1),rocEnsembles,'LineWidth',2)
 % Refine ensemble nodes based on similarity and ROC
 thresh = .6;
 [r,~] = find(tril(sim_index>thresh,-1));
+count = 1;
 while isempty(r) || length(r)<2 % Checks to see if we found any ensembles
     thresh = thresh-0.05;
     [r,~] = find(tril(sim_index>thresh,-1));
+    if count>1000 %timer condition if loop becomes infinite
+        break;
+    end
+    count = count+1;
 end
 if thresh == 0.25 % returns function if thereshold is too low
     disp(['Weak ensembles detected at ' num2str(thresh*100) '% threshold']);
     warning('High false positives detected, stopping analysis...')
-    Ensemble = [];
-    return;
+%     Ensemble = [];
+%     return;
 end
 disp(['Ensembles detected at ' num2str(thresh*100) '% threshold']);
 
@@ -67,13 +82,14 @@ for i = 1:ensembleIndentified
     end
     
     corr = correlation_dice(ensembleId);
-    thresh = 0.1;
+    thresh = 0.2;
     Connected_ROI{i} = Connectivity_dice(corr, ROI,thresh);
     [NumActiveNodes,NodeList{i},NumNodes{i},NumEdges{i},SpatialCentroid{i},SpatialCentroidVariance{i},...
         ActivityCentroid{i},ActivityCentroidVariance{i}]...
         = Network_Analysis(ROIcentroid,Connected_ROI{i});
 end
 Ensemble.ensemble = ensemble;
+Ensemble.vectorized = vectorized;
 Ensemble.sim_index = sim_index;
 Ensemble.NumActiveNodes = NumActiveNodes;
 Ensemble.NodeList = NodeList;
