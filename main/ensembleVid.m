@@ -23,14 +23,3 @@ for i = 1:Ensemble.ensembleIndentified
 end
 close(writerobj)
 disp('Video saved to current directory')
-% Displays ensemble overlay
-figure,
-
-for i = 1:Ensemble.ensembleIndentified 
-    axis off
-    color = jet(Ensemble.ensembleIndentified);
-    EnsembleMap(AverageImage,ROIcentroid,Ensemble.NodeList{i},8,color(i,:))
-    set(gcf,'Position',[100 100 500 500])
-    drawnow
-    hold on
-end
