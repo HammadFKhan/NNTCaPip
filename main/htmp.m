@@ -2,10 +2,7 @@ function h = htmp(corr,ticksize)
 if nargin<2 || isempty(ticksize); ticksize = 20; end
 
 h = imagesc(corr);
-% map = [0.02 0.631 0.631;
-%     1 1 1];
-% h.Colormap(map);
-% [grad,~]=colorGradient([0 0 0],[1 1 1],2);
+% [grad,~]=colorGradient([1 1 1],[0 0 0],64);
 % colormap(grad);
 colormap(jet);
 set(get(colorbar,'title'),'string','\Delta F/F (%)');
