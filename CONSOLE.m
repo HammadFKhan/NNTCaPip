@@ -62,10 +62,12 @@ Spikes = Spike_Detector_Single(dDeltaFoverF,std_threshold,static_threshold);
 [coactive_cells,detected_spikes] = coactive_index(Spikes,length(Spikes));
 cell_count = length(ROI);
 time = time_adjust(size(DeltaFoverF,2),30);
-calcium_avg = STA(DeltaFoverF,Spikes,std_threshold,5);
+for i = 1:size(DeltaFoverF,1)
+    calcium_avg{i} = STA(DeltaFoverF(i,:),2,120);
+end
 
 % Perform shuffling and pairwise if data is small enough
-if num_images<2000    
+if size(DeltaFoverF,2)<2000    
 %     Spikes_shuffled = tempShuffle(Spikes,1000);
 %     Event_shuffled = spatialShuffle(Spikes,1000);
 %     surrogate = 10;
@@ -82,48 +84,21 @@ if num_images<2000
         ActivityCentroid,ActivityCentroidVariance]...
         = Network_Analysis(ROIcentroid,Connected_ROI);
 end
-
-%% Pairwise synchronization as velocity
-Velocity = encoderVelocity(VR_data); % Bin width of 4 (ie. average every 4 readings)
-% Extract window during velocity threshold
-thresh = find(abs(Velocity(:,2))>1);
-thresh = thresh*4; %multiply by bin width of the encoder time
-% Now match threshold to the calcium time by window
-for i = 1:length(thresh)
-    CaTime = find(round(time)==thresh(i));
-    syncWin{i} = Spikes(:,CaTime-30:CaTime+30);
-    corr{i} = correlation_dice(syncWin{i});
-    figure(i),htmp(corr{i});caxis([0.0 .5]);
-end
-%total pairwise Synchronization
-velCorr = correlation_dice(horzcat(syncWin{:}));
-figure,htmp(velCorr);caxis([0.0 .5]);
-% Connectivity analysis during locomotion
-%pairwise synchornization during rest
-threshRest = find(Velocity(:,2)<1);
-threshRest = threshRest*4; %multiply by bin width of the encoder time
-% Now match threshold to the calcium time by window
-for i = 1:length(threshRest)
-    CaTime = find(round(time)==threshRest(i));
-    syncWinRest{i} = Spikes(:,CaTime-30:CaTime+30);
-end
-%total pairwise Synchronization
-velCorrRest = correlation_dice(horzcat(syncWinRest{:}));
-figure,htmp(velCorrRest);caxis([0.0 .5]);
-% Connectivity analyis at rest
-
-%% Ensemble Analysis
-figure,[Coor,json_file] = plot_contours(A,C,ops,0); % contour plot of spatial footprints
+% Pairwise Velocity Analysis
+% velocityPairwise(VR_data,Spikes)
+% Ensemble Analysis
+% figure,[Coor,json_file] = plot_contours(A,C,ops,0); % contour plot of spatial footprints
 factorCorrection = 5*floor(size(Spikes,2)/5); % Correct for frame size aquisition
 Ensemble = ensembleAnalysis(Spikes(:,1:factorCorrection),ROI,ROIcentroid);
 % Ensemble = ensembleNetworks(Ensemble);
-%% Plot Ensemble
+% Plot Ensemble
 % ensembleVid(Ensemble,AverageImage,ROIcentroid,files);
 % Displays ensemble overlay
 [~,I] = sort(cellfun(@length,Ensemble.NodeList),'descend'); %sort max node size
 rankEdges = Ensemble.NumEdges(:,I);
 rankEnsembles = Ensemble.NodeList(:,I); 
-[grad,~]=colorGradient([1 0 0],[0 0 0],4)
+[grad,~]=colorGradient([0 1 0],[0 0 0],4)
+Ensemble.rankEnsembles = rankEnsembles;
 figure,
 for i = 1:3
     axis off
@@ -138,20 +113,43 @@ figure,imagesc(interp2(Ensemble.sim_index,2)),colormap(jet),caxis([0.13 .4])
 K = (1/25)*ones(5);
 figure,imagesc(interp2(conv2(Ensemble.sim_index,K,'same'),2)),colormap(jet),caxis([.08 .3])
 
-%%
+%
 sizeE = cellfun(@size,rankEnsembles,'UniformOutput',false);
 sizeE = cell2mat(sizeE);
 sizeE(sizeE==1) = [];
 sizeE = sizeE/max(sizeE);
-figure,plot(sizeE)
+figure,plot(sizeE),title('Ranked Ensembles')
 
 sizeEdge = cell2mat(rankEdges);
 sizeEdge = sizeEdge/max(sizeEdge);
-figure,plot(sizeEdge)
-%% Ensemble Stats
-EnsembleStats
-%% Information Entropy
+figure,plot(sizeEdge),title('Ranked Connections')
+% Ensemble Stats
+% EnsembleStats
+% Information Entropy
 informationEntropy = shannonEntropy(rankEnsembles);
+%% Plot Centroid Boundary
+figure,hold on
+%Rank by number of Activity points
+[~,I] = sort(cellfun(@length,Ensemble.ActivityCoords),'descend'); %sort max node size
+rankedActivityCoords = Ensemble.ActivityCoords(:,I);
+for i = 1:15%size(Ensemble.ActivityCoords,2)
+    
+    x = rankedActivityCoords{i}(:,1);y = rankedActivityCoords{i}(:,2);
+    k = boundary(x,y);
+    x1 = interp1(1:length(x(k)),x(k),1:0.05:length(x(k)),'pchip');
+    y1 = interp1(1:length(y(k)),y(k),1:0.05:length(y(k)),'pchip');
+    x2 = smoothdata(x1,'gaussian',50);
+    y2 = smoothdata(y1,'gaussian',50);
+    plot(x2,y2,'Color',[0.5 0.5 0.5])
+    scatter(x,y,4,'k','filled')
+    
+end
+
+%%
+W12_10Entropy.informationEntropy = informationEntropy;
+W12_10Entropy.rankedEnsembles = rankEnsembles;
+W12_10Entropy.rankedEdges = rankEdges;
+W12_10Entropy.Ensemble = Ensemble;
 %% SVD/PCA of Ensembles
 [tProjq1, tProjq2, uProjq1, uProjq2] = featureProject(Ensemble.sim_index,10);
 %% Trial by Trial analysis ##Only use with batch processed files##
@@ -179,7 +177,7 @@ figure('Name','Spike Plot'); Show_Spikes(Spikes);
 figure('Name','Fluorescence Map'); spike_map(DeltaFoverF);caxis([0 1]),set(gcf,'Position',[100 100 400 400])
 figure('Name','Population Intensity');height = 10;rateImage = firing_rate(Spikes,height,time);caxis([0 0.5]);set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);
 figure('Name','Coactivity Index'); B = bar(coactive_cells,4);ax = gca;ax.TickDir = 'out';ax.Box = 'off';
-figure('Name','Dice-Similarity Index');h = htmp(corr,10);caxis([0 0.8]);set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);
+figure('Name','Dice-Similarity Index');h = htmp(corr,10);caxis([0 0.4]);set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);
 figure('Name','Shuffled Dice-Similarity Index');h = htmp(shuff_corr,10);caxis([0 0.4]);set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);
 figure('Name','Cosine-Similarity Index'); h = htmp(sim_index);caxis([0.35 .9]);set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);
 figure('Name','Shuffled Cosine-Similarity Index'); h = htmp(shufsim_index);caxis([0 1]);set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);
