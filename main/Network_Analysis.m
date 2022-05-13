@@ -1,4 +1,5 @@
-function [NumActiveNodes,NodeList,NumNodes,NumEdges,SpatialCentroid,SpatialCentroidVariance,ActivityCentroid,ActivityCentroidVariance] = Network_Analysis(ROIcentroids,Connected_ROI)
+function [NumActiveNodes,NodeList,NumNodes,NumEdges,SpatialCentroid,SpatialCentroidVariance,ActivityCentroid,ActivityCentroidVariance, ActivityCoords]...
+    = Network_Analysis(ROIcentroids,Connected_ROI)
 NumActiveNodes=0;
 NodeList = 0;
 NumNodes=size(ROIcentroids,1);
@@ -32,8 +33,21 @@ else
     NumActiveNodes=0;
     NumNodes=0;
     NumEdges=0;
-    SpatialCentroid = 'Null';
-    SpatialCentroidVariance = 'Null';
-    ActivityCentroid = 'Null';
-    ActivityCentroidVariance='Null';
+    SpatialCentroid = [];
+    SpatialCentroidVariance = [];
+    ActivityCentroid = [];
+    ActivityCentroidVariance=[];
+    ActivityCoords = [];
 end
+%% Plot structure
+% NetworkAnalysis.NumActiveNodes = NumActiveNodes;
+% NetworkAnalysis.NodeList = NodeList;
+% NetworkAnalysis.NumNodes = NumNodes;
+% NetworkAnalysis.NumEdges = NumEdges;
+% NetworkAnalysis.SpatialCentroid = SpatialCentroid;
+% NetworkAnalysis.SpatialCentroidVariance = SpatialCentroidVariance;
+% NetworkAnalysis.ActivityCentroid = ActivityCentroid;
+% NetworkAnalysis.ActivityCentroidVariance = ActivityCentroidVariance;
+
+
+
