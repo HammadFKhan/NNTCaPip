@@ -1,11 +1,13 @@
 %% Single File Analysis
 %% Set trial stats
-W12ensembleSize = [];
-W12ensembleRecruitment= [];
-W12minRecruitment = [];
-W12maxRecruitment = [];
-W12ensembleNum = [];
-W12eCosine = [];
+ConensembleSize = [];
+ConensembleRecruitment= [];
+ConminRecruitment = [];
+ConmaxRecruitment = [];
+ConensembleNum = [];
+ConeCosine = [];
+% W6simIndex = [];
+ConSDactivity = [];
 % load batch directory
 pathname = strcat(uigetdir(pwd,'Input Directory'),'\');
 directory = dir(fullfile(pathname,'*.mat'));
@@ -34,7 +36,7 @@ bin = 20; %Vector sizes for similarity indexing (Num frames should be devisable 
 % shuff_corr = correlation_dice(Event_shuffled);
 % [shufvectorized,shufsim_index] = cosine_similarity(Total_shuffled,bin);
 % shufsim_index = shufsim_index-mean(mean(shufsim_index,2));
-% factorCorrection = 5*floor(size(Spikes,2)/5); % Correct for frame size aquisition
+% factorCorrection = 10*floor(size(Spikes,2)/10); % Correct for frame size aquisition
 % [vectorized,sim_index] = cosine_similarity(Spikes(:,1:factorCorrection),10);
 corr = correlation_dice(Spikes);
 Connected_ROI = Connectivity_dice(corr, ROI);
@@ -57,15 +59,19 @@ Ensemble = ensembleAnalysis(Spikes(:,1:factorCorrection),ROI,ROIcentroid);
 %
     % Ensemble stats for trial processing
     [ensembleSize,ensembleNum,ensembleRecruitment,minRecruitment,maxRecruitment] = ensembleStat(Ensemble,ROI);
-    W12eCosine = vertcat(W12eCosine,mean(Ensemble.sim_index,2));
-    W12ensembleSize = vertcat(W12ensembleSize,ensembleSize');
-    W12ensembleNum = vertcat(W12ensembleNum,ensembleNum);
-    W12ensembleRecruitment= vertcat(W12ensembleRecruitment,ensembleRecruitment);
-    W12minRecruitment = vertcat(W12minRecruitment,minRecruitment);
-    W12maxRecruitment = vertcat(W12maxRecruitment,maxRecruitment);
-    
+    ConeCosine = vertcat(ConeCosine,mean(Ensemble.sim_index,2));
+    ConensembleSize = vertcat(ConensembleSize,ensembleSize');
+    ConensembleNum = vertcat(ConensembleNum,ensembleNum);
+    ConensembleRecruitment= vertcat(ConensembleRecruitment,ensembleRecruitment);
+    ConminRecruitment = vertcat(ConminRecruitment,minRecruitment);
+    ConmaxRecruitment = vertcat(ConmaxRecruitment,maxRecruitment);
+%     meanSim = mean(sim_index);
+%     W6simIndex = vertcat(W6simIndex,meanSim);
+    meanSDactivity = mean(corr,2);
+    ConSDactivity = vertcat(ConSDactivity,meanSDactivity);
     %%
-    clearvars -except W12ensembleSize W12ensembleRecruitment W12minRecruitment W12maxRecruitment W12ensembleNum W12eCosine files pathname directory L
+    clearvars -except ConensembleSize ConensembleRecruitment ConminRecruitment ConmaxRecruitment ConensembleNum...
+        ConSDactivity ConeCosine ConsimIndex ConSDactivity files pathname directory L
 %         W8ensembleSize W8ensembleRecruitment W8minRecruitment W8maxRecruitment...
 %         ConensembleSize ConensembleRecruitment ConminRecruitment ConmaxRecruitment
 end
