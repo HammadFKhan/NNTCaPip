@@ -14,12 +14,14 @@ disp(['Ensemble Candidates: ' num2str(length(ensembleCan))])
 ensembleWin = 5;
 ensemble = [];
 for i = 1:length(ensembleCan)
-    ensemble = horzcat(ensemble,Spikes(:,ensembleCan(i)-ensembleWin:ensembleCan(i)+ensembleWin));
     % Condition if window is outside array bound
-    if ensembleCan<ensembleWin
-            ensemble = horzcat(ensemble,Spikes(:,ensembleCan(i):ensembleCan(i)+ensembleWin));
-    elseif (size(Spikes,2)-ensembleCan)<ensembleWin
-            ensemble = horzcat(ensemble,Spikes(:,ensembleCan(i)-ensembleWin:end));
+    if ensembleCan(i)<=ensembleWin
+        ensemble = horzcat(ensemble,Spikes(:,ensembleCan(i):ensembleCan(i)+ensembleWin));
+    elseif size(Spikes,2)-ensembleCan(i)<ensembleWin
+        ensemble = horzcat(ensemble,Spikes(:,ensembleCan(i)-ensembleWin:end));
+    else
+        ensemble = horzcat(ensemble,Spikes(:,ensembleCan(i)-ensembleWin:ensembleCan(i)+ensembleWin));
+        
     end
 end
 checkPadding = size(ensemble,1)-size(ensemble,2);
@@ -82,15 +84,16 @@ for i = 1:ensembleIndentified
     end
     
     corr = correlation_dice(ensembleId);
-    thresh = 0.2;
+    thresh = 0.4;
     Connected_ROI{i} = Connectivity_dice(corr, ROI,thresh);
     [NumActiveNodes,NodeList{i},NumNodes{i},NumEdges{i},SpatialCentroid{i},SpatialCentroidVariance{i},...
-        ActivityCentroid{i},ActivityCentroidVariance{i}]...
+        ActivityCentroid{i},ActivityCentroidVariance{i}, ActivityCoords{i}]...
         = Network_Analysis(ROIcentroid,Connected_ROI{i});
 end
 Ensemble.ensemble = ensemble;
 Ensemble.vectorized = vectorized;
 Ensemble.sim_index = sim_index;
+% Ensemble.NetworkAnalysis = NetworkAnalysis;
 Ensemble.NumActiveNodes = NumActiveNodes;
 Ensemble.NodeList = NodeList;
 Ensemble.NumNodes = NumNodes;
@@ -99,6 +102,7 @@ Ensemble.SpatialCentroid = SpatialCentroid;
 Ensemble.SpatialCentroidVariance = SpatialCentroidVariance;
 Ensemble.ActivityCentroid = ActivityCentroid;
 Ensemble.ActivityCentroidVariance = ActivityCentroidVariance;
+Ensemble.ActivityCoords =  ActivityCoords;
 Ensemble.ensembleIndentified = ensembleIndentified;
 Ensemble.Connected_ROI =  Connected_ROI;
 Ensemble.loc = r;
