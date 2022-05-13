@@ -1,11 +1,11 @@
 function Velocity = encoderVelocity(VR_data)
-
+binWidth = 4;
 for trial = 1:length(VR_data.Position)
     position = abs(VR_data.Position{trial});
     edgesPos = 0:1:abs(ceil(VR_data.Position{1}(end)));
     VRposition =  discretize(position,edgesPos);
     time = VR_data.Time{trial};
-    edgesTime = 0:4:VR_data.Time{1}(end); %Bin width on the track
+    edgesTime = 0:binWidth:time(end); %Bin width on the track
     VRtimebin = discretize(time,edgesTime);
     
     % Checks binning routine
@@ -37,5 +37,4 @@ for trial = 1:length(VR_data.Position)
         Vel(i,2) = sumPosition;
     end
     Velocity = Vel;
-    clear mapTime spikeRate VRposition spikeCount
 end
