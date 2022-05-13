@@ -1,5 +1,14 @@
-function M2 = memMapmotionCorrection(memMap)
+function M2 = memMapmotionCorrection(name)
 gcp;
+tic; memMap = read_file(name); toc; % read the file (optional, you can also pass the path in the function instead of Y)
+memMap = single(memMap);   
+% convert to single precision 
+T = size(memMap,ndims(memMap));
+memMap = memMap - min(memMap(:));
+%% Downsample data
+disp('Downsampling data...');
+memMap = downsample_data(memMap,'spacetime',1,1); %tsub,ssub
+
 %% now try non-rigid motion correction (also in parallel)
 % disp('Starting first motion correction pass...')
 % options_nonrigid = NoRMCorreSetParms('d1',size(memMap,1),'d2',size(memMap,2),'grid_size',[64,64],'bin_width',200,'max_shift',[30 30],'max_dev',[8 8],'us_fac',50,'init_batch',200);
