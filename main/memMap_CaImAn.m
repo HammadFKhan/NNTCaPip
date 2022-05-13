@@ -22,7 +22,7 @@ sframe=1;
 is_memmaped = true;        % choose whether you want to load the file in memory or not
 %% Motion correct and memMap Data
 %Checks if temporary motion correction file exists (deletes if it does)
-if isfile('motion_corrected.mat') && isfile('motion_corrected.tif')
+if isfile('motion_corrected.mat') || isfile('motion_corrected.tif')
     delete('motion_corrected.mat')
     delete('motion_corrected.tif')
 end
@@ -36,8 +36,8 @@ if exist([nam(1:end-3),'mat'],'file')
 else
     sframe=1;						% user input: first frame to read (optional, default 1)
     num2read=[];					% user input: how many frames to read   (optional, default until the end)
-    chunksize=5000;                 % user input: read and map input in chunks (optional, default read all at once)
-    data = memmap_file(M2,sframe,num2read,chunksize);
+    chunksize=2000;                 % user input: read and map input in chunks (optional, default read all at once)
+    data = memmap_file(M2,sframe,num2read);
     %data = memmap_file_sequence(foldername);
 end
 sizY = size(data,'Y');                    % size of data matrix
@@ -120,6 +120,12 @@ global DeltaFoverF
 global dDeltaFoverF
 global Noise_Power
 global files
+global A
+global C
+global ops
+A = A2;
+C = Cn;
+ops = options;
 files = nam;
 [H,W] = size(Cn);
 AverageImage =ones(H,W);
