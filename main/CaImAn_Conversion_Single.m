@@ -31,13 +31,13 @@ d = d1*d2;                                          % total number of pixels
 
 %% Set parameters
 disp('Setting Parameters...')
-K = 250;                                           % number of components to be found
+K = 150;                                           % number of components to be found
 tau = 5;                                          % std of gaussian kernel (half size of neuron) 
 p = 2;
 
 options = CNMFSetParms(...   
     'init_method','greedy',...
-    'beta',0.75,...
+    'beta',0.6,...
     'min_corr',0.3,...
     'd1',d1,'d2',d2,...                         % dimensionality of the FOV
     'p',p,...                                   % order of AR dynamics    
@@ -166,6 +166,12 @@ global DeltaFoverF
 global dDeltaFoverF
 global Noise_Power
 global files
+global A
+global C
+global ops
+A = A_or;
+C = Cn;
+ops = options;
 files = filename;
 [H,W] = size(Y(:,:,1));
 AverageImage =ones(H,W);
