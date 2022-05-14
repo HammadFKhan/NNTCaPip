@@ -127,11 +127,12 @@ figure,plot(sizeEdge),title('Ranked Connections')
 % EnsembleStats
 % Information Entropy
 informationEntropy = shannonEntropy(rankEnsembles);
-%% Plot Centroid Boundary
+% Plot Centroid Boundary
 figure,hold on
 %Rank by number of Activity points
 [~,I] = sort(cellfun(@length,Ensemble.ActivityCoords),'descend'); %sort max node size
 rankedActivityCoords = Ensemble.ActivityCoords(:,I);
+Ensemble.rankedActivityCoords = rankedActivityCoords;
 for i = 1:15%size(Ensemble.ActivityCoords,2)
     
     x = rankedActivityCoords{i}(:,1);y = rankedActivityCoords{i}(:,2);
