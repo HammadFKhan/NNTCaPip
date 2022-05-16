@@ -1,4 +1,5 @@
-function [ensembleSize,ensembleNum,ensembleRecruitment,minRecruitment,maxRecruitment,rankedActivityCoords] = ensembleStat(Ensemble)
+function [ensembleSize,ensembleNum,ensembleRecruitment,minRecruitment,maxRecruitment,...
+    rankedActivityCoords,activityCentroid,activityCentroidVariance] = ensembleStat(Ensemble)
 % Ensemble stats for trial processing
 for i = 1:size(Ensemble.NodeList,2)
     ensembleSize(i) = length(Ensemble.NodeList{i});
@@ -10,3 +11,5 @@ minRecruitment = (min(ensembleSize)/max(cell2mat(Ensemble.NumNodes)));
 maxRecruitment = (max(ensembleSize)/max(cell2mat(Ensemble.NumNodes)));
 rankedActivityCoords = Ensemble.rankedActivityCoords;
 
+activityCentroid = vertcat(Ensemble.ActivityCentroid{:});
+activityCentroidVariance = vertcat(Ensemble.ActivityCentroidVariance{:});
