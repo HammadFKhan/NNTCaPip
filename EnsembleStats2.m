@@ -64,28 +64,43 @@ for ii = 1:5 % Reference to recording session/animal
     figure,hold on,axis([0 400 0 400])
     for i = 1:size(manifold,2)
         if size(manifold{i},1)>2
-        %     centroidData = [activityCentroid{ii} activityCentroidVariance{ii}]; % Horzcat the centroid activity
-        
-        % adaptively find threshold of centoriod activity that encompases
-        % 80% of ensemble variability
-        
-        centroidData(i,:) = [mean(rankedActivityCoords{1,ii}{1,i}) std(rankedActivityCoords{1,ii}{1,i})];
-        %     meanCentroidData = mean(centroidData);
-        %     errorbar(meanCentroidData(:,1),meanCentroidData(:,2),...
-        %         meanCentroidData(:,3),meanCentroidData(:,3),meanCentroidData(:,4),meanCentroidData(:,4),'.','Color',color(ii,:))
+            %     centroidData = [activityCentroid{ii} activityCentroidVariance{ii}]; % Horzcat the centroid activity
+            centroidData(i,:) = [mean(rankedActivityCoords{1,ii}{1,i}) std(rankedActivityCoords{1,ii}{1,i})];
+            %     meanCentroidData = mean(centroidData);
+            %     errorbar(meanCentroidData(:,1),meanCentroidData(:,2),...
+            %         meanCentroidData(:,3),meanCentroidData(:,3),meanCentroidData(:,4),meanCentroidData(:,4),'.','Color',color(ii,:))
         end
     end
-    errorbar(centroidData(:,1),centroidData(:,2),...
-            centroidData(:,3),centroidData(:,3),centroidData(:,4),centroidData(:,4),'.','Color',color(ii,:))
+    numActivity = cellfun('size',rankedActivityCoords{1,ii},1); % Number of activity centroids
+    numActivity(numActivity<3)= [];
+    % Calculate adaptive threshold to display centroid data
+    thresCum = cumsum(numActivity);
+    thresh = find((thresCum./thresCum(end))>=0.8); % Plot centroid that encompases 80% of variability
+    thresh = thresh(1);
+    
+    errorbar(centroidData(1:thresh,1),centroidData(1:thresh,2),...
+        centroidData(1:thresh,3),centroidData(1:thresh,3),...
+        centroidData(1:thresh,4),centroidData(1:thresh,4),'.','Color',color(ii,:))
+    
     hypVariance{ii} = 2*sqrt(centroidData(:,3).^2+centroidData(:,4).^2); %Euclin distance across centroid variance for stats
+    ensembleIntrinsicConnection{ii} = numActivity'; % basically a measure of how many cells are
     centroidData = [];
+    %recruited to the ensemble as a function of time. Should be similair to
+    %ensemble recruitability
+    
 end
 
 %% Line plot for variance
 test = cell2mat(cellfun(@mean,hypVariance,'Uniform',false));
 testStd = cell2mat(cellfun(@std,hypVariance,'Uniform',false));
-
-
+%% Plot ensemble intrinsic connection to overall variability
+figure,hold on,xlabel('Ensemble Intrinsic Connection'),ylabel('Centroid Variability')
+x = vertcat(ensembleIntrinsicConnection{:});
+y = vertcat(hypVariance{:});
+plot(x,y,'k.')
+figure,
+mdl = fitlm(x,y);
+plot(mdl),title(['R^2: ' num2str(mdl.Rsquared.Ordinary)]);
 
 %% Centroid activity
 % Note that I forgot to resort this index to match the ranked activity
