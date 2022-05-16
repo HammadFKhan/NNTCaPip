@@ -21,4 +21,3 @@ for ii = 1:Ensemble.ensembleIndentified
     clear refList diNodeList
 end
 Ensemble.G = G;
-end
