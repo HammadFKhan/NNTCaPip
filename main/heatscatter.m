@@ -158,7 +158,7 @@ function outfile = heatscatter(X, Y,numbins, markersize, marker, plot_colorbar, 
     
     fprintf('Plotting...');
     
-    figure,scatter(X, Y, markersize, test, marker,'filled');
+    figure,scatter(X, Y, markersize, scatter_COL, marker,'filled');
     
     if (plot_colorbar)
         colorbar;
