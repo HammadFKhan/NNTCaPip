@@ -28,9 +28,9 @@ plot(1.1*ones(1,length(data)),data,'.');
 % start = 1;stop = 5;
 % start = 6;stop = 10;
 % start = 11;stop = 16;
-% start = 17;stop = 22;
+start = 17;stop = 22;
 % start = 23;stop = 29;
-start = 30;stop = 37;
+% start = 30;stop = 37;
 color = hsv((stop-start)+1);
 m = (stop-start)+1;
 hypVariance = [];
@@ -132,4 +132,22 @@ testSize = cellfun('size',centroidActivityWeeks,2);
 t = testStd./sqrt(testSize);
 errorbar(1:6,test,t),box off,xlim([ 0 7])
 %% State Space Ratio (Variance/EnsembleRecruitment)
-SSR{6} = y./x; %hypVariance/ensemble
+SSR{1} = y./x; %hypVariance/ensemble
+%% Discritize sizes
+xd = discretize(x,0:5:100); % 20 bins (points)
+binEIC = xd*5;
+for i = 1:20 % number of discritize bins
+    binVariance{3,i} = y(xd==i); % map variance to binned size  
+end
+%%
+for i = 1:6
+    figure,
+    boxplot(SSR{i},'plotStyle','compact'),hold on
+    plot(1.2*ones(length(SSR{i}),1),SSR{i},'.'),ylim([0 100]),box off
+end
+%%
+color = hsv(6);
+figure, hold on 
+for i = 1:6
+    plot(linspace((i-1)*10+1,i*10,length(SSR{i})),SSR{i},'.','Color',color(i,:))
+end
