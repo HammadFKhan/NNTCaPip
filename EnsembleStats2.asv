@@ -25,10 +25,22 @@ data6 = test(25:end);
 figure,boxplot(data,'PlotStyle','compact'),ylim([0 0.5]),box off,hold on
 plot(1.1*ones(1,length(data)),data,'.');
 %% Plot manifolds and centroids
-color = hsv(5);
-for ii = 1:5 % Reference to recording session/animal
+% start = 1;stop = 5;
+% start = 6;stop = 10;
+% start = 11;stop = 16;
+% start = 17;stop = 22;
+% start = 23;stop = 29;
+start = 30;stop = 37;
+color = hsv((stop-start)+1);
+m = (stop-start)+1;
+hypVariance = [];
+centroidData = [];
+ensembleIntrinsicConnection = [];
+count = 1;
+figure
+for ii = start:stop % Reference to recording session/animal
     manifold = rankedActivityCoords{ii}; % Eached rank coords is the distance between each cell pair that makes up an ensemble
-    figure,hold on,axis([0 400 0 400])
+    subplot(3,m,(1*m)-(m-count)),hold on,axis([0 600 0 600]),axis off
     for i = 1:size(manifold,2) % Basically how many ensembles there are
         if size(manifold{i},1)>2
             x = manifold{i}(:,1);y = manifold{i}(:,2);
@@ -48,11 +60,11 @@ for ii = 1:5 % Reference to recording session/animal
 %     y2 = smoothdata(y1,'gaussian',50);
 %     plot(x2,y2,'Color',[0 0 0],'LineWidth',2)
     
-    figure,hold on,axis([0 400 0 400]) % Plots all the coordinates emsemble points embedded within the manifold
+    subplot(3,m,(2*m)-(m-count)),hold on,axis([0 600 0 600]),axis off % Plots all the coordinates emsemble points embedded within the manifold
     for i = 1:size(manifold,2)
         if size(manifold{i},1)>2
             x = manifold{i}(:,1);y = manifold{i}(:,2);
-            scatter(x,y,4,color(ii,:),'filled')
+            scatter(x,y,4,color(count,:),'filled')
         end
     end
     
@@ -61,60 +73,63 @@ for ii = 1:5 % Reference to recording session/animal
     % centroids! Hence, there is a mismatch between the centroid and
     % manifold/activity coordiantes. We need to recalculate here which is
     % taking the mean and std of the activity coordinates :)
-    figure,hold on,axis([0 400 0 400])
     for i = 1:size(manifold,2)
-        numActivity = cellfun('size',rankedActivityCoords{1,ii},1); % Number of activity centroids
-        numActivity(numActivity<3)= [];
-        thresCum = cumsum(numActivity);
-        thresh = find((thresCum./thresCum(end))>=0.8);
-        thresh = thresh(1);
         if size(manifold{i},1)>2
             %     centroidData = [activityCentroid{ii} activityCentroidVariance{ii}]; % Horzcat the centroid activity
-            
-            % adaptively find threshold of centriod activity that encompases
-            % 80% of ensemble variability
-            
             centroidData(i,:) = [mean(rankedActivityCoords{1,ii}{1,i}) std(rankedActivityCoords{1,ii}{1,i})];
             %     meanCentroidData = mean(centroidData);
             %     errorbar(meanCentroidData(:,1),meanCentroidData(:,2),...
             %         meanCentroidData(:,3),meanCentroidData(:,3),meanCentroidData(:,4),meanCentroidData(:,4),'.','Color',color(ii,:))
         end
     end
-    errorbar(centroidData(:,1),centroidData(:,2),...
-            centroidData(:,3),centroidData(:,3),centroidData(:,4),centroidData(:,4),'.','Color',color(ii,:))
-    hypVariance{ii} = 2*sqrt(centroidData(:,3).^2+centroidData(:,4).^2); %Euclin distance across centroid variance for stats
-    ensembleIntrinsicConnection{ii} = numActivity'; % basically a measure of how many cells are
+    numActivity = cellfun('size',rankedActivityCoords{1,ii},1); % Number of activity centroids
+    numActivity(numActivity<3)= [];
+    % Calculate adaptive threshold to display centroid data
+    thresCum = cumsum(numActivity);
+    thresh = find((thresCum./thresCum(end))>=0.8); % Plot centroid that encompases 80% of variability
+    thresh = thresh(1);
+    disp(thresh)
+    subplot(3,m,(3*m)-(m-count)),hold on,axis([0 600 0 600]),axis off
+    errorbar(centroidData(1:thresh,1),centroidData(1:thresh,2),...
+        centroidData(1:thresh,3),centroidData(1:thresh,3),...
+        centroidData(1:thresh,4),centroidData(1:thresh,4),'.','Color',color(count,:))
+    hypVariance{count} = 2*sqrt(centroidData(:,3).^2+centroidData(:,4).^2); %Euclin distance across centroid variance for stats
+    ensembleIntrinsicConnection{count} = numActivity'; % basically a measure of how many cells are
     centroidData = [];
     %recruited to the ensemble as a function of time. Should be similair to
-    %ensemble recruitability 
-    
+    %ensemble recruitability
+    count = count+1;
 end
 
 %% Line plot for variance
+test = [];testStd = [];
 test = cell2mat(cellfun(@mean,hypVariance,'Uniform',false));
 testStd = cell2mat(cellfun(@std,hypVariance,'Uniform',false));
+figure,hold on
+boxplot(test,'plotStyle','compact')
+plot(1.2*ones(length(test),1),test,'.')
+figure,hold on
+boxplot(testStd,'plotStyle','compact')
+plot(1.2*ones(length(testStd),1),testStd,'.')
+%% Centroid cross weeks
+centroidActivityWeeks{6} = test;
+centroidActivityVarianceWeeks{6} = testStd;
 %% Plot ensemble intrinsic connection to overall variability
+x = [];y = [];
 figure,hold on,xlabel('Ensemble Intrinsic Connection'),ylabel('Centroid Variability')
 x = vertcat(ensembleIntrinsicConnection{:});
 y = vertcat(hypVariance{:});
-plot(x,y,'k.')
+plot(x,y,'k.'),axis([0 50 0 300])
 figure,
 mdl = fitlm(x,y);
-plot(mdl),title(['R^2: ' num2str(mdl.Rsquared.Ordinary)]);
+plot(mdl),title(['R^2: ' num2str(mdl.Rsquared.Ordinary)]);axis([0 50 0 300])
 
-%% Centroid activity
-% Note that I forgot to resort this index to match the ranked activity
-% centroids! Hence, there is a mismatch between the centroid and
-% manifold/activity coordiantes. We need to recalculate here which is
-% taking the mean and std of the activity coordinates :)
-figure,hold on,axis([0 400 0 400])
-color = hsv(5);
-for ii = 5
-%     centroidData = [activityCentroid{ii} activityCentroidVariance{ii}]; % Horzcat the centroid activity
-centroidData = [mean(rankedActivityCoords{1,ii}{1,ii}) std(rankedActivityCoords{1,ii}{1,ii})];
-%     meanCentroidData = mean(centroidData);
-    errorbar(centroidData(:,1),centroidData(:,2),...
-        centroidData(:,3),centroidData(:,3),centroidData(:,4),centroidData(:,4),'.')
-%     errorbar(meanCentroidData(:,1),meanCentroidData(:,2),...
-%         meanCentroidData(:,3),meanCentroidData(:,3),meanCentroidData(:,4),meanCentroidData(:,4),'.','Color',color(ii,:))
-end
+%% Cross weeks
+test = [];
+test = cell2mat(cellfun(@mean,centroidActivityWeeks,'Uniform',false));
+testStd = cell2mat(cellfun(@std,centroidActivityWeeks,'Uniform',false));
+testSize = cellfun('size',centroidActivityWeeks,2);
+t = testStd./sqrt(testSize);
+errorbar(1:6,test,t),box off,xlim([ 0 7])
+%% State Space Ratio (Variance/EnsembleRecruitment)
+SSR{6} = y./x; %hypVariance/ensemble
