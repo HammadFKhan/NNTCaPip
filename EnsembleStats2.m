@@ -139,6 +139,12 @@ binEIC = xd*5;
 for i = 1:20 % number of discritize bins
     binVariance{6,i} = y(xd==i); % map variance to binned size  
 end
+%% plot across weeks
+figure,hold on
+color = hsv(20);
+for i = 1:20
+    plot(test(:,i),'-o','Color',color(i,:))
+end
 %%
 for i = 1:6
     figure,
