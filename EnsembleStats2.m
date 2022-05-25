@@ -30,7 +30,8 @@ plot(1.1*ones(1,length(data)),data,'.');
 % start = 11;stop = 16;
 % start = 17;stop = 22;
 % start = 23;stop = 29;
-start = 30;stop = 37;
+% start = 30;stop = 37;
+%4 29 35
 color = hsv((stop-start)+1);
 m = (stop-start)+1;
 hypVariance = [];
