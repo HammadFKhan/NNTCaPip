@@ -25,12 +25,13 @@ data6 = test(25:end);
 figure,boxplot(data,'PlotStyle','compact'),ylim([0 0.5]),box off,hold on
 plot(1.1*ones(1,length(data)),data,'.');
 %% Plot manifolds and centroids
-% start = 1;stop = 5;
+start = 1;stop = 5;
 % start = 6;stop = 10;
 % start = 11;stop = 16;
-start = 17;stop = 22;
+% start = 17;stop = 22;
 % start = 23;stop = 29;
 % start = 30;stop = 37;
+%29
 color = hsv((stop-start)+1);
 m = (stop-start)+1;
 hypVariance = [];
@@ -137,7 +138,13 @@ SSR{1} = y./x; %hypVariance/ensemble
 xd = discretize(x,0:5:100); % 20 bins (points)
 binEIC = xd*5;
 for i = 1:20 % number of discritize bins
-    binVariance{3,i} = y(xd==i); % map variance to binned size  
+    binVariance{6,i} = y(xd==i); % map variance to binned size  
+end
+%% plot across weeks
+figure,hold on
+color = hsv(20);
+for i = 1:20
+    plot(test(:,i),'-o','Color',color(i,:))
 end
 %%
 for i = 1:6
