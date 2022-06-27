@@ -42,17 +42,17 @@ else
 end
 sizY = size(data,'Y');                    % size of data matrix
 %% Set parameters
-patch_size = [64,64];                   % size of each patch along each dimension (optional, default: [32,32])
+patch_size = [128,128];                   % size of each patch along each dimension (optional, default: [32,32])
 overlap = [6,6];                        % amount of overlap in each dimension (optional, default: [4,4])
 
 patches = construct_patches(sizY(1:end-1),patch_size,overlap);
-K = 5;                  % number of components to be found per patch
+K = 7;                  % number of components to be found per patch
 tau = 7;                 % std of gaussian kernel (size of neuron)
 p = 2;                   % order of autoregressive system (p = 0 no dynamics, p=1 just decay, p = 2, both rise and decay)
 merge_thr = 0.8;         % merging threshold
 
 options = CNMFSetParms(...
-    'init_method','sparse_NMF',...
+    'init_method','greedy',...
     'beta',0.80,...,
     'snmf_max_iter',200,...                     % max # of sparse NMF iterations
     'd1',sizY(1),'d2',sizY(2),...
