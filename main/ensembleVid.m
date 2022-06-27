@@ -15,8 +15,8 @@ for i = 1:Ensemble.ensembleIndentified
     figure(i)
     axis off
     color = jet(Ensemble.ensembleIndentified);
-    EnsembleMap(AverageImage,ROIcentroid,Ensemble.NodeList{i},8,color(i,:))
-    set(gcf,'Position',[100 100 500 500])
+    EnsembleMap(AverageImage,ROIcentroid,Ensemble.NodeList{i},6,color(i,:))
+    set(gcf,'Position',[100 100 600 600])
     drawnow
     mov(i) = getframe(gcf);
     writeVideo(writerobj,mov(i));
