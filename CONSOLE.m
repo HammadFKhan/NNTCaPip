@@ -168,7 +168,7 @@ set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);
  end
 %% Plot all the Figures
 addpath('Figures');
-figure('Name','DeltaF/F'); stack_plot(DeltaFoverF(5:20,1:8000),1.5,8); 
+figure('Name','DeltaF/F'); stack_plot(DeltaFoverF,1.5,15); 
 figure('Name','Convolved Spikes'); plot(dDeltaFoverF');
 figure('Name','Threshold Detection');DeltaFoverFplotter(dDeltaFoverF,std_threshold,static_threshold)
 figure('Name','Spike Plot'); Show_Spikes(Spikes);
