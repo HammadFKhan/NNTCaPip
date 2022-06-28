@@ -60,13 +60,13 @@ Ensemble = ensembleAnalysis(Spikes(:,1:factorCorrection),ROI,ROIcentroid);
 [~,I] = sort(cellfun(@length,Ensemble.NodeList),'descend'); %sort max node size
 rankEdges = Ensemble.NumEdges(:,I);
 rankEnsembles = Ensemble.NodeList(:,I); 
-[grad,~]=colorGradient([0 1 0],[0 0 0],31);
+[grad,~]=colorGradient([0 1 0],[0 0 0],6);
 Ensemble.rankEnsembles = rankEnsembles;
 figure,
-for i = 1:30
+for i = 1:5
     axis off
     color = jet(3);
-    EnsembleMap(AverageImage,ROIcentroid,rankEnsembles{i},4,grad(i,:))
+    EnsembleMap(AverageImage,ROIcentroid,Ensemble.rankEnsembles{i},4,grad(i,:))
     set(gcf,'Position',[100 100 500 500])
     drawnow
     hold on
@@ -77,7 +77,7 @@ K = (1/25)*ones(5);
 figure,imagesc(interp2(conv2(Ensemble.sim_index,K,'same'),2)),colormap(jet),caxis([.08 .3])
 
 %
-sizeE = cellfun(@size,rankEnsembles,'UniformOutput',false);
+sizeE = cellfun(@size,Ensemble.rankEnsembles,'UniformOutput',false);
 sizeE = cell2mat(sizeE);
 sizeE(sizeE==1) = [];
 sizeE = sizeE/max(sizeE);
@@ -89,7 +89,7 @@ figure,plot(sizeEdge),title('Ranked Connections')
 % Ensemble Stats
 % EnsembleStats
 % Information Entropy
-informationEntropy = shannonEntropy(rankEnsembles);
+informationEntropy = shannonEntropy(Ensemble.rankEnsembles);
 % Plot Centroid Boundary
 figure,hold on
 %Rank by number of Activity points
