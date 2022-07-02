@@ -7,7 +7,7 @@ T = size(memMap,ndims(memMap));
 memMap = memMap - min(memMap(:));
 %% Downsample data
 disp('Downsampling data...');
-memMap = downsample_data(memMap,'spacetime',1,1); %tsub,ssub
+memMap = downsample_data(memMap,'spacetime',2,1); %tsub,ssub
 
 %% now try non-rigid motion correction (also in parallel)
 % disp('Starting first motion correction pass...')
