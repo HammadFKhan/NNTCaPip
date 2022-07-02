@@ -18,7 +18,7 @@ set(0,'DefaultFigureWindowStyle','normal')
 addpath(genpath('main'));
 global nam
 global memfig
-batch = 0;
+batch = 1;
 if batch == 1
     pathname = strcat(uigetdir(pwd,'Input Directory'),'\');
     savepathname = strcat(uigetdir(pwd,'Output Directory'),'\');
@@ -34,9 +34,9 @@ if batch == 1
         toc
         savepath = strcat(savepathname,filename,'.mat');
         save(savepath,'files','AverageImage','num_images',...
-            'DeltaFoverF','dDeltaFoverF','ROIcentroid','ROI','Noise_Power');
+            'DeltaFoverF','dDeltaFoverF','ROIcentroid','ROI','Noise_Power','C','A','ops');
         try
-            savepathfig = strcat(savepathname,filename(1:end-4),'.png');
+            savepathfig = strcat(savepathname,filename(1:end-4),'.fig');
             saveas(memfig,savepathfig);
         catch ME
             warning('Contour figure not saved')
