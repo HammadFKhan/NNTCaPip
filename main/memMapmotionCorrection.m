@@ -10,12 +10,17 @@ disp('Downsampling data...');
 memMap = downsample_data(memMap,'spacetime',1,1); %tsub,ssub
 
 %% now try non-rigid motion correction (also in parallel)
+% if firstPass
 % disp('Starting first motion correction pass...')
 % options_nonrigid = NoRMCorreSetParms('d1',size(memMap,1),'d2',size(memMap,2),'grid_size',[64,64],'bin_width',200,'max_shift',[30 30],'max_dev',[8 8],'us_fac',50,'init_batch',200);
 % tic; [M1,shifts2,template2,options_nonrigid] = normcorre_batch(memMap,options_nonrigid); toc
+% data = M1;
+% else
+%     data = memMap;
+% end
 disp('Starting second motion correction pass...')
 options_nonrigid = NoRMCorreSetParms('d1',size(memMap,1),'d2',size(memMap,2),'grid_size',[64,64],'bin_width',200,'max_shift',[15 15],'max_dev',[2 2],'us_fac',50,...
-    'init_batch',200,'output_type','tiff');
+    'init_batch',200,'iter',2,'output_type','tiff');
 tic; [M2,shifts2,template2,options_nonrigid] = normcorre_batch(memMap,options_nonrigid); toc
 
 %% compute metrics
