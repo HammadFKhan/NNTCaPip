@@ -97,13 +97,13 @@ Ensemble = ensembleAnalysis(Spikes(:,1:factorCorrection),ROI,ROIcentroid);
 [~,I] = sort(cellfun(@length,Ensemble.NodeList),'descend'); %sort max node size
 rankEdges = Ensemble.NumEdges(:,I);
 rankEnsembles = Ensemble.NodeList(:,I); 
-[grad,~]=colorGradient([0 1 0],[0 0 0],4)
+[grad,~]=colorGradient([0.9290 0.6940 0.1250] ,[0 0 0],4)
 Ensemble.rankEnsembles = rankEnsembles;
 figure,
 for i = 1:3
     axis off
     color = jet(3);
-    EnsembleMap(AverageImage,ROIcentroid,rankEnsembles{i},4,grad(i,:))
+    EnsembleMap(AverageImage,ROIcentroid,rankEnsembles{i},6,grad(i,:))
     set(gcf,'Position',[100 100 500 500])
     drawnow
     hold on
