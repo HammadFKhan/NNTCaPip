@@ -22,9 +22,9 @@ batch = 1;
 if batch == 1
     pathname = strcat(uigetdir(pwd,'Input Directory'),'\');
     savepathname = strcat(uigetdir(pwd,'Output Directory'),'\');
-    directory = dir(pathname);
+    directory = dir(fullfile(pathname,'*.tif'));
     L = length(directory);
-    for idx = 3:L
+    for idx = 1:L
         clear files AverageImage num_images...
             DeltaFoverF dDeltaFoverF ROIcentroid ROI Noise_Power
         filename = directory(idx).name
