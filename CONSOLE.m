@@ -18,7 +18,7 @@ set(0,'DefaultFigureWindowStyle','normal')
 addpath(genpath('main'));
 global nam
 global memfig
-batch = 1;
+batch = 0;
 if batch == 1
     pathname = strcat(uigetdir(pwd,'Input Directory'),'\');
     savepathname = strcat(uigetdir(pwd,'Output Directory'),'\');
@@ -97,13 +97,13 @@ Ensemble = ensembleAnalysis(Spikes(:,1:factorCorrection),ROI,ROIcentroid);
 [~,I] = sort(cellfun(@length,Ensemble.NodeList),'descend'); %sort max node size
 rankEdges = Ensemble.NumEdges(:,I);
 rankEnsembles = Ensemble.NodeList(:,I); 
-[grad,~]=colorGradient([0.9290 0.6940 0.1250] ,[0 0 0],4)
+[grad,~]=colorGradient([1 0 0] ,[0 0 0],100)
 Ensemble.rankEnsembles = rankEnsembles;
 figure,
-for i = 1:3
+for i = 6
     axis off
     color = jet(3);
-    EnsembleMap(AverageImage,ROIcentroid,rankEnsembles{i},6,grad(i,:))
+    EnsembleMap(AverageImage,ROIcentroid,rankEnsembles{i},5,grad(i,:))
     set(gcf,'Position',[100 100 500 500])
     drawnow
     hold on
