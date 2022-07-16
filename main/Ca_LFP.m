@@ -55,19 +55,23 @@ Wn = Fc./(Fs/2);
 b = fir1(10000,Wn,'bandpass');
 tic;Vmfilt = filtfilt(b,1,d);toc;
 %%
+thresh = 600;
 subThreshold = Vmfilt;
-thresh = find(Vmfilt>1000);
-tri = diff(thresh);
-trig = find(tri~=1);
-COM = thresh(trig+1,1);
+COM = find(abs(subThreshold)>thresh);
+if ~isempty(COM)
+    warning('AP detected!')
+    disp('Removing...')
 
-for i = 1:size(COM,2)
-    thresh = find(Vmfilt>1000);
-    tri = diff(thresh);
-    trig = find(tri~=1);
-    COM = thresh(trig+1,1);
-    subThreshold(COM(1)-(0.01*Fs):COM(1)+(0.02*Fs)) = 500;
 end
+
+while ~isempty(COM)
+    COM = find(abs(subThreshold)>thresh);
+%     tri = diff(thresh);
+%     trig = find(tri~=1);
+    subThreshold(COM) = subThreshold(COM)/10;
+    disp('looping...')
+end
+Vmfilt = subThreshold;
 %% Filter
 filtered_data = customFilt(Vmfilt',Fs,[10 30]);
 Beta = IntrabetaBurstDetection(filtered_data',Fs);
