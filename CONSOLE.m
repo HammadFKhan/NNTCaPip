@@ -18,7 +18,7 @@ set(0,'DefaultFigureWindowStyle','normal')
 addpath(genpath('main'));
 global nam
 global memfig
-batch = 0;
+batch = 1;
 if batch == 1
     pathname = strcat(uigetdir(pwd,'Input Directory'),'\');
     savepathname = strcat(uigetdir(pwd,'Output Directory'),'\');
@@ -61,7 +61,7 @@ Spikes = Spike_Detector_Single(dDeltaFoverF,std_threshold,static_threshold);
 % Spikes = Spikes(keepSpikes,:);
 [coactive_cells,detected_spikes] = coactive_index(Spikes,length(Spikes));
 cell_count = length(ROI);
-time = time_adjust(size(DeltaFoverF,2),30);
+time = time_adjust(size(DeltaFoverF,2),30.048);
 for i = 1:size(DeltaFoverF,1)
     calcium_avg{i} = STA(DeltaFoverF(i,:),2,120);
 end
@@ -97,10 +97,10 @@ Ensemble = ensembleAnalysis(Spikes(:,1:factorCorrection),ROI,ROIcentroid);
 [~,I] = sort(cellfun(@length,Ensemble.NodeList),'descend'); %sort max node size
 rankEdges = Ensemble.NumEdges(:,I);
 rankEnsembles = Ensemble.NodeList(:,I); 
-[grad,~]=colorGradient([1 0 0] ,[0 0 0],100)
+[grad,~]=colorGradient([1 0 0] ,[0 0 0],5)
 Ensemble.rankEnsembles = rankEnsembles;
 figure,
-for i = 6
+for i = 1:3
     axis off
     color = jet(3);
     EnsembleMap(AverageImage,ROIcentroid,rankEnsembles{i},5,grad(i,:))
@@ -133,8 +133,8 @@ figure,hold on
 [~,I] = sort(cellfun(@length,Ensemble.ActivityCoords),'descend'); %sort max node size
 rankedActivityCoords = Ensemble.ActivityCoords(:,I);
 Ensemble.rankedActivityCoords = rankedActivityCoords;
-for i = 1:15%size(Ensemble.ActivityCoords,2)
-    
+checkSize = cell2mat(cellfun(@size,rankedActivityCoords,'UniformOutput',false)');
+for i = 1:size(checkSize(checkSize(:,1)>2),1)
     x = rankedActivityCoords{i}(:,1);y = rankedActivityCoords{i}(:,2);
     k = boundary(x,y);
     x1 = interp1(1:length(x(k)),x(k),1:0.05:length(x(k)),'pchip');
@@ -143,7 +143,6 @@ for i = 1:15%size(Ensemble.ActivityCoords,2)
     y2 = smoothdata(y1,'gaussian',50);
     plot(x2,y2,'Color',[0.5 0.5 0.5])
     scatter(x,y,4,'k','filled')
-    
 end
 
 %%
@@ -151,21 +150,22 @@ W12_10Entropy.informationEntropy = informationEntropy;
 W12_10Entropy.rankedEnsembles = rankEnsembles;
 W12_10Entropy.rankedEdges = rankEdges;
 W12_10Entropy.Ensemble = Ensemble;
-%% SVD/PCA of Ensembles
-[tProjq1, tProjq2, uProjq1, uProjq2] = featureProject(Ensemble.sim_index,10);
-%% Trial by Trial analysis ##Only use with batch processed files##
-addpath(genpath('Figures'));
-[batchSpikes,batch_corr] = TrialByTrial(batchData([1,2,4])); % Function call
-bin = 20;
-[vectorized,sim_index] = cosine_similarity(batchSpikes,bin);
-[z,mu,sigma] = zscore(sim_index);
-figure('Name','Cosine-Similarity Index'); h = htmp(sim_index,100);
-caxis([0 0.7]);
-set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);
- figure('Name','Dice Correlation')
- for i = 1:size(batch_corr,3)
-     subplot(2,3,i),h = htmp(batch_corr(:,:,i),20);caxis([0 0.4]);
- end
+%% LFP pipette analysis
+addpath('C:\Users\khan332\Documents\GitHub\NNTEphysPip')
+LFP = Ca_LFP(time,0,LFP.out); %caTime; loadFlag0/1; LFP.out
+%%
+[peakAlign,norm,f,stats] = IntrabetaAnalysis(LFP.beta);
+figure
+for i = 1:144
+    subplot(12,12,i),plot(LFP.beta.betaTrace{i}),axis off
+end
+
+figure,plot(0:1/LFP.Fs:(length(LFP.Vmfilt)-1)/LFP.Fs,LFP.Vmfilt);xlim([0 length(LFP.Vmfilt)/LFP.Fs])
+
+figure,plot(0:1/LFP.Fs:(length(LFP.betaLFP)-1)/LFP.Fs,LFP.betaLFP);xlim([0 length(LFP.betaLFP)/LFP.Fs])
+
+%% Behavior
+Vel = EncoderVelocity2(encoder(:,1),encoder(:,2)); % position;time
 %% Plot all the Figures
 addpath('Figures');
 figure('Name','DeltaF/F'); stack_plot(DeltaFoverF,1.5,15); 
@@ -199,6 +199,22 @@ end
 image_movie = mat2gray(M2);
 implay(image_movie);
 %%
+%% SVD/PCA of Ensembles
+[tProjq1, tProjq2, uProjq1, uProjq2] = featureProject(Ensemble.sim_index,10);
+%% Trial by Trial analysis ##Only use with batch processed files##
+addpath(genpath('Figures'));
+[batchSpikes,batch_corr] = TrialByTrial(batchData([1,2,4])); % Function call
+bin = 20;
+[vectorized,sim_index] = cosine_similarity(batchSpikes,bin);
+[z,mu,sigma] = zscore(sim_index);
+figure('Name','Cosine-Similarity Index'); h = htmp(sim_index,100);
+caxis([0 0.7]);
+set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);
+ figure('Name','Dice Correlation')
+ for i = 1:size(batch_corr,3)
+     subplot(2,3,i),h = htmp(batch_corr(:,:,i),20);caxis([0 0.4]);
+ end
+ 
 plot_raster(1:120,Spikes(5,1:120))
 % Have you tried using Multidimensional Scaling (MDS) to emebed the
 % centroids in a 2 dimensional space for visualization?
