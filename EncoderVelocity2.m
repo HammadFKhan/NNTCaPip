@@ -1,6 +1,6 @@
-function Vel = EncoderVelocity(position,time)
+function Vel = EncoderVelocity2(position,time)
 binWinTime = 2;
-edgesPos = 0:1:abs(ceil(Velocity(end)));
+edgesPos = 0:1:abs(ceil(position(end)));
 VRposition =  discretize(position,edgesPos);
 edgesTime = 0:binWinTime:time(end); %Bin width on the track
 VRtimebin = discretize(time,edgesTime);
