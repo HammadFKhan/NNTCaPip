@@ -13,14 +13,19 @@ disp(['Ensemble Candidates: ' num2str(length(ensembleCan))])
 % Grab window around ensembles
 ensembleWin = 5;
 ensemble = [];
+ensembleFrame = []; % reference for what frames were merged for ensemble analysis
 for i = 1:length(ensembleCan)
     % Condition if window is outside array bound
     if ensembleCan(i)<=ensembleWin
         ensemble = horzcat(ensemble,Spikes(:,ensembleCan(i):ensembleCan(i)+ensembleWin));
+        ensembleFrame = horzcat(ensembleFrame,ensembleCan(i):ensembleCan(i)+ensembleWin);
     elseif size(Spikes,2)-ensembleCan(i)<ensembleWin
         ensemble = horzcat(ensemble,Spikes(:,ensembleCan(i)-ensembleWin:end));
+        ensembleFrame = horzcat(ensembleFrame,ensembleCan(i)-ensembleWin:Spikes(end));
+        
     else
         ensemble = horzcat(ensemble,Spikes(:,ensembleCan(i)-ensembleWin:ensembleCan(i)+ensembleWin));
+        ensembleFrame = horzcat(ensembleFrame,ensembleCan(i)-ensembleWin:ensembleCan(i)+ensembleWin);
         
     end
 end
@@ -91,6 +96,8 @@ for i = 1:ensembleIndentified
         = Network_Analysis(ROIcentroid,Connected_ROI{i});
 end
 Ensemble.ensemble = ensemble;
+Ensemble.ensembleCan = ensembleCan;
+Ensemble.ensembleFrame = ensembleFrame;
 Ensemble.vectorized = vectorized;
 Ensemble.sim_index = sim_index;
 % Ensemble.NetworkAnalysis = NetworkAnalysis;
