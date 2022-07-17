@@ -152,7 +152,7 @@ W12_10Entropy.rankedEdges = rankEdges;
 W12_10Entropy.Ensemble = Ensemble;
 %% LFP pipette analysis
 addpath('C:\Users\khan332\Documents\GitHub\NNTEphysPip')
-LFP = Ca_LFP(time,0,LFP.out); %caTime; loadFlag0/1; LFP.out
+LFP = Ca_LFP(time,1); %caTime; loadFlag0/1; LFP.out
 %%
 [peakAlign,norm,f,stats] = IntrabetaAnalysis(LFP.beta);
 figure
@@ -166,6 +166,35 @@ figure,plot(0:1/LFP.Fs:(length(LFP.betaLFP)-1)/LFP.Fs,LFP.betaLFP);xlim([0 lengt
 
 %% Behavior
 Vel = EncoderVelocity2(encoder(:,1),encoder(:,2)); % position;time
+%%Generate Rest/Run Ca Spikes
+runSpikes = spikeState(Vel,Spikes,time,CaFR,1); % state 1/0 for run/rest
+restSpikes = spikeState(Vel,Spikes,time,CaFR,0); % state 1/0 for run/rest
+
+if iscell(runSpikes)
+    runSpikes = horzcat(runSpikes{:});
+end
+if iscell(restSpikes)
+   restSpikes = horzcat(restSpikes{:});
+end
+
+
+%% Behavior-based Ensemble
+runfactorCorrection = 5*floor(size(runSpikes,2)/5); % Correct for frame size aquisition
+restfactorCorrection = 50*floor(size(restSpikes,2)/50); % Correct for frame size aquisition
+
+[vectorizedRun,sim_indexRun] = cosine_similarity(runSpikes(:,1:runfactorCorrection),5);
+[vectorizedRest,sim_indexRest] = cosine_similarity(restSpikes(:,1:restfactorCorrection),25);
+
+%% SVD/PCA of Ensembles
+comVect = [vectorizedRun vectorizedRest];
+[tProjq1, tProjq2, uProjq1, uProjq2] = featureProject(comVect,length(vectorizedRun));
+%%
+runEnsemble = ensembleAnalysis(runSpikes(:,1:runfactorCorrection),ROI,ROIcentroid);
+restEnsemble = ensembleAnalysis(restSpikes(:,1:restfactorCorrection),ROI,ROIcentroid);
+
+ensembleMetric(runEnsemble,AverageImage,ROIcentroid)
+ensembleMetric(restEnsemble,AverageImage,ROIcentroid)
+
 %% Plot all the Figures
 addpath('Figures');
 figure('Name','DeltaF/F'); stack_plot(DeltaFoverF,1.5,15); 
@@ -199,8 +228,7 @@ end
 image_movie = mat2gray(M2);
 implay(image_movie);
 %%
-%% SVD/PCA of Ensembles
-[tProjq1, tProjq2, uProjq1, uProjq2] = featureProject(Ensemble.sim_index,10);
+
 %% Trial by Trial analysis ##Only use with batch processed files##
 addpath(genpath('Figures'));
 [batchSpikes,batch_corr] = TrialByTrial(batchData([1,2,4])); % Function call
