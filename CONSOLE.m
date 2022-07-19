@@ -153,7 +153,7 @@ W12_10Entropy.Ensemble = Ensemble;
 %% LFP pipette analysis
 addpath('C:\Users\khan332\Documents\GitHub\NNTEphysPip')
 LFP = Ca_LFP(time,1); %caTime; loadFlag0/1; LFP.out
-%%
+%% Beta Analysis
 [peakAlign,norm,f,stats] = IntrabetaAnalysis(LFP.beta);
 figure
 for i = 1:144
@@ -167,8 +167,8 @@ figure,plot(0:1/LFP.Fs:(length(LFP.betaLFP)-1)/LFP.Fs,LFP.betaLFP);xlim([0 lengt
 %% Behavior
 Vel = EncoderVelocity2(encoder(:,1),encoder(:,2)); % position;time
 %%Generate Rest/Run Ca Spikes
-runSpikes = spikeState(Vel,Spikes,time,CaFR,1); % state 1/0 for run/rest
-restSpikes = spikeState(Vel,Spikes,time,CaFR,0); % state 1/0 for run/rest
+[runSpikes,runSpikesFrame] = spikeState(Vel,Spikes,time,CaFR,1); % state 1/0 for run/rest
+[restSpikes,restSpikesFrame] = spikeState(Vel,Spikes,time,CaFR,0); % state 1/0 for run/rest
 
 if iscell(runSpikes)
     runSpikes = horzcat(runSpikes{:});
@@ -185,15 +185,46 @@ restfactorCorrection = 50*floor(size(restSpikes,2)/50); % Correct for frame size
 [vectorizedRun,sim_indexRun] = cosine_similarity(runSpikes(:,1:runfactorCorrection),5);
 [vectorizedRest,sim_indexRest] = cosine_similarity(restSpikes(:,1:restfactorCorrection),25);
 
-%% SVD/PCA of Ensembles
-comVect = [vectorizedRun vectorizedRest];
-[tProjq1, tProjq2, uProjq1, uProjq2] = featureProject(comVect,length(vectorizedRun));
-%%
 runEnsemble = ensembleAnalysis(runSpikes(:,1:runfactorCorrection),ROI,ROIcentroid);
 restEnsemble = ensembleAnalysis(restSpikes(:,1:restfactorCorrection),ROI,ROIcentroid);
 
 ensembleMetric(runEnsemble,AverageImage,ROIcentroid)
 ensembleMetric(restEnsemble,AverageImage,ROIcentroid)
+
+
+%% SVD/PCA of Ensembles
+comVect = [vectorizedRun vectorizedRest];
+[tProjq1, tProjq2, uProjq1, uProjq2] = featureProject(comVect,length(vectorizedRun));
+%%
+runLFP = betaCaEnsemble(runSpikes,runSpikesFrame,runEnsemble,LFP,CaFR); 
+
+
+restLFP = betaCaEnsemble(restSpikes,restSpikesFrame,restEnsemble,LFP,CaFR); 
+%% Beta events within ensembles
+frameT = runSpikesFrame(runEnsemble.ensembleFrame);
+count = 1;
+for i = 1:286
+    temp = find(frameT(i)==betaEventFrame(:,3)); % checks to see if a beta event lies on the frame\
+    if temp
+        disp(['Beta event matched to idx: ' num2str(i)])
+        hold on,xline(i,'r');
+        LFP.beta.ensembleBetaMatch(count,1) = frameT(i); %frame
+        LFP.beta.ensembleBetaMatch(count,2) = temp; %beta index
+        count = count+1;
+    end
+end
+
+runLFP.beta = LFP.beta; % create a structure array looking at only behavior based beta
+runLFP.beta.betaBurst.detectedBeta = LFP.beta.betaBurst.detectedBeta(LFP.beta.ensembleBetaMatch(:,2),:);
+
+% plot beta traces
+figure,
+for i = 1:30
+    subplot(5,6,i),plot(LFP.beta.betaTrace{restLFP.beta.ensembleBetaMatch(i,2)}), axis off
+end
+
+[peakAlign,norm,f,stats] = IntrabetaAnalysis(runLFP.beta);
+[peakAlign,norm,f,stats] = IntrabetaAnalysis(restLFP.beta);
 
 %% Plot all the Figures
 addpath('Figures');
