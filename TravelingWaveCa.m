@@ -147,8 +147,16 @@ W12_10Entropy.informationEntropy = informationEntropy;
 W12_10Entropy.rankedEnsembles = rankEnsembles;
 W12_10Entropy.rankedEdges = rankEdges;
 W12_10Entropy.Ensemble = Ensemble;
+
 %% SVD/PCA of Ensembles
-[tProjq1, tProjq2, uProjq1, uProjq2] = featureProject(Ensemble.sim_index,10);
+lateSpikefactorCorrection = 25*floor(size(FOV1Spikes,2)/50); % Correct for frame size aquisition
+nolateSpikefactorCorrection = 50*floor(size(FOV2Spikes,2)/100); % Correct for frame size aquisition
+
+[vectorizedRun,sim_indexRun] = cosine_similarity(Spikes(:,1:lateSpikefactorCorrection),25);
+[vectorizedRest,sim_indexRest] = cosine_similarity(Spikes(:,1:nolateSpikefactorCorrection),50);
+
+comVect = [vectorizedRun vectorizedRest];
+[tProjq1, tProjq2, uProjq1, uProjq2] = featureProject(comVect,length(vectorizedRun));legend('Late Spike','No Late Spike')
 %% Trial by Trial analysis ##Only use with batch processed files##
 addpath(genpath('Figures'));
 [batchSpikes,batch_corr] = TrialByTrial(batchData([1,2,4])); % Function call
