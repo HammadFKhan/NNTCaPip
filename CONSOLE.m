@@ -18,7 +18,7 @@ set(0,'DefaultFigureWindowStyle','normal')
 addpath(genpath('main'));
 global nam
 global memfig
-batch = 1;
+batch = 0;
 if batch == 1
     pathname = strcat(uigetdir(pwd,'Input Directory'),'\');
     savepathname = strcat(uigetdir(pwd,'Output Directory'),'\');
@@ -38,6 +38,7 @@ if batch == 1
         try
             savepathfig = strcat(savepathname,filename(1:end-4),'.fig');
             saveas(memfig,savepathfig);
+            close all
         catch ME
             warning('Contour figure not saved')
             continue
@@ -180,7 +181,7 @@ end
 
 %% Behavior-based Ensemble
 runfactorCorrection = 5*floor(size(runSpikes,2)/5); % Correct for frame size aquisition
-restfactorCorrection = 50*floor(size(restSpikes,2)/50); % Correct for frame size aquisition
+restfactorCorrection = 5*floor(size(restSpikes,2)/5); % Correct for frame size aquisition
 
 [vectorizedRun,sim_indexRun] = cosine_similarity(runSpikes(:,1:runfactorCorrection),5);
 [vectorizedRest,sim_indexRest] = cosine_similarity(restSpikes(:,1:restfactorCorrection),25);
