@@ -1,13 +1,4 @@
 %% Run the base pipeline for denoised/deconvolved calcium traces
-% CaimAn Single File ROI Extraction 
-clear
-clc
-close all; 
-set(0,'DefaultFigureWindowStyle','normal')
-addpath(genpath('main'));
-tic
-Start_CaImAn
-toc
 %% CaimAn Single File ROI Extraction (Large Dataset)
 clear
 clc
