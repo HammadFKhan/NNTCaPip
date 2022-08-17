@@ -260,7 +260,7 @@ end
 image_movie = mat2gray(M2);
 implay(image_movie);
 %%
-
+[tProjq1, tProjq2, uProjq1, uProjq2] = featureProject(waveforms',128);
 %% Trial by Trial analysis ##Only use with batch processed files##
 addpath(genpath('Figures'));
 [batchSpikes,batch_corr] = TrialByTrial(batchData([1,2,4])); % Function call
@@ -303,11 +303,11 @@ tProjq1 = featureData(1:navgtarget,:)*q(:,1);
 tProjq2 = featureData(1:navgtarget,:)*q(:,2);
 tProjq3 = featureData(1:navgtarget,:)*q(:,3);
 figure()
-scatter3(tProjq1,tProjq2,tProjq3,200,'b.'); hold on;
+scatter(tProjq1,tProjq2,200,'b.'); hold on;
 uProjq1 = featureData(navgtarget+1:end,:)*q(:,1);
 uProjq2 = featureData(navgtarget+1:end,:)*q(:,2);
 uProjq3 = featureData(navgtarget+1:end,:)*q(:,3);
-scatter3(uProjq1,uProjq2,uProjq3,200,'r.');
+scatter(uProjq1,uProjq2,200,'r.');
 ylabel('bk')
 xlabel('ak');
 end
