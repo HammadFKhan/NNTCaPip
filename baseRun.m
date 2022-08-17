@@ -5,6 +5,7 @@ clc
 close all;
 set(0,'DefaultFigureWindowStyle','normal')
 addpath(genpath('main'));
+addpath(genpath('Pipelines'))
 global nam
 global memfig
 batch = 1;
