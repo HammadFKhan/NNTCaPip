@@ -1,4 +1,4 @@
-% function CaImAnFull()
+function CaImAnFull()
 global nam
 global memfig
 %% setup path to file and package
@@ -7,15 +7,28 @@ addpath(genpath('utilities'));
 addpath(genpath('deconvolution'));
 addpath(genpath('NoRMCorre'));
 addpath(genpath('imread_big.m'));              % add the NoRMCorre motion correction package to MATLAB path
-foldername = 'D:\test1\';
-         % folder where all the files are located.
-filetype = 'tif'; % type of files to be processed
-        % Types currently supported .tif/.tiff, .h5/.hdf5, .raw, .avi, and .mat files
-file = subdir(fullfile(foldername,['*.',filetype]));   % list of filenames (will search all subdirectories)
-[imData,fileInfo] = bigread2(file(1).name,1,1);
+% foldername = 'D:\test1\';
+%          % folder where all the files are located.
+% filetype = 'tif'; % type of files to be processed
+%         % Types currently supported .tif/.tiff, .h5/.hdf5, .raw, .avi, and .mat files
+% file = subdir(fullfile(foldername,['*.',filetype]));   % list of filenames (will search all subdirectories)
+
+if isfile(nam) == 0
+    [filename, foldername] = uigetfile({'*.tiff;*.tif'}, 'Pick a image video file');
+    if isequal(filename,0) || isequal(foldername,0)
+        disp('User pressed cancel')
+    else
+        disp(['User selected ', fullfile(foldername, filename)])
+    end
+    nam = strcat(foldername,filename);          % insert path to tiff stack here
+else
+    [foldername,~,~] = fileparts(nam);
+end
+
+[~,fileInfo] = bigread2(nam);
 FOV = fileInfo.FOV;
-numFiles = length(file);
-data_type = class(imData);
+numFiles = 1;
+data_type = fileInfo.dataType;
 
 
 %% motion correct (and save registered h5 files as 2d matrices (to be used in the end)..)
@@ -34,7 +47,7 @@ options_mc = NoRMCorreSetParms('d1',FOV(1),'d2',FOV(2),'grid_size',[128,128],'in
 
 template = [];
 col_shift = [];
-fullname = file.name;
+fullname = nam;
 [folder_name,file_name,ext] = fileparts(fullname);
 output_filename = fullfile(folder_name,[file_name,append,'.',output_type]);
 options_mc = NoRMCorreSetParms(options_mc,'output_filename',output_filename,'h5_filename','','tiff_filename',''); % update output file name
@@ -48,19 +61,20 @@ if ~exist(output_filename,'file') %check is motion correct file already exists
 end
 
 if motion_correct
-    registered_files = subdir(fullfile(foldername,['*',append,'.',output_type]));  % list of registered files (modify this to list all the motion corrected files you need to process)
+    %     registered_files = subdir(fullfile(foldername,['*',append,'.',output_type]));  % list of registered files (modify this to list all the motion corrected files you need to process)
+    registered_files = subdir(output_filename);
 else
     registered_files = subdir(fullfile(foldername,'*_mc.h5'));
 end
 %%
 fr = 30;                                         % frame rate
 tsub = 5;                                        % degree of downsampling (for 30Hz imaging rate you can try also larger, e.g. 8-10)
-ds_filename = [foldername,'/ds_data1.mat'];
+ds_filename = [foldername,'/',file_name,'ds_data1.mat'];
 data = matfile(ds_filename,'Writable',true);
 F_dark = Inf;                                    % dark fluorescence (min of all data)
 batch_size = 2000;                               % read chunks of that size
 batch_size = round(batch_size/tsub)*tsub;        % make sure batch_size is divisble by tsub
-Ts = zeros(numFiles,1);                          % store length of each file
+% Ts = zeros(numFiles,1);                          % store length of each file
 cnt = 0;                                         % number of frames processed so far
 tt1 = tic;
 
@@ -95,10 +109,10 @@ patch_size = [128,128];                   % size of each patch along each dimens
 overlap = [6,6];                        % amount of overlap in each dimension (optional, default: [4,4])
 
 patches = construct_patches(sizY(1:end-1),patch_size,overlap);
-K = 3;                  % number of components to be found per patch
-tau = 14;                 % std of gaussian kernel (size of neuron)
+K = 7;                  % number of components to be found per patch
+tau = 8;                 % std of gaussian kernel (size of neuron)
 p = 2;                   % order of autoregressive system (p = 0 no dynamics, p=1 just decay, p = 2, both rise and decay)
-merge_thr = 0.8;         % merging threshold
+merge_thr = 0.85;         % merging threshold
 
 options = CNMFSetParms(...
     'init_method','greedy',...
@@ -144,10 +158,7 @@ keep = (ind_corr | ind_cnn) & ind_exc;
 throw = ~keep;
 Coor_k = [];
 Coor_t = [];
-figure;
-    ax1 = subplot(121); [Coor,json_file] = plot_contours(A(:,keep),Cn,options,0,[],Coor_k,[],1,find(keep)); title('Selected components','fontweight','bold','fontsize',14);
-    ax2 = subplot(122); plot_contours(A(:,throw),Cn,options,0,[],Coor_t,[],1,find(throw));title('Rejected components','fontweight','bold','fontsize',14);
-    linkaxes([ax1,ax2],'xy')
+
     
 %% keep only the active components    
 
@@ -206,6 +217,11 @@ for i = 1:N
     g{i} = opts_oasis.pars(:)';
     disp(['Performing deconvolution. Trace ',num2str(i),' out of ',num2str(N),' finished processing.'])
 end
+%% Plot
+memfig = figure(1);
+    ax1 = subplot(121); [Coor,json_file] = plot_contours(A(:,keep),Cn,options,0,[],Coor_k,[],1,find(keep)); title('Selected components','fontweight','bold','fontsize',14);
+    ax2 = subplot(122); plot_contours(A(:,throw),Cn,options,0,[],Coor_t,[],1,find(throw));title('Rejected components','fontweight','bold','fontsize',14);
+    linkaxes([ax1,ax2],'xy')
 %% Output Variables
 global AverageImage
 global ROIcentroid
@@ -235,3 +251,4 @@ for i = 1:length(Coor)
     end
 end
 Noise_Power = R_full;
+end
