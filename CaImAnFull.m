@@ -1,4 +1,4 @@
-function CaImAnFull()
+% function CaImAnFull()
 global nam
 global memfig
 %% setup path to file and package
@@ -7,7 +7,7 @@ addpath(genpath('utilities'));
 addpath(genpath('deconvolution'));
 addpath(genpath('NoRMCorre'));
 addpath(genpath('imread_big.m'));              % add the NoRMCorre motion correction package to MATLAB path
-foldername = 'D:\test1';
+foldername = 'D:\test1\';
          % folder where all the files are located.
 filetype = 'tif'; % type of files to be processed
         % Types currently supported .tif/.tiff, .h5/.hdf5, .raw, .avi, and .mat files
@@ -95,8 +95,8 @@ patch_size = [128,128];                   % size of each patch along each dimens
 overlap = [6,6];                        % amount of overlap in each dimension (optional, default: [4,4])
 
 patches = construct_patches(sizY(1:end-1),patch_size,overlap);
-K = 7;                  % number of components to be found per patch
-tau = 7;                 % std of gaussian kernel (size of neuron)
+K = 3;                  % number of components to be found per patch
+tau = 14;                 % std of gaussian kernel (size of neuron)
 p = 2;                   % order of autoregressive system (p = 0 no dynamics, p=1 just decay, p = 2, both rise and decay)
 merge_thr = 0.8;         % merging threshold
 
@@ -116,9 +116,7 @@ options = CNMFSetParms(...
     'spatial_method','regularized',...
     'cnn_thr',0.2,...
     'patch_space_thresh',0.25,...
-    'min_SNR',2,...
-    'nb',1,...                                  % number of background components per patch
-    'gnb',3);                                 % number of global background components);
+    'min_SNR',2);                                
 
 %% Run on patches
 
@@ -175,6 +173,7 @@ f_full = imresize(f,[size(f,1),T]);             % upsample temporal background
 
 S_full = zeros(N,T);
 
+chunkSize = 2000;
 P.p = 0;
 ind_T = [0;cumsum(Ts(:))];
 options.nb = options.gnb;
@@ -236,4 +235,3 @@ for i = 1:length(Coor)
     end
 end
 Noise_Power = R_full;
-end
