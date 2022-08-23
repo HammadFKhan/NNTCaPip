@@ -6,6 +6,7 @@ gcp;                            % start cluster
 addpath(genpath('utilities'));
 addpath(genpath('deconvolution'));
 addpath(genpath('NoRMCorre'));
+addpath(genpath('imread_big.m'));
 
 if isfile(nam) == 0
     [filename, pathname] = uigetfile({'*.tiff;*.tif'}, 'Pick a image video file');
@@ -22,11 +23,13 @@ sframe=1;
 is_memmaped = true;        % choose whether you want to load the file in memory or not
 %% Motion correct and memMap Data
 %Checks if temporary motion correction file exists (deletes if it does)
-if isfile('motion_corrected.mat') || isfile('motion_corrected.tif')
-    delete('motion_corrected.mat')
-    delete('motion_corrected.tif')
-end
-
+% if isfile('motion_corrected.mat') || isfile('motion_corrected.tif')
+%     delete('motion_corrected.mat')
+%     delete('motion_corrected.tif')
+% end
+% if exist([nam(1:end-3),'mat'],'file')
+%     delete([nam(1:end-3),'mat']);
+% end
 M2 = memMapmotionCorrection(nam);
 
 %% load file
@@ -37,9 +40,11 @@ else
     sframe=1;						% user input: first frame to read (optional, default 1)
     num2read=[];					% user input: how many frames to read   (optional, default until the end)
     chunksize=2000;                 % user input: read and map input in chunks (optional, default read all at once)
-    data = memmap_file(M2,sframe,num2read);
+    data = memmap_file(nam,sframe,num2read);
     %data = memmap_file_sequence(foldername);
 end
+% M2 = memMapmotionCorrection(data);
+
 sizY = size(data,'Y');                    % size of data matrix
 %% Set parameters
 patch_size = [128,128];                   % size of each patch along each dimension (optional, default: [32,32])
@@ -58,15 +63,17 @@ options = CNMFSetParms(...
     'd1',sizY(1),'d2',sizY(2),...
     'nb',1,...                                  % number of background components per patch
     'gnb',3,...                                 % number of global background components
-    'ssub',1,...
-    'tsub',2,...
+    'ssub',2,...
+    'tsub',4,...
     'p',p,...                                   % order of AR dynamics
     'merge_thr',merge_thr,...                   % merging threshold
     'gSig',tau,...
     'spatial_method','regularized',...
     'cnn_thr',0.2,...
     'patch_space_thresh',0.25,...
-    'min_SNR',2);
+    'min_SNR',2,...
+    'save_memory',1,...
+    'create_memmap',1);
 
 %% Run on patches
 
