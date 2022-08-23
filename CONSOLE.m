@@ -10,6 +10,7 @@ addpath(genpath('main'));
 tic
 Start_CaImAn
 toc
+
 %% CaimAn Single File ROI Extraction (Large Dataset)
 clear
 clc
@@ -51,6 +52,8 @@ else
     Start_MemMap_CaImAn
     toc
 end
+%% Remove ROIs
+DeltaFoverF,dDeltaFoverF,ROI,ROIcentroid,Noise_Power,A = removeROI(DeltaFoverF,dDeltaFoverF,ROI,ROIcentroid,Noise_Power,A,deleteID)
 %% Analysis
 addpath(genpath('main'));
 std_threshold = 4;
