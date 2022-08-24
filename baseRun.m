@@ -1,42 +1,21 @@
-%% Run the base pipeline for denoised/deconvolved calcium traces
-%% CaimAn Single File ROI Extraction (Large Dataset)
-clear
+%% CaimAn File ROI Extraction for large datasets
+% Run the base pipeline for denoised/deconvolved calcium traces
+% Folder directory is chosen by the user
+% All Tiff files in the subdirectory are motion corrected and stored as
+% .h5 scientific files for memory mapping large data sets. 
+% NOTE: motion correction is skipped if it has already been done
+% All motion corrected data is denoised and deconvolved using OASIS.
+
+% Pre_shifts_nr.mat provides motion corrected data
+% ds_data provides memmap data for pointing certain parts of the pipeline.
+% NOTE: ds_data allocation is skipped if it already has been done
+% All variables for analysis are stored under output
+
+
 clc
 close all;
 set(0,'DefaultFigureWindowStyle','normal')
 addpath(genpath('main'));
 addpath(genpath('Pipelines'))
-global nam
-global memfig
-batch = 1;
-if batch == 1
-    pathname = strcat(uigetdir(pwd,'Input Directory'),'\');
-    savepathname = strcat(uigetdir(pwd,'Output Directory'),'\');
-    directory = dir(fullfile(pathname,'*.tif'));
-    L = length(directory);
-    for idx = 1:L
-        clear files AverageImage num_images...
-            DeltaFoverF dDeltaFoverF ROIcentroid ROI Noise_Power
-        filename = directory(idx).name
-        nam = strcat(pathname,filename);
-        tic
-        Start_MemMap_CaImAn
-        toc
-        savepath = strcat(savepathname,filename,'.mat');
-        save(savepath,'files','AverageImage','num_images',...
-            'DeltaFoverF','dDeltaFoverF','ROIcentroid','ROI','Noise_Power','C','A','ops');
-        try
-            savepathfig = strcat(savepathname,filename(1:end-4),'.fig');
-            saveas(memfig,savepathfig);
-        catch ME
-            warning('Contour figure not saved')
-            continue
-        end
-        disp('Saved!')
-    end
-else
-    nam = '';
-    tic
-    Start_MemMap_CaImAn
-    toc
-end
+batchFlag = 1; % Sets if data is to be processed in batches (almost always)
+CaImAnFull(batchFlag); 
