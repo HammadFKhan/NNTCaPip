@@ -1,63 +1,12 @@
 %% NNT Calcium Pipeline
 % Github Version 4.1
 
-% CaimAn Single File ROI Extraction 
-clear
-clc
-close all; 
-set(0,'DefaultFigureWindowStyle','normal')
-addpath(genpath('main'));
-tic
-Start_CaImAn
-toc
-
-%% CaimAn Single File ROI Extraction (Large Dataset)
-clear
-clc
-close all;
-set(0,'DefaultFigureWindowStyle','normal')
-addpath(genpath('main'));
-global nam
-global memfig
-batch = 0;
-if batch == 1
-    pathname = strcat(uigetdir(pwd,'Input Directory'),'\');
-    savepathname = strcat(uigetdir(pwd,'Output Directory'),'\');
-    directory = dir(fullfile(pathname,'*.tif'));
-    L = length(directory);
-    for idx = 1:L
-        clear files AverageImage num_images...
-            DeltaFoverF dDeltaFoverF ROIcentroid ROI Noise_Power
-        filename = directory(idx).name
-        nam = strcat(pathname,filename);
-        tic
-        Start_MemMap_CaImAn
-        toc
-        savepath = strcat(savepathname,filename,'.mat');
-        save(savepath,'files','AverageImage','num_images',...
-            'DeltaFoverF','dDeltaFoverF','ROIcentroid','ROI','Noise_Power','C','A','ops');
-        try
-            savepathfig = strcat(savepathname,filename(1:end-4),'.fig');
-            saveas(memfig,savepathfig);
-            close all
-        catch ME
-            warning('Contour figure not saved')
-            continue
-        end
-        disp('Saved!')
-    end
-else
-    nam = '';
-    tic
-    Start_MemMap_CaImAn
-    toc
-end
 %% Remove ROIs
 DeltaFoverF,dDeltaFoverF,ROI,ROIcentroid,Noise_Power,A = removeROI(DeltaFoverF,dDeltaFoverF,ROI,ROIcentroid,Noise_Power,A,deleteID)
 %% Analysis
 addpath(genpath('main'));
-std_threshold = 4;
-static_threshold = .2;
+std_threshold = 10;
+static_threshold = .01;
 Spikes = Spike_Detector_Single(dDeltaFoverF,std_threshold,static_threshold);
 %Excude inactive cells
 % numSpikes = sum(Spikes,2);
