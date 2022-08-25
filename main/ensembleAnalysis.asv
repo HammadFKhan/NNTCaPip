@@ -13,7 +13,7 @@ disp(['Ensemble Candidates: ' num2str(length(ensembleCan))])
 % Grab window around ensembles
 ensembleWin = 5;
 ensemble = [];
-ensembleFrame = [];
+ensembleFrame = []; % reference for what frames were merged for ensemble analysis
 for i = 1:length(ensembleCan)
     % Condition if window is outside array bound
     if ensembleCan(i)<=ensembleWin
@@ -31,13 +31,14 @@ for i = 1:length(ensembleCan)
 end
 checkPadding = size(ensemble,1)-size(ensemble,2);
 factorCorrection = ensembleWin*floor(size(ensemble,2)/ensembleWin); % Correct for frame size aquisition
+fprintf('Vectorizing ensembles candidates...')
 if checkPadding>0
     [vectorized,sim_index] = cosine_similarity(horzcat(ensemble,zeros(size(ensemble,1),checkPadding)),1);
     sim_index = sim_index(1:size(ensembleCan,2),1:size(ensembleCan,2));
 else
     [vectorized,sim_index] = cosine_similarity(ensemble(:,1:factorCorrection),ensembleWin);
 end
-
+fprintf('done')
 % Generate ROC curve
 thresh = 1;
 [r,~] = find(tril(sim_index>thresh,-1));
@@ -97,6 +98,7 @@ for i = 1:ensembleIndentified
 end
 Ensemble.ensemble = ensemble;
 Ensemble.ensembleCan = ensembleCan;
+Ensemble.ensembleFrame = ensembleFrame;
 Ensemble.vectorized = vectorized;
 Ensemble.sim_index = sim_index;
 % Ensemble.NetworkAnalysis = NetworkAnalysis;
