@@ -24,4 +24,5 @@ A = [];
 C = [];
 ops = [];
 
-memMap_CaImAn;
+% memMap_CaImAn()
+CaImAnFull();
