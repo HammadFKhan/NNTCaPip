@@ -31,13 +31,14 @@ for i = 1:length(ensembleCan)
 end
 checkPadding = size(ensemble,1)-size(ensemble,2);
 factorCorrection = ensembleWin*floor(size(ensemble,2)/ensembleWin); % Correct for frame size aquisition
+fprintf('Vectorizing ensembles candidates...')
 if checkPadding>0
     [vectorized,sim_index] = cosine_similarity(horzcat(ensemble,zeros(size(ensemble,1),checkPadding)),1);
     sim_index = sim_index(1:size(ensembleCan,2),1:size(ensembleCan,2));
 else
     [vectorized,sim_index] = cosine_similarity(ensemble(:,1:factorCorrection),ensembleWin);
 end
-
+fprintf('done')
 % Generate ROC curve
 thresh = 1;
 [r,~] = find(tril(sim_index>thresh,-1));
@@ -50,7 +51,7 @@ while thresh>.25 % Cycles threshold value
 end
 figure,plot(flip(.25:.025:1),rocEnsembles,'LineWidth',2)
 % Refine ensemble nodes based on similarity and ROC
-thresh = .6;
+thresh = .8;
 [r,~] = find(tril(sim_index>thresh,-1));
 count = 1;
 while isempty(r) || length(r)<2 % Checks to see if we found any ensembles
@@ -77,7 +78,7 @@ if isempty(fEnsemble) % means there is only 1 ensemble with contineous index
 else
     ensembleIndentified = 1 + length(fEnsemble);
 end
-
+fprintf('Combining ensemble trains...\n')
 for i = 1:ensembleIndentified
     % Once ensemble periods are detected find nodes
     if i == 1 
@@ -87,14 +88,15 @@ for i = 1:ensembleIndentified
     else
         ensembleId = ensemble(:,r(fEnsemble(i-1):fEnsemble(i)-1)); % Idx ensemble position for all other seperation
     end
-    
+    fprintf(['Connectivity analysis for activation ' num2str(i) '.\n']);
     corr = correlation_dice(ensembleId);
-    thresh = 0.4;
+    thresh = 0.8;
     Connected_ROI{i} = Connectivity_dice(corr, ROI,thresh);
     [NumActiveNodes,NodeList{i},NumNodes{i},NumEdges{i},SpatialCentroid{i},SpatialCentroidVariance{i},...
         ActivityCentroid{i},ActivityCentroidVariance{i}, ActivityCoords{i}]...
         = Network_Analysis(ROIcentroid,Connected_ROI{i});
 end
+fprintf('done')
 Ensemble.ensemble = ensemble;
 Ensemble.ensembleCan = ensembleCan;
 Ensemble.ensembleFrame = ensembleFrame;
