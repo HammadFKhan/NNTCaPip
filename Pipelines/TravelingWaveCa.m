@@ -139,8 +139,21 @@ figure('Name','Network Map'),hold on
 for i = 1:length(spikeTrials)
     subplot(7,7,i),Cell_Map_Dice(AverageImage,Connected_ROI{4},ROIcentroid,NodeSize,EdgeSize),title(['Trial ' num2str(i)])
 end
+%% Quantify Node Reactivation
+for i = 1:size(Spikes,1)
+    temp = [];
+    for ii = 1:45
+        [r,~] = find(Connected_ROI{ii}(:,1:2)==i);
+        temp(ii) = length(r);
+        temp2(ii) = length(r)/(size(Connected_ROI,1));
+    end
+    NodeWeight(i) = sum(temp);
+    NodeProbability(i) = mean(temp2);
+end
 
-
+nodeThresh = 2.5*std(NodeWeight)+mean(NodeWeight);
+critNodes = find(NodeWeight>nodeThresh);
+critNodeValue = NodeWeight(NodeWeight>nodeThresh);
 
 %%
 W12_10Entropy.informationEntropy = informationEntropy;
