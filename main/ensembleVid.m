@@ -15,7 +15,7 @@ for i = 1:Ensemble.ensembleIndentified
     figure(i)
     axis off
     color = jet(Ensemble.ensembleIndentified);
-    EnsembleMap(AverageImage,ROIcentroid,Ensemble.NodeList{i},6,color(i,:))
+    EnsembleMap(AverageImage,ROIcentroid,Ensemble.NodeList{i},6,[1 0 0])
     set(gcf,'Position',[100 100 600 600])
     drawnow
     mov(i) = getframe(gcf);
