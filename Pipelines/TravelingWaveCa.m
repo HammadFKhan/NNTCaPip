@@ -15,8 +15,8 @@ end
 dDeltaFoverF = s;
 %% Analysis
 addpath(genpath('main'));
-std_threshold = 4;
-static_threshold = .2;
+std_threshold = 6;
+static_threshold = .01;
 Spikes = Spike_Detector_Single(dDeltaFoverF,std_threshold,static_threshold);
 %Excude inactive cells
 % numSpikes = sum(Spikes,2);
@@ -60,7 +60,7 @@ Ensemble = ensembleAnalysis(Spikes(:,1:factorCorrection),ROI,ROIcentroid);
 [~,I] = sort(cellfun(@length,Ensemble.NodeList),'descend'); %sort max node size
 rankEdges = Ensemble.NumEdges(:,I);
 rankEnsembles = Ensemble.NodeList(:,I); 
-[grad,~]=colorGradient([0 1 0],[0 0 0],6);
+[grad,~]=colorGradient([1 0 0],[0 0 0],6);
 Ensemble.rankEnsembles = rankEnsembles;
 figure,
 for i = 1:5
@@ -112,15 +112,15 @@ Ensemble.rankedActivityCoords = rankedActivityCoords;
 ensembleVid(Ensemble,AverageImage,ROIcentroid,'test')
 %% Now look at trial specific changes
 % Standard trial length is 209 frames
-trialLength = 239;
+trialLength = 360;
 for i = 1:floor(size(Spikes,2)/trialLength)
     spikeTrials{i} = Spikes(:,((i-1)*trialLength+1):i*trialLength);
 end
     
-figure,
-for i = 1:length(spikeTrials)
-    subplot(6,6,i),Show_Spikes(spikeTrials{i})
-end
+% figure,
+% for i = 1:length(spikeTrials)
+%     subplot(6,6,i),Show_Spikes(spikeTrials{i})
+% end
 
 
 figure,
@@ -137,7 +137,7 @@ end
 NodeSize = 2;EdgeSize = 1;
 figure('Name','Network Map'),hold on
 for i = 1:length(spikeTrials)
-    subplot(6,6,i),Cell_Map_Dice(AverageImage,Connected_ROI{i},ROIcentroid,NodeSize,EdgeSize),title(['Trial ' num2str(i)])
+    subplot(7,7,i),Cell_Map_Dice(AverageImage,Connected_ROI{4},ROIcentroid,NodeSize,EdgeSize),title(['Trial ' num2str(i)])
 end
 
 
