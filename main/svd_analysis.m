@@ -25,7 +25,7 @@ function svd_analysis(data)
 % h.ColorbarVisible = 'off';caxis([0 0.15]);saveas(gcf,'myName','png');
 % end
 figure,axis off
-h = htmp(data),caxis([.3 1]);
+h = htmp(data),caxis([.1 1]);
 plotind = 3;
 avgSim = mean(data,2);
 X = data;
@@ -53,7 +53,7 @@ end
 
 %% Singular Values
 figure,subplot(1,2,1)
-semilogy(diag(S),'k','Linewidth',2),grid on;hold on;
+semilogx(diag(S),'k','Linewidth',2),grid on;hold on;
 xlabel('r'); ylabel('Singular Value, \Sigma_r')
 set(gca,'FontSize',14);
 subplot(1,2,2)
