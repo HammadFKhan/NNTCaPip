@@ -134,12 +134,22 @@ for i = 1:length(spikeTrials)
     [NumActiveNodes{i},NodeList{i},NumNodes{i},NumEdges{i},SpatialCentroid{i},SpatialCentroidVariance{i},ActivityCentroid{i},ActivityCentroidVariance{i}, ActivityCoords{i}]...
         = Network_Analysis(ROIcentroid,Connected_ROI{i});
 end
-NodeSize = 1;EdgeSize = 1;
+NodeSize = 2;EdgeSize = 1;
 figure('Name','Network Map'),hold on
 for i = 1:length(spikeTrials)
-    subplot(7,7,i),Cell_Map_Dice(AverageImage,Connected_ROI{i},ROIcentroid,NodeSize,EdgeSize),title(['Trial ' num2str(i)])
+    subplot(7,7,i),Cell_Map_Dice(AverageImage,Connected_ROI{4},ROIcentroid,NodeSize,EdgeSize),title(['Trial ' num2str(i)])
+end
+%% Quantify Node Reactivation
+for i = 1:size(Spikes,1)
+    temp = [];
+    for ii = 1:45
+        [r,~] = find(Connected_ROI{ii}(:,1:2)==i);
+        temp(ii) = length(r); 
+    end
+    NodeWeight(i) = sum(temp);
 end
 
+critNode = 
 
 
 %%
