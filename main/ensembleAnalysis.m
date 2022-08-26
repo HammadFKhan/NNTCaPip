@@ -42,16 +42,23 @@ fprintf('done')
 % Generate ROC curve
 thresh = 1;
 [r,~] = find(tril(sim_index>thresh,-1));
-count = 1;
+count = 0;
 while thresh>.25 % Cycles threshold value
     count = count+1;
+    xdata(count) = thresh;
     thresh = thresh-0.025;
     [r,~] = find(tril(sim_index>thresh,-1));
     rocEnsembles(count) = length(r)+1;
 end
-figure,plot(flip(.25:.025:1),rocEnsembles,'LineWidth',2)
+figure,plot(xdata,rocEnsembles,'LineWidth',2)
 % Refine ensemble nodes based on similarity and ROC
-thresh = .8;
+thresh = .7;
+idx = find(round(xdata,2)==thresh);
+while rocEnsembles(idx)>100
+    idx = idx-1;
+end
+thresh = xdata(idx);
+disp(['Restricting ensembles to ' num2str(thresh) ' similarity']);
 [r,~] = find(tril(sim_index>thresh,-1));
 count = 1;
 while isempty(r) || length(r)<2 % Checks to see if we found any ensembles
@@ -96,7 +103,7 @@ for i = 1:ensembleIndentified
         ActivityCentroid{i},ActivityCentroidVariance{i}, ActivityCoords{i}]...
         = Network_Analysis(ROIcentroid,Connected_ROI{i});
 end
-fprintf('done')
+fprintf('done\n')
 Ensemble.ensemble = ensemble;
 Ensemble.ensembleCan = ensembleCan;
 Ensemble.ensembleFrame = ensembleFrame;
