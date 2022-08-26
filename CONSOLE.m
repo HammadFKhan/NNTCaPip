@@ -2,10 +2,10 @@
 % Github Version 4.1
 
 %% Remove ROIs
-DeltaFoverF,dDeltaFoverF,ROI,ROIcentroid,Noise_Power,A = removeROI(DeltaFoverF,dDeltaFoverF,ROI,ROIcentroid,Noise_Power,A,deleteID)
+[DeltaFoverF,dDeltaFoverF,ROI,ROIcentroid,Noise_Power,A] = removeROI(DeltaFoverF,dDeltaFoverF,ROI,ROIcentroid,Noise_Power,A,badComponents);
 %% Analysis
 addpath(genpath('main'));
-std_threshold = 10;
+std_threshold = 6;
 static_threshold = .01;
 Spikes = Spike_Detector_Single(dDeltaFoverF,std_threshold,static_threshold);
 %Excude inactive cells
@@ -212,7 +212,7 @@ end
 image_movie = mat2gray(M2);
 implay(image_movie);
 %%
-[tProjq1, tProjq2, uProjq1, uProjq2] = featureProject(waveforms',128);
+[tProjq1, tProjq2, uProjq1, uProjq2] = featureProject(vectorized,139);
 %% Trial by Trial analysis ##Only use with batch processed files##
 addpath(genpath('Figures'));
 [batchSpikes,batch_corr] = TrialByTrial(batchData([1,2,4])); % Function call
@@ -234,33 +234,4 @@ plot_raster(1:120,Spikes(5,1:120))
 % This should visualize how the centroids related to each other. You could�
 % also then compute the Delauney Triangulation of the projected graph, to
 % identify neighbors.
-function [tProjq1, tProjq2, uProjq1, uProjq2] = featureProject(featureData,navgtarget)
-featureData = double(featureData');
-covmatrix = (featureData'*featureData);
-covmatrix = covmatrix/size(featureData,1);
-figure();
-imagesc(covmatrix);
-colormap(jet);
-colorbar;
-[V,D] = eig(covmatrix);
-q(:,1) = V(:,size(featureData,2));
-q(:,2) = V(:,size(featureData,2)-1);
-q(:,3) = V(:,size(featureData,2)-3);
-figure();
-plot(q);
-ylabel('Voltage (\mu V)')
-xlabel('Time');
-
-tProjq1 = featureData(1:navgtarget,:)*q(:,1);
-tProjq2 = featureData(1:navgtarget,:)*q(:,2);
-tProjq3 = featureData(1:navgtarget,:)*q(:,3);
-figure()
-scatter(tProjq1,tProjq2,200,'b.'); hold on;
-uProjq1 = featureData(navgtarget+1:end,:)*q(:,1);
-uProjq2 = featureData(navgtarget+1:end,:)*q(:,2);
-uProjq3 = featureData(navgtarget+1:end,:)*q(:,3);
-scatter(uProjq1,uProjq2,200,'r.');
-ylabel('bk')
-xlabel('ak');
-end
 
