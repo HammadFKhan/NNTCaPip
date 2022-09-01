@@ -1,4 +1,4 @@
-function ensembleMetric(Ensemble,AverageImage,ROIcentroid)
+function Ensemble = ensembleMetric(Ensemble,AverageImage,ROIcentroid)
 % ensembleVid(Ensemble,AverageImage,ROIcentroid,files);
 % Displays ensemble overlay
 [~,I] = sort(cellfun(@length,Ensemble.NodeList),'descend'); %sort max node size
@@ -33,7 +33,7 @@ figure,plot(sizeEdge),title('Ranked Connections')
 % Ensemble Stats
 % EnsembleStats
 % Information Entropy
-informationEntropy = shannonEntropy(rankEnsembles);
+Ensemble.informationEntropy = shannonEntropy(rankEnsembles);
 % Plot Centroid Boundary
 figure,hold on
 %Rank by number of Activity points
