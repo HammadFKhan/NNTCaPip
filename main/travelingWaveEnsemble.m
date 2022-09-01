@@ -23,6 +23,7 @@ end
 if iscell(nolateSpikes)
     nolateSpikes = horzcat(nolateSpikes{:});
 end
+
 % Now extract representative ensembles
 % Late Spike
 FactorCorrection = 5*floor(size(lateSpikes,2)/5); % Correct for frame size aquisition
@@ -30,14 +31,15 @@ lateSpikeEnsemble = ensembleAnalysis(lateSpikes(:,1:FactorCorrection),ROI,ROIcen
 [~,I] = sort(cellfun(@length,lateSpikeEnsemble.NodeList),'descend'); %sort max node size
 rankEdges = lateSpikeEnsemble.NumEdges(:,I);
 rankEnsembles = lateSpikeEnsemble.NodeList(:,I); 
-[grad,~]=colorGradient([1 0 0],[0 0 0],7);
+[grad,~]=colorGradient([1 0 0],[0 0 0],6);
 lateSpikeEnsemble.rankEnsembles = rankEnsembles;
 lateSpikeEnsemble.rankEdges = rankEdges;
+lateSpikeEnsemble.Spikes = lateSpikes;
 figure,
-for i = 1:6
+for i = 1:5
     axis off
     color = jet(3);
-    EnsembleMap(AverageImage,ROIcentroid,lateSpikeEnsemble.rankEnsembles{i},4,grad(i,:))
+    EnsembleMap(AverageImage,ROIcentroid,lateSpikeEnsemble.rankEnsembles{i},5,grad(i,:))
     set(gcf,'Position',[100 100 500 500])
     drawnow
     hold on
@@ -49,11 +51,12 @@ nolateSpikeEnsemble = ensembleAnalysis(nolateSpikes(:,1:FactorCorrection),ROI,RO
 [~,I] = sort(cellfun(@length,nolateSpikeEnsemble.NodeList),'descend'); %sort max node size
 rankEdges = nolateSpikeEnsemble.NumEdges(:,I);
 rankEnsembles = nolateSpikeEnsemble.NodeList(:,I); 
-[grad,~]=colorGradient([0 0 1],[0 0 0],7);
+[grad,~]=colorGradient([0 0 1],[0 0 0],6);
 nolateSpikeEnsemble.rankEnsembles = rankEnsembles;
 nolateSpikeEnsemble.rankEdges = rankEdges;
+nolateSpikeEnsemble.Spikes = nolateSpikes;
 figure,
-for i = 1:6
+for i = 1:5
     axis off
     color = jet(3);
     EnsembleMap(AverageImage,ROIcentroid,nolateSpikeEnsemble.rankEnsembles{i},4,grad(i,:))
@@ -69,106 +72,77 @@ figure,imagesc(interp2(conv2(nolateSpikeEnsemble.sim_index,K,'same'),2)),colorma
 
 %% Entropy
 % Late Spike
-sizeE = cellfun(@size,lateSpikeEnsemble.rankEnsembles,'UniformOutput',false);
-sizeE = cell2mat(sizeE);
-sizeE(sizeE==1) = [];
-sizeE = sizeE/max(sizeE);
-figure,plot(sizeE),title('LS Ranked Ensembles')
-
-sizeEdge = cell2mat(lateSpikeEnsemble.rankEdges);
-sizeEdge = sizeEdge/max(sizeEdge);
-figure,plot(sizeEdge),title('LS Ranked Connections')
-% Information Entropy
-disp('Entropy for Late Spike')
-lateSpikeinformationEntropy = shannonEntropy(lateSpikeEnsemble.rankEnsembles);
-
-% No Late Spike
-sizeE = cellfun(@size,nolateSpikeEnsemble.rankEnsembles,'UniformOutput',false);
-sizeE = cell2mat(sizeE);
-sizeE(sizeE==1) = [];
-sizeE = sizeE/max(sizeE);
-figure,plot(sizeE),title('No LS Ranked Ensembles')
-
-sizeEdge = cell2mat(nolateSpikeEnsemble.rankEdges);
-sizeEdge = sizeEdge/max(sizeEdge);
-figure,plot(sizeEdge),title('No LS Ranked Connections')
-% Information Entropy
-disp('Entropy for No Late Spike')
-nolateSpikeinformationEntropy = shannonEntropy(nolateSpikeEnsemble.rankEnsembles);
+% sizeE = cellfun(@size,lateSpikeEnsemble.rankEnsembles,'UniformOutput',false);
+% sizeE = cell2mat(sizeE);
+% sizeE(sizeE==1) = [];
+% sizeE = sizeE/max(sizeE);
+% figure,plot(sizeE),title('LS Ranked Ensembles')
+% 
+% sizeEdge = cell2mat(lateSpikeEnsemble.rankEdges);
+% sizeEdge = sizeEdge/max(sizeEdge);
+% figure,plot(sizeEdge),title('LS Ranked Connections')
+% % Information Entropy
+% disp('Entropy for Late Spike')
+% lateSpikeinformationEntropy = shannonEntropy(lateSpikeEnsemble.rankEnsembles);
+% 
+% % No Late Spike
+% sizeE = cellfun(@size,nolateSpikeEnsemble.rankEnsembles,'UniformOutput',false);
+% sizeE = cell2mat(sizeE);
+% sizeE(sizeE==1) = [];
+% sizeE = sizeE/max(sizeE);
+% figure,plot(sizeE),title('No LS Ranked Ensembles')
+% 
+% sizeEdge = cell2mat(nolateSpikeEnsemble.rankEdges);
+% sizeEdge = sizeEdge/max(sizeEdge);
+% figure,plot(sizeEdge),title('No LS Ranked Connections')
+% % Information Entropy
+% disp('Entropy for No Late Spike')
+% nolateSpikeinformationEntropy = shannonEntropy(nolateSpikeEnsemble.rankEnsembles);
 %% Ensemble State Space
 
-%Rank by number of Activity points
-rankedActivityCoords = [];
-[~,I] = sort(cellfun(@length,lateSpikeEnsemble.ActivityCoords),'descend'); %sort max node size
-rankedActivityCoords = lateSpikeEnsemble.ActivityCoords(:,I);
-lateSpikeEnsemble.rankedActivityCoords = rankedActivityCoords;
-
-%Rank by number of Activity points
-rankedActivityCoords = [];
-[~,I] = sort(cellfun(@length,nolateSpikeEnsemble.ActivityCoords),'descend'); %sort max node size
-rankedActivityCoords = nolateSpikeEnsemble.ActivityCoords(:,I);
-nolateSpikeEnsemble.rankedActivityCoords = rankedActivityCoords;
-
-
-hypVariance = [];
-centroidData = [];
-ensembleIntrinsicConnection = [];
-count = 1;
-figure
-manifold1 = lateSpikeEnsemble.rankedActivityCoords; % Eached rank coords is the distance between each cell pair that makes up an ensemble
-for i = 1:size(manifold1,2) % Basically how many ensembles there are
-    if size(manifold1{i},1)>2
-        x = manifold1{i}(:,1);y = manifold1{i}(:,2);
-        k = boundary(x,y,0.1);
-        x1 = interp1(1:length(x(k)),x(k),1:0.05:length(x(k)),'pchip');
-        y1 = interp1(1:length(y(k)),y(k),1:0.05:length(y(k)),'pchip');
-        x2 = smoothdata(x1,'gaussian',10);
-        y2 = smoothdata(y1,'gaussian',10);
-        plot(x2,y2,'Color',[0.5 0.5 0.5 0.5]),hold on
-    end
-end
-% Plot mean manifold for the boundry
+                                                    
+% % Plot mean manifold for the boundry
 %     k = boundary(x,y);
 %     x1 = interp1(1:length(x(k)),x(k),1:0.05:length(x(k)),'pchip');
 %     y1 = interp1(1:length(y(k)),y(k),1:0.05:length(y(k)),'pchip');
 %     x2 = smoothdata(x1,'gaussian',50);
 %     y2 = smoothdata(y1,'gaussian',50);
 %     plot(x2,y2,'Color',[0 0 0],'LineWidth',2)
-figure
-for i = 1:size(manifold1,2)
-    if size(manifold1{i},1)>2
-        x = manifold1{i}(:,1);y = manifold1{i}(:,2);
-        scatter(x,y,4,color(count,:),'filled'),hold on
-    end
-end
-title('LS')
-%%
-clear x y
-figure
-manifold2 = nolateSpikeEnsemble.rankedActivityCoords; % Eached rank coords is the distance between each cell pair that makes up an ensemble
-for i = 1:size(manifold2,2) % Basically how many ensembles there are
-    if size(manifold2{i},1)>2
-        x = manifold2{i}(:,1);y = manifold2{i}(:,2);
-        k = boundary(x,y,0.1);
-        x1 = interp1(1:length(x(k)),x(k),1:0.05:length(x(k)),'pchip');
-        y1 = interp1(1:length(y(k)),y(k),1:0.05:length(y(k)),'pchip');
-        x2 = smoothdata(x1,'gaussian',10);
-        y2 = smoothdata(y1,'gaussian',10);
-        plot(x2,y2,'Color',[0.5 0.5 0.5 0.5]),hold on
-    end
-end
-% Plot mean manifold for the boundry
-%     k = boundary(x,y);
-%     x1 = interp1(1:length(x(k)),x(k),1:0.05:length(x(k)),'pchip');
-%     y1 = interp1(1:length(y(k)),y(k),1:0.05:length(y(k)),'pchip');
-%     x2 = smoothdata(x1,'gaussian',50);
-%     y2 = smoothdata(y1,'gaussian',50);
-%     plot(x2,y2,'Color',[0 0 0],'LineWidth',2)
-figure
-for i = 1:size(manifold2,2)
-    if size(manifold2{i},1)>2
-        x = manifold2{i}(:,1);y = manifold2{i}(:,2);
-        scatter(x,y,4,color(count,:),'filled'),hold on
-    end
-end
-title('No LS')
+% figure
+% for i = 1:size(manifold1,2)
+%     if size(manifold1{i},1)>2
+%         x = manifold1{i}(:,1);y = manifold1{i}(:,2);
+%         scatter(x,y,4,color(count,:),'filled'),hold on
+%     end
+% end
+% title('LS')
+% %%
+% clear x y
+% figure
+% manifold2 = nolateSpikeEnsemble.rankedActivityCoords; % Eached rank coords is the distance between each cell pair that makes up an ensemble
+% for i = 1:size(manifold2,2) % Basically how many ensembles there are
+%     if size(manifold2{i},1)>2
+%         x = manifold2{i}(:,1);y = manifold2{i}(:,2);
+%         k = boundary(x,y,0.1);
+%         x1 = interp1(1:length(x(k)),x(k),1:0.05:length(x(k)),'pchip');
+%         y1 = interp1(1:length(y(k)),y(k),1:0.05:length(y(k)),'pchip');
+%         x2 = smoothdata(x1,'gaussian',10);
+%         y2 = smoothdata(y1,'gaussian',10);
+%         plot(x2,y2,'Color',[0.5 0.5 0.5 0.5]),hold on
+%     end
+% end
+% % Plot mean manifold for the boundry
+% %     k = boundary(x,y);
+% %     x1 = interp1(1:length(x(k)),x(k),1:0.05:length(x(k)),'pchip');
+% %     y1 = interp1(1:length(y(k)),y(k),1:0.05:length(y(k)),'pchip');
+% %     x2 = smoothdata(x1,'gaussian',50);
+% %     y2 = smoothdata(y1,'gaussian',50);
+% %     plot(x2,y2,'Color',[0 0 0],'LineWidth',2)
+% figure
+% for i = 1:size(manifold2,2)
+%     if size(manifold2{i},1)>2
+%         x = manifold2{i}(:,1);y = manifold2{i}(:,2);
+%         scatter(x,y,4,color(count,:),'filled'),hold on
+%     end
+% end
+% title('No LS')
