@@ -6,16 +6,17 @@ else
     fn = name;
 end
 
+
 set(0,'DefaultFigureWindowStyle','normal')
 clear mov
 writerobj = VideoWriter([fn '.avi'],'Uncompressed AVI'); % Initialize movie file
 writerobj.FrameRate = 8;
 open(writerobj);
-for i = 1:Ensemble.ensembleIndentified 
+[grad,~]=colorGradient([0 0 1] ,[0 0 0],Ensemble.ensembleIndentified+1)
+for i = 1:30
     figure(i)
     axis off
-    color = jet(Ensemble.ensembleIndentified);
-    EnsembleMap(AverageImage,ROIcentroid,Ensemble.NodeList{i},6,[1 0 0])
+    EnsembleMap(AverageImage,ROIcentroid,Ensemble.rankEnsembles{i},6,grad(i,:))
     set(gcf,'Position',[100 100 600 600])
     drawnow
     mov(i) = getframe(gcf);
