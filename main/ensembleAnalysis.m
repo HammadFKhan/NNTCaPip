@@ -54,7 +54,7 @@ figure,plot(xdata,rocEnsembles,'LineWidth',2)
 % Refine ensemble nodes based on similarity and ROC
 thresh = .7;
 idx = find(round(xdata,2)==thresh);
-while rocEnsembles(idx)>100
+while rocEnsembles(idx)>200
     idx = idx-1;
 end
 thresh = xdata(idx);
@@ -97,7 +97,7 @@ for i = 1:ensembleIndentified
     end
     fprintf(['Connectivity analysis for activation ' num2str(i) '.\n']);
     corr = correlation_dice(ensembleId);
-    thresh = 0.8;
+    thresh = 0.6;
     Connected_ROI{i} = Connectivity_dice(corr, ROI,thresh);
     [NumActiveNodes,NodeList{i},NumNodes{i},NumEdges{i},SpatialCentroid{i},SpatialCentroidVariance{i},...
         ActivityCentroid{i},ActivityCentroidVariance{i}, ActivityCoords{i}]...
