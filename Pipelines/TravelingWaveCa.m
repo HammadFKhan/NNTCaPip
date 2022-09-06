@@ -1,5 +1,7 @@
-%Traveling Waves Planer Grids + Imaging
+%% Remove ROIs
+[DeltaFoverF,dDeltaFoverF,ROI,ROIcentroid,Noise_Power,A] = removeROI(DeltaFoverF,dDeltaFoverF,ROI,ROIcentroid,Noise_Power,A,badComponents);
 
+%% Traveling Waves Planer Grids + Imaging
 ROIcentroid = {json_file.centroid}';ROIcentroid = cell2mat(ROIcentroid);
 for i = 1:size(json_file,1)
     for ii = 1:length(json_file(i).coordinates)
@@ -124,7 +126,7 @@ end
 
 
 figure,
-for i = 1:floor(size(Spikes,2)/trialLength)
+for i = trialData.responsiveTrials.noLateSpikeTrials
     Show_Spikes(spikeTrials{i}),hold on
 end
 %% generate ROC for connectivity
@@ -141,39 +143,42 @@ figure,plot(0:step:1,connectedNum);
 simM = [];
 Connected_ROI = [];
 Ls = [];
-figure,
+% figure,
 count = 1;
 for i = trialData.responsiveTrials.lateSpikeTrials  %t1
     corr = correlation_dice(spikeTrials{i});
-    Connected_ROI{i} = Connectivity_dice(corr,ROI,0.4);
-    [NumActiveNodes{i},NodeList{i},NumNodes{i},NumEdges{i},SpatialCentroid{i},SpatialCentroidVariance{i},ActivityCentroid{i},ActivityCentroidVariance{i}, ActivityCoords{i}]...
-        = Network_Analysis(ROIcentroid,Connected_ROI{i});
+    Connected_ROI{count} = Connectivity_dice(corr,ROI,0.3);
+    [NumActiveNodes{count},NodeList{count},NumNodes{count},NumEdges{count},SpatialCentroid{count},SpatialCentroidVariance{count},ActivityCentroid{count},ActivityCentroidVariance{count}, ActivityCoords{count}]...
+        = Network_Analysis(ROIcentroid,Connected_ROI{count});
     [vectorized,sim_index] = cosine_similarity(spikeTrials{i},10);
-    subplot(5,4,count),imagesc(sim_index),colormap(jet)
+%     subplot(5,4,count),imagesc(sim_index),colormap(jet)
     Ls(count) = mean(sim_index(sim_index>0.1),'all'); %mean center
     count = count+1;
 end
 % t1 = vertcat(simValue{:});
  figure,boxplot(Ls);ylim([0.0 0.5])
+ lateSpikeEnsemble.LsSim = Ls;
 %%
 Connected_ROI = {};
 simM = [];
 simValue = [];
 nLs = [];
 count = 1;
-figure,
+% figure,
 for i = trialData.responsiveTrials.noLateSpikeTrials%t2
     corr = correlation_dice(spikeTrials{i});
     Connected_ROI{i} = Connectivity_dice(corr,ROI,0.3);
     [NumActiveNodes{i},NodeList{i},NumNodes{i},NumEdges{i},SpatialCentroid{i},SpatialCentroidVariance{i},ActivityCentroid{i},ActivityCentroidVariance{i}, ActivityCoords{i}]...
         = Network_Analysis(ROIcentroid,Connected_ROI{i});
     [vectorized,sim_index] = cosine_similarity(spikeTrials{i},10);
-    subplot(5,4,count),imagesc(sim_index),colormap(jet)
+%     subplot(5,4,count),imagesc(sim_index),colormap(jet)
     nLs(count) = mean(sim_index(sim_index>0),'all');
     count = count+1;
 end
 % t2 = vertcat(simValue{:});
 figure,boxplot(nLs);ylim([0.0 0.5])
+nolateSpikeEnsemble.nLsSim = nLs;
+
 %%
 [vectorized,sim_index] = cosine_similarity(horzcat(spikeTrials{trialData.responsiveTrials.lateSpikeTrials(1:5)} ),10);
 %%
@@ -193,59 +198,48 @@ for i = 1:49
     end
 end
 %%
+figure,hold on,axis([0 512 0 512]);
+for i = 1:length(ROI)
+    blah = vertcat(ROI{i}{:});
+    line(blah(:,1),blah(:,2),'Color','black');
+end
+
+for i = 1:length(lateSpikeEnsemble.ActivityCentroid)
+    if ~isempty(lateSpikeEnsemble.ActivityCentroid{i})
+        % Draw centroid area
+        cx = lateSpikeEnsemble.ActivityCentroid{i}(1);
+        cy = lateSpikeEnsemble.ActivityCentroid{i}(2);
+        a = lateSpikeEnsemble.ActivityCentroidVariance{i}(1);
+        b = lateSpikeEnsemble.ActivityCentroidVariance{i}(2);
+        angle = 0;
+        plot_ellipse(a,b,cx,cy,angle,[0 0 1]), hold on
+    end
+end
+
+%%
 NodeSize = 2;EdgeSize = 1;
 figure('Name','Network Map'),hold on
 for i = 1:length(spikeTrials)
     subplot(7,7,i),htmp(corr{26},10),title(['Trial ' num2str(i)])
 end
 %% Quantify Node Reactivation
-Connected_ROI = []
-for i = trialData.responsiveTrials.noLateSpikeTrials%t2
-    corr = correlation_dice(spikeTrials{i});
-    Connected_ROI{i} = Connectivity_dice(corr,ROI,0.3);
-end
+lateSpikeEnsemble = findCritNode(trialData.responsiveTrials.lateSpikeTrials,ROI,spikeTrials,lateSpikeEnsemble); % trials, ROI, spikeTrials, Spikes, Ensemble
+nolateSpikeEnsemble = findCritNode(trialData.responsiveTrials.noLateSpikeTrials,ROI,spikeTrials,nolateSpikeEnsemble);
 
-nodeWeight = [];
-NodeProbability = [];
-for i = 1:size(Spikes,1)
-    count = 1;
-    temp = [];
-    for ii = 1:length(Connected_ROI)
-        if ~isempty(Connected_ROI{ii})
-            [r,~] = find(Connected_ROI{ii}(:,1:2)==i);
-            temp(count) = mean(length(r)/size(Connected_ROI{ii},1));
-            temp2(count) = mean(Connected_ROI{ii}(r,3));
-            if isnan(temp2(count))
-                temp2(count) = 0;
-            end
-            count = count+1;
-        end
-    end
-    NodeWeight(i) = mean(temp2);
-    NodeProbability(i) = mean(temp);
-end
-
-% Normalize node weights and find threshold for crit nodes
-normNodeWeight = normalize(NodeWeight,'range');
-normNodeProbability = normalize(NodeProbability,'range');
-nodeWThresh = 0.6;
-nodePThresh = 0.6;
-
-% find crit nodes across each axis
-critWNodes = find(normNodeWeight>nodeWThresh);
-critWNodeValue = normNodeWeight(normNodeWeight>nodeWThresh);
-critPNodes = find(normNodeProbability>nodePThresh);
-critPNodeValue = normNodeProbability(normNodeProbability>nodePThresh);
-% check membership for each 
-if length(critWNodes)>length(critPNodes) %checks whick one is larger for membership assignment
-    critNodes = critPNodes(ismember(critPNodes,critWNodes)); 
-else 
-    critNodes = critWNodes(ismember(critWNodes,critPNodes));
-end
-
-figure,plot(NodeWeight,NodeProbability,'.');
+figure,plot(normNodeWeight,normNodeProbability,'.');box off
 xline(nodeWThresh,'k--');
 yline(nodePThresh,'k--');
+%%
+ls_ls = []
+Connected_ROI = [];
+for i = t2
+    corr = correlation_dice(spikeTrials{i}(lateSpikeCritNodes,:));
+    Connected_ROI{i} = Connectivity_dice(corr,ROI,0.5);
+end
+ls_ls = vertcat(Connected_ROI{:});
+figure,
+Cell_Map_Dice(AverageImage,ls_ls,ROIcentroid(lateSpikeCritNodes,:),4,1)
+
 %% Late vs no Late spike ensembles
 [lateSpikeEnsemble, nolateSpikeEnsemble] =...
     travelingWaveEnsemble(spikeTrials,trialData.responsiveTrials.lateSpikeTrials,trialData.responsiveTrials.noLateSpikeTrials,ROI,ROIcentroid,AverageImage);
@@ -267,7 +261,7 @@ end
 
 sharedEnsemble = [];
 count = 1;
-for i = 1:ensembleIteration
+for i = 1:40
     lsEnsemble = lateSpikeEnsemble.rankEnsembles{i};
     nlsEnsemble = nolateSpikeEnsemble.rankEnsembles{i};
     checkIdx = length(lsEnsemble)-length(nlsEnsemble); %find which one is larger and check existing indices
