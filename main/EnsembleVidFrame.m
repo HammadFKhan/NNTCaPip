@@ -5,7 +5,7 @@
 %     [~,name,~] = fileparts(fn)
 %     fn = name;
 % end
-fn = 'ensembleVideoFOVall'
+fn = 'centroid'
 
 set(0,'DefaultFigureWindowStyle','normal')
 clear mov
