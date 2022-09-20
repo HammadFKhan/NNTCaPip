@@ -1,8 +1,6 @@
 %% NNT Calcium Pipeline
 % Github Version 4.1
 
-%% Remove ROIs
-[DeltaFoverF,dDeltaFoverF,ROI,ROIcentroid,Noise_Power,A] = removeROI(DeltaFoverF,dDeltaFoverF,ROI,ROIcentroid,Noise_Power,A,badComponents);
 %% Analysis
 addpath(genpath('main'));
 std_threshold = 6;
