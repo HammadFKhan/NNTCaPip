@@ -1,6 +1,11 @@
 %% Remove ROIs
 [DeltaFoverF,dDeltaFoverF,ROI,ROIcentroid,Noise_Power,A] = removeROI(DeltaFoverF,dDeltaFoverF,ROI,ROIcentroid,Noise_Power,A,badComponents);
-
+%% Fix centroids
+ROIcentroid = [];
+for i = 1:length(ROI)
+    blah = vertcat(ROI{i}{:});
+    ROIcentroid(i,:) = floor(mean(blah,1));
+end
 %% Traveling Waves Planer Grids + Imaging
 ROIcentroid = {json_file.centroid}';ROIcentroid = cell2mat(ROIcentroid);
 for i = 1:size(json_file,1)
@@ -113,8 +118,8 @@ Ensemble.rankedActivityCoords = rankedActivityCoords;
 %%
 ensembleVid(nolateSpikeEnsemble,AverageImage,ROIcentroid,'nolateSpikeEnsemble')
 %% Now look at trial specific changes
-% Standard trial length is 209 frames
-trialLength = 360;
+% Standard trial length is 240 frames//360
+trialLength = 240;
 for i = 1:floor(size(Spikes,2)/trialLength)
     spikeTrials{i} = Spikes(:,((i-1)*trialLength+1):i*trialLength);
 end
@@ -145,7 +150,7 @@ Connected_ROI = [];
 Ls = [];
 % figure,
 count = 1;
-for i = trialData.responsiveTrials.lateSpikeTrials  %t1
+for i = t1%trialData.responsiveTrials.lateSpikeTrials  %t1
     corr = correlation_dice(spikeTrials{i});
     Connected_ROI{count} = Connectivity_dice(corr,ROI,0.3);
     [NumActiveNodes{count},NodeList{count},NumNodes{count},NumEdges{count},SpatialCentroid{count},SpatialCentroidVariance{count},ActivityCentroid{count},ActivityCentroidVariance{count}, ActivityCoords{count}]...
@@ -197,38 +202,13 @@ for i = 1:49
         count = count+1;
     end
 end
-%%
-figure,hold on,axis([0 512 0 512]);
-for i = 1:length(ROI)
-    blah = vertcat(ROI{i}{:});
-    line(blah(:,1),blah(:,2),'Color','black');
-end
-
-for i = 1:length(lateSpikeEnsemble.ActivityCentroid)
-    if ~isempty(lateSpikeEnsemble.ActivityCentroid{i})
-        % Draw centroid area
-        cx = lateSpikeEnsemble.ActivityCentroid{i}(1);
-        cy = lateSpikeEnsemble.ActivityCentroid{i}(2);
-        a = lateSpikeEnsemble.ActivityCentroidVariance{i}(1);
-        b = lateSpikeEnsemble.ActivityCentroidVariance{i}(2);
-        angle = 0;
-        plot_ellipse(a,b,cx,cy,angle,[0 0 1]), hold on
-    end
-end
-
-%%
-NodeSize = 2;EdgeSize = 1;
-figure('Name','Network Map'),hold on
-for i = 1:length(spikeTrials)
-    subplot(7,7,i),htmp(corr{26},10),title(['Trial ' num2str(i)])
-end
 %% Quantify Node Reactivation
 lateSpikeEnsemble = findCritNode(trialData.responsiveTrials.lateSpikeTrials,ROI,spikeTrials,lateSpikeEnsemble); % trials, ROI, spikeTrials, Spikes, Ensemble
 nolateSpikeEnsemble = findCritNode(trialData.responsiveTrials.noLateSpikeTrials,ROI,spikeTrials,nolateSpikeEnsemble);
 
-figure,plot(normNodeWeight,normNodeProbability,'.');box off
-xline(nodeWThresh,'k--');
-yline(nodePThresh,'k--');
+% figure,plot(normNodeWeight,normNodeProbability,'.');box off
+% xline(nodeWThresh,'k--');
+% yline(nodePThresh,'k--');
 %%
 ls_ls = []
 Connected_ROI = [];
@@ -244,12 +224,14 @@ Cell_Map_Dice(AverageImage,ls_ls,ROIcentroid(lateSpikeCritNodes,:),4,1)
 [lateSpikeEnsemble, nolateSpikeEnsemble] =...
     travelingWaveEnsemble(spikeTrials,trialData.responsiveTrials.lateSpikeTrials,trialData.responsiveTrials.noLateSpikeTrials,ROI,ROIcentroid,AverageImage);
 
-%% some statistics about these ensembles
-lateSpikeEnsemble = ensembleStat(lateSpikeEnsemble);
-nolateSpikeEnsemble = ensembleStat(nolateSpikeEnsemble);
 %% manifold analysis and entropy
 lateSpikeEnsemble = ensembleMetric(lateSpikeEnsemble,AverageImage,ROIcentroid);
 nolateSpikeEnsemble = ensembleMetric(nolateSpikeEnsemble,AverageImage,ROIcentroid);
+
+%% some statistics about these ensembles
+lateSpikeEnsemble = ensembleStat(lateSpikeEnsemble);
+nolateSpikeEnsemble = ensembleStat(nolateSpikeEnsemble);
+
 %% Overlapping ensemble metric
 % Check number of shared nodes by adding each interative ensemble rank
 checkIteration = length(lateSpikeEnsemble.rankEnsembles)- length(nolateSpikeEnsemble.rankEnsembles);
