@@ -126,10 +126,10 @@ for fileNum = 1:numFiles
     K = 10;                  % number of components to be found per patch
     tau = 4;                 % std of gaussian kernel (size of neuron)
     p = 2;                   % order of autoregressive system (p = 0 no dynamics, p=1 just decay, p = 2, both rise and decay)
-    merge_thr = 0.85;         % merging threshold
+    merge_thr = 0.4;         % merging threshold
     
     options = CNMFSetParms(...
-        'init_method','greedy',...              % Segmentation type ('greedy' for soma 'sparse_NMF' for dendrites
+        'init_method','sparse_NMF',...              % Segmentation type ('greedy' for soma 'sparse_NMF' for dendrites
         'beta',0.9,...,                             % NMF converging coefficient (higher is stricter)
         'snmf_max_iter',50,...                      % max # of sparse NMF iterations
         'd1',sizY(1),'d2',sizY(2),...               % FOV size (512x512 typically)
@@ -145,7 +145,7 @@ for fileNum = 1:numFiles
         'cnn_thr',0.2,...                           % classifier threshold
         'patch_space_thresh',0.25,...               % merge patch threshold
         'min_SNR',2,...                             % minimum signal SNR
-        'search_method','dilate');                 % method for determining footprint of spatial components 'ellipse' or 'dilate' (default: 'dilate')
+        'search_method','ellipse');                 % method for determining footprint of spatial components 'ellipse' or 'dilate' (default: 'dilate')
     
     %% Run on patches
     
@@ -272,6 +272,9 @@ for fileNum = 1:numFiles
         mkdir([file(fileNum).folder '\output']);
     end
     [folder_name,file_name,~] = fileparts(file(fileNum).name);
+    if exist(fullfile([folder_name, '\output'],[file_name,'.mat']),'file')
+        file_name = [filename yyyymmdd(datetime)];
+    end
     savepath = fullfile([folder_name, '\output'],[file_name,'.mat']);
     save(savepath,'files','AverageImage','num_images',...
         'DeltaFoverF','dDeltaFoverF','ROIcentroid','ROI','Noise_Power','C','A','ops');
