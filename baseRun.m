@@ -11,7 +11,7 @@
 % NOTE: ds_data allocation is skipped if it already has been done
 % All variables for analysis are stored under output
 
-
+clear
 clc
 close all;
 set(0,'DefaultFigureWindowStyle','normal')
