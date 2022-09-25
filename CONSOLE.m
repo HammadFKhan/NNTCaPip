@@ -1,9 +1,13 @@
 %% NNT Calcium Pipeline
 % Github Version 4.1
-
+%% Remove ROIs
+if exist('badComponents','var')
+[DeltaFoverF,dDeltaFoverF,ROI,ROIcentroid,Noise_Power,A] = ...
+    removeROI(DeltaFoverF,dDeltaFoverF,ROI,ROIcentroid,Noise_Power,A,badComponents);
+end
 %% Analysis
 addpath(genpath('main'));
-std_threshold = 6;
+std_threshold = 7;
 static_threshold = .01;
 Spikes = Spike_Detector_Single(dDeltaFoverF,std_threshold,static_threshold);
 %Excude inactive cells
@@ -14,7 +18,7 @@ Spikes = Spike_Detector_Single(dDeltaFoverF,std_threshold,static_threshold);
 cell_count = length(ROI);
 time = time_adjust(size(DeltaFoverF,2),30.048);
 for i = 1:size(DeltaFoverF,1)
-    calcium_avg{i} = STA(DeltaFoverF(i,:),2,120);
+    calcium_avg{i} = STA(DeltaFoverF(i,:),2,400);%std, window (frames)
 end
 
 % Perform shuffling and pairwise if data is small enough
@@ -193,7 +197,7 @@ figure('Name','Dice-Similarity Index');h = htmp(corr,10);caxis([0 0.4]);set(gcf,
 figure('Name','Shuffled Dice-Similarity Index');h = htmp(shuff_corr,10);caxis([0 0.4]);set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);
 figure('Name','Cosine-Similarity Index'); h = htmp(sim_index);caxis([0.35 .9]);set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);
 figure('Name','Shuffled Cosine-Similarity Index'); h = htmp(shufsim_index);caxis([0 1]);set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);
-figure('Name','Network Map'); NodeSize = 2;EdgeSize = 2;Cell_Map_Dice(AverageImage,Connected_ROI,ROIcentroid,NodeSize,EdgeSize)
+figure('Name','Network Map'); NodeSize = 0;EdgeSize = 2;Cell_Map_Dice(AverageImage,Connected_ROI,ROIcentroid,NodeSize,EdgeSize)
 
 
 %% Rotary Encoder
