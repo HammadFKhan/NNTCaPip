@@ -1,6 +1,7 @@
 function CaImAnFull(batchFlag)
 %% setup path to file and package
 gcp;                            % start cluster
+addpath(genpath('CaImAn-MATLAB'))
 addpath(genpath('utilities'));
 addpath(genpath('deconvolution'));
 addpath(genpath('NoRMCorre')); %add the NoRMCorre motion correction package to MATLAB path
@@ -73,21 +74,23 @@ else
 end
 %% Big loop for all files
 for fileNum = 1:numFiles
-    [~,fileInfo] = bigread2(file(fileNum).name);
-    data_type = fileInfo.dataType;
-    FOV = fileInfo.FOV;
     fr = 30;                                         % frame rate
-    tsub = 10;                                        % degree of downsampling (for 30Hz imaging rate you can try also larger, e.g. 8-10)
-    dims = FOV;
-    ndimsY = length(dims);                       % number of dimensions (data array might be already reshaped)
-    Ts = dims(end);
+    tsub = 10;
     ds_filename = [foldername,'/',file_name,'_ds_data.mat'];
     if ~exist(ds_filename,'file') %check if downsampled data file already exists
         data = matfile(ds_filename,'Writable',true);
+        [~,fileInfo] = bigread2(file(fileNum).name); % Read in the tif file just for indexing
+        data.fileInfo = fileInfo;
+        data_type = fileInfo.dataType;
+        FOV = fileInfo.FOV;
+        % degree of downsampling (for 30Hz imaging rate you can try also larger, e.g. 8-10)
+        dims = FOV;
+        ndimsY = length(dims);                       % number of dimensions (data array might be already reshaped)
+        Ts = dims(end);
         F_dark = Inf;                                    % dark fluorescence (min of all data)
         batch_size = 2000;                               % read chunks of that size
         batch_size = round(batch_size/tsub)*tsub;        % make sure batch_size is divisble by tsub
-        % Ts = zeros(numFiles,1);                          % store length of each file
+        % Ts = zeros(numFiles,1);                        % store length of each file
         cnt = 0;                                         % number of frames processed so far
         tt1 = tic;
         
@@ -113,6 +116,15 @@ for fileNum = 1:numFiles
         data.F_dark = F_dark;
     else
         data = matfile(ds_filename,'Writable',true);
+        try
+            fileInfo = data.fileInfo;
+        catch % Future build correction if fileInfo did not exist in data
+            [~,fileInfo] = bigread2(file(fileNum).name);
+            data.fileInfo = fileInfo;
+        end
+        FOV = fileInfo.FOV;
+        dims = FOV;
+        Ts = dims(end);
     end
     
     
@@ -120,32 +132,32 @@ for fileNum = 1:numFiles
     %% Set parameters
     sizY = data.sizY;                       % size of data matrix
     patch_size = [128,128];                   % size of each patch along each dimension (optional, default: [128,128])
-    overlap = [6,6];                        % amount of overlap in each dimension (optional, default: [4,4])
+    overlap = [6,6];                        % amount of overlap in each dimension (optional, default: [6,6])
     
     patches = construct_patches(sizY(1:end-1),patch_size,overlap);
-    K = 10;                  % number of components to be found per patch
+    K = 25;                  % number of components to be found per patch
     tau = 4;                 % std of gaussian kernel (size of neuron)
     p = 2;                   % order of autoregressive system (p = 0 no dynamics, p=1 just decay, p = 2, both rise and decay)
     merge_thr = 0.4;         % merging threshold
     
     options = CNMFSetParms(...
         'init_method','sparse_NMF',...              % Segmentation type ('greedy' for soma 'sparse_NMF' for dendrites
-        'beta',0.9,...,                             % NMF converging coefficient (higher is stricter)
-        'snmf_max_iter',50,...                      % max # of sparse NMF iterations
+        'beta',0.5,...,                             % NMF converging coefficient (higher is stricter) (default:0.9)
+        'snmf_max_iter',80,...                      % max # of sparse NMF iterations (default:50)
         'd1',sizY(1),'d2',sizY(2),...               % FOV size (512x512 typically)
         'nb',1,...                                  % number of background components per patch
-        'gnb',3,...                                 % number of global background components
-        'ssub',1,...                                % spatial downsample (will reupsample)
-        'tsub',2,...                                % temporal downsample (will reupsample)
+        'gnb',2,...                                 % number of global background components
+        'ssub',1,...                                % spatial downsample (will reupsample) (default:1)
+        'tsub',2,...                                % temporal downsample (will reupsample) (default:2)
         'fr',fr/tsub,...                            % downsamples
         'p',p,...                                   % order of AR dynamics
-        'merge_thr',merge_thr,...                   % merging threshold
-        'gSig',tau,...                              % body size
+        'merge_thr',merge_thr,...                   % merging threshold (default:0.4)
+        'gSig',tau,...                              % body size (default:0.4)
         'spatial_method','regularized',...          % spatial threshold
-        'cnn_thr',0.2,...                           % classifier threshold
+        'cnn_thr',0.2,...                           % classifier threshold (default:0.2)
         'patch_space_thresh',0.25,...               % merge patch threshold
         'min_SNR',2,...                             % minimum signal SNR
-        'search_method','ellipse');                 % method for determining footprint of spatial components 'ellipse' or 'dilate' (default: 'dilate')
+        'search_method','dilate');                 % method for determining footprint of spatial components 'ellipse' or 'dilate' (default: 'dilate')
     
     %% Run on patches
     
@@ -234,6 +246,8 @@ for fileNum = 1:numFiles
         disp(['Performing deconvolution. Trace ',num2str(i),' out of ',num2str(N),' finished processing.'])
     end
     %% Plot
+    % Save Data for video plotting
+    data.b = b;data.f = f;data.A = A; data.C = C;
     savfig = figure(1);
     ax1 = subplot(121); [Coor,json_file] = plot_contours(A_keep,Cn,options,0); title('Selected components','fontweight','bold','fontsize',14);
     ax2 = subplot(122); plot_contours(A_throw,Cn,options,0);title('Rejected components','fontweight','bold','fontsize',14);
@@ -273,7 +287,7 @@ for fileNum = 1:numFiles
     end
     [folder_name,file_name,~] = fileparts(file(fileNum).name);
     if exist(fullfile([folder_name, '\output'],[file_name,'.mat']),'file')
-        file_name = [filename yyyymmdd(datetime)];
+        file_name = [file_name num2str(yyyymmdd(datetime)) '_'];
     end
     savepath = fullfile([folder_name, '\output'],[file_name,'.mat']);
     save(savepath,'files','AverageImage','num_images',...
