@@ -6,7 +6,7 @@ addpath(genpath('utilities'));
 addpath(genpath('deconvolution'));
 addpath(genpath('NoRMCorre')); %add the NoRMCorre motion correction package to MATLAB path
 
-% foldername = 'D:\test1\';
+% foldername = 'E:\In vivo Imaging\09242022-Rbp4_23773\Calcium\preprocessed\Test\';
 %          % folder where all the files are located.
 % filetype = 'tif'; % type of files to be processed
 %         % Types currently supported .tif/.tiff, .h5/.hdf5, .raw, .avi, and .mat files
@@ -75,7 +75,7 @@ end
 %% Big loop for all files
 for fileNum = 1:numFiles
     fr = 30;                                         % frame rate
-    tsub = 10;
+    tsub = 8;                                        % degree of downsampling (for 30Hz imaging rate you can try also larger, e.g. 8-10)
     ds_filename = [foldername,'/',file_name,'_ds_data.mat'];
     if ~exist(ds_filename,'file') %check if downsampled data file already exists
         data = matfile(ds_filename,'Writable',true);
@@ -83,7 +83,6 @@ for fileNum = 1:numFiles
         data.fileInfo = fileInfo;
         data_type = fileInfo.dataType;
         FOV = fileInfo.FOV;
-        % degree of downsampling (for 30Hz imaging rate you can try also larger, e.g. 8-10)
         dims = FOV;
         ndimsY = length(dims);                       % number of dimensions (data array might be already reshaped)
         Ts = dims(end);
@@ -247,7 +246,7 @@ for fileNum = 1:numFiles
     end
     %% Plot
     % Save Data for video plotting
-    data.b = b;data.f = f;data.A = A; data.C = C;
+    data.b = b;data.f = f;data.A = A_keep; data.C = C_keep;data.R = R_keep;
     savfig = figure(1);
     ax1 = subplot(121); [Coor,json_file] = plot_contours(A_keep,Cn,options,0); title('Selected components','fontweight','bold','fontsize',14);
     ax2 = subplot(122); plot_contours(A_throw,Cn,options,0);title('Rejected components','fontweight','bold','fontsize',14);
@@ -287,7 +286,7 @@ for fileNum = 1:numFiles
     end
     [folder_name,file_name,~] = fileparts(file(fileNum).name);
     if exist(fullfile([folder_name, '\output'],[file_name,'.mat']),'file')
-        file_name = [file_name num2str(yyyymmdd(datetime)) '_'];
+        file_name = [file_name '_' datestr(now,30) '_'];
     end
     savepath = fullfile([folder_name, '\output'],[file_name,'.mat']);
     save(savepath,'files','AverageImage','num_images',...
