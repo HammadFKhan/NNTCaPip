@@ -75,7 +75,7 @@ end
 %% Big loop for all files
 for fileNum = 1:numFiles
     fr = 30;                                         % frame rate
-    tsub = 8;                                        % degree of downsampling (for 30Hz imaging rate you can try also larger, e.g. 8-10)
+    tsub = 10;                                        % degree of downsampling (for 30Hz imaging rate you can try also larger, e.g. 8-10)
     ds_filename = [foldername,'/',file_name,'_ds_data.mat'];
     if ~exist(ds_filename,'file') %check if downsampled data file already exists
         data = matfile(ds_filename,'Writable',true);
@@ -134,13 +134,13 @@ for fileNum = 1:numFiles
     overlap = [6,6];                        % amount of overlap in each dimension (optional, default: [6,6])
     
     patches = construct_patches(sizY(1:end-1),patch_size,overlap);
-    K = 25;                  % number of components to be found per patch
-    tau = 4;                 % std of gaussian kernel (size of neuron)
+    K = 5;                  % number of components to be found per patch
+    tau = 6;                 % std of gaussian kernel (size of neuron)
     p = 2;                   % order of autoregressive system (p = 0 no dynamics, p=1 just decay, p = 2, both rise and decay)
-    merge_thr = 0.4;         % merging threshold
+    merge_thr = 0.8;         % merging threshold
     
     options = CNMFSetParms(...
-        'init_method','sparse_NMF',...              % Segmentation type ('greedy' for soma 'sparse_NMF' for dendrites
+        'init_method','greedy',...              % Segmentation type ('greedy' for soma 'sparse_NMF' for dendrites
         'beta',0.5,...,                             % NMF converging coefficient (higher is stricter) (default:0.9)
         'snmf_max_iter',80,...                      % max # of sparse NMF iterations (default:50)
         'd1',sizY(1),'d2',sizY(2),...               % FOV size (512x512 typically)
@@ -153,7 +153,7 @@ for fileNum = 1:numFiles
         'merge_thr',merge_thr,...                   % merging threshold (default:0.4)
         'gSig',tau,...                              % body size (default:0.4)
         'spatial_method','regularized',...          % spatial threshold
-        'cnn_thr',0.2,...                           % classifier threshold (default:0.2)
+        'cnn_thr',0.6,...                           % classifier threshold (default:0.2)
         'patch_space_thresh',0.25,...               % merge patch threshold
         'min_SNR',2,...                             % minimum signal SNR
         'search_method','dilate');                 % method for determining footprint of spatial components 'ellipse' or 'dilate' (default: 'dilate')
