@@ -15,7 +15,7 @@ for i = 1:length(DeltaFoverF(:,1))
             if(thisLoc-window>1 && thisLoc+window<length(DeltaFoverF))%%peak can't occur at the very end or very beginning of the data set
                 spikeCount = spikeCount+1;
                 %extract a 4ms window around the spike peak
-                 calcium_avg(:,spikeCount) = DeltaFoverF(thisLoc-(window/5):thisLoc+window);
+                 calcium_avg(:,spikeCount) = DeltaFoverF(thisLoc-(window/2):thisLoc+window);
             end
         end
     end
