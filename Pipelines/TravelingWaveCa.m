@@ -1,5 +1,5 @@
 %% Remove ROIs
-[DeltaFoverF,dDeltaFoverF,ROI,ROIcentroid,Noise_Power,A] = removeROI(DeltaFoverF,dDeltaFoverF,ROI,ROIcentroid,Noise_Power,A,badComponents);
+[DeltaFoverF,dDeltaFoverF,ROI,ROIcentroid,Noise_Power,A] = removeROI(DeltaFoverF,dDeltaFoverF,ROI,ROIcentroid,Noise_Power,A,118);
 %% Fix centroids
 ROIcentroid = [];
 for i = 1:length(ROI)
