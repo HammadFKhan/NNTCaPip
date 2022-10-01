@@ -22,7 +22,7 @@ function varargout = ManualCurateGUI(varargin)
 
 % Edit the above text to modify the response to help ManualCurateGUI
 
-% Last Modified by GUIDE v2.5 23-Sep-2022 19:28:05
+% Last Modified by GUIDE v2.5 29-Sep-2022 15:27:58
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -141,6 +141,7 @@ for ii = 1:length(handles.ROI{x})
 end
 % Plots fluorescent values
 plot(handles.axes4,handles.DeltaFoverF(x,:));
+plot(handles.axes5,handles.DeltaFoverF(x,1:1000));
 
 %if the variable badComponents exists, update these Bad Components table
 if(exist('badComponents','var'))
@@ -179,7 +180,9 @@ end
 
 % Plots fluorescent values
 plot(handles.axes4,handles.DeltaFoverF(x,:));
+plot(handles.axes5,handles.DeltaFoverF(x,1:1000));
 
+% 
 x1=handles.ROI{x}{1}(1);
 y1=handles.ROI{x}{1}(2);
 
@@ -232,9 +235,9 @@ nans = find(isnan(tableData));
 tableData(nans(1)) = currentComponent;
 %reset the table data
 set(handles.uitable1,'data',tableData);
-guidata(hObject, handles);
 % Increment slider
-%set(handles.slider1,'Value',currentComponent+1);
+% set(handles.slider1,'Value',currentComponent+1);
+guidata(hObject, handles);
 
 
 % --- SEND TO WORKSPACE BUTTON: Executes on button press.
@@ -305,6 +308,112 @@ end
 
 guidata(hObject, handles);
 
+% --- Executes on key press with focus on slider1 and none of its controls.
+function slider1_KeyPressFcn(hObject, eventdata, handles)
+% hObject    handle to slider1 (see GCBO)
+% eventdata  structure with the following fields (see MATLAB.UI.CONTROL.UICONTROL)
+%	Key: name of the key that was pressed, in lower case
+%	Character: character interpretation of the key(s) that was pressed
+%	Modifier: name(s) of the modifier key(s) (i.e., control, shift) pressed
+%   handles    structure with handles and user data (see GUIDATA)
+key = eventdata.Key;
+x=get(handles.slider1,'Value');
+switch key
+    case 'f'
+        x = x+1;
+        set(handles.slider1,'Value',x);
+        set(handles.edit1,'string',num2str(x));
+        imagesc(handles.axes1,handles.C);hold on
+        set(handles.axes1,'YTickLabel','','XTickLabel','','YTick','','XTick','')
+        for ii = 1:length(handles.ROI{x})
+            plot(handles.axes1,handles.ROI{x}{ii}(1),handles.ROI{x}{ii}(2),'r.')
+        end
+        
+        x1=handles.ROI{x}{1}(1);
+        y1=handles.ROI{x}{1}(2);
+        
+        if(x1>50 && x1<462)
+            xleft=x1-50;
+            xright=x1+50;
+        elseif(x1<50)
+            xleft=1;
+            xright=x1+50;
+        elseif(x1>462)
+            xleft=x1-50;
+            xright=512;
+        end
+        if(y1>50 && y1<462)
+            ytop=y1-50;
+            ybottom=y1+50;
+        elseif(y1<50)
+            ytop=1;
+            ybottom=y1+50;
+        elseif(y1>462)
+            ytop=y1-50;
+            ybottom=512;
+        end
+        hold(handles.axes3,'off')
+        imagesc(handles.axes3,handles.C(ytop:ybottom,xleft:xright))
+        set(handles.axes3,'YTickLabel','','XTickLabel','','YTick','','XTick','')
+        hold(handles.axes3,'on')
+        for ii = 1:length(handles.ROI{x})
+            plot(handles.axes3,handles.ROI{x}{ii}(1)-(xleft),handles.ROI{x}{ii}(2)-(ytop),'r.')
+        end
+        % Plots fluorescent values
+        plot(handles.axes4,handles.DeltaFoverF(x,:));
+        plot(handles.axes5,handles.DeltaFoverF(x,1:1000));
+        set(handles.slider1,'Value',x)
+        %update handles
+        guidata(hObject, handles);
+    case 'b'
+        x = x-1;
+        set(handles.slider1,'Value',x);
+        set(handles.edit1,'string',num2str(x));
+        imagesc(handles.axes1,handles.C);hold on
+        set(handles.axes1,'YTickLabel','','XTickLabel','','YTick','','XTick','')
+        for ii = 1:length(handles.ROI{x})
+            plot(handles.axes1,handles.ROI{x}{ii}(1),handles.ROI{x}{ii}(2),'r.')
+        end
+        
+        x1=handles.ROI{x}{1}(1);
+        y1=handles.ROI{x}{1}(2);
+        
+        if(x1>50 && x1<462)
+            xleft=x1-50;
+            xright=x1+50;
+        elseif(x1<50)
+            xleft=1;
+            xright=x1+50;
+        elseif(x1>462)
+            xleft=x1-50;
+            xright=512;
+        end
+        if(y1>50 && y1<462)
+            ytop=y1-50;
+            ybottom=y1+50;
+        elseif(y1<50)
+            ytop=1;
+            ybottom=y1+50;
+        elseif(y1>462)
+            ytop=y1-50;
+            ybottom=512;
+        end
+        hold(handles.axes3,'off')
+        imagesc(handles.axes3,handles.C(ytop:ybottom,xleft:xright))
+        set(handles.axes3,'YTickLabel','','XTickLabel','','YTick','','XTick','')
+        hold(handles.axes3,'on')
+        for ii = 1:length(handles.ROI{x})
+            plot(handles.axes3,handles.ROI{x}{ii}(1)-(xleft),handles.ROI{x}{ii}(2)-(ytop),'r.')
+        end
+        % Plots fluorescent values
+        plot(handles.axes4,handles.DeltaFoverF(x,:));
+        plot(handles.axes5,handles.DeltaFoverF(x,1:1000));
+        set(handles.slider1,'Value',x)
+        %update handles
+        guidata(hObject, handles);
+end
+
+
 
 
 % --- CURRENT COMPONENT #: executes during creation
@@ -361,3 +470,42 @@ function axes4_CreateFcn(hObject, eventdata, handles)
 % handles    empty - handles not created until after all CreateFcns called
 
 % Hint: place code in OpeningFcn to populate axes4
+
+
+% --- Executes during object creation, after setting all properties.
+function axes5_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to axes5 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: place code in OpeningFcn to populate axes5
+
+
+% --- Executes on key press with focus on pushbutton3 and none of its controls.
+function pushbutton3_KeyPressFcn(hObject, eventdata, handles)
+% hObject    handle to pushbutton3 (see GCBO)
+% eventdata  structure with the following fields (see MATLAB.UI.CONTROL.UICONTROL)
+%	Key: name of the key that was pressed, in lower case
+%	Character: character interpretation of the key(s) that was pressed
+%	Modifier: name(s) of the modifier key(s) (i.e., control, shift) pressed
+% handles    structure with handles and user data (see GUIDATA)
+% hObject    handle to pushbutton3 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+key = eventdata.Key;
+switch key
+    case 'r'
+        %get the current component selection
+        currentComponent = str2num(get(handles.edit1,'string'));
+        %get the current data in the table
+        tableData=get(handles.uitable1,'data');
+        %find all NaN
+        nans = find(isnan(tableData));
+        %set the first NaN to the current component selection
+        tableData(nans(1)) = currentComponent;
+        %reset the table data
+        set(handles.uitable1,'data',tableData);
+        % Increment slider
+        % set(handles.slider1,'Value',currentComponent+1);
+        guidata(hObject, handles);
+end
