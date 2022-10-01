@@ -1,4 +1,5 @@
-%% Dendrite Analysisaddpath(genpath('main'));
+%% Dendrite Analysis
+addpath(genpath('main'));
 std_threshold = 6;
 static_threshold = .01;
 Spikes = Spike_Detector_Single(dDeltaFoverF,std_threshold,static_threshold);
@@ -22,34 +23,18 @@ Connected_ROI{i} = Connectivity_dice(corr{i}, ROI,0.3);
     = Network_Analysis(ROIcentroid,Connected_ROI{i});
 end
 %%
-figure,
-for i = 1:30
-%     title(['Trial ' num2str(i)])
-    subplot(6,5,i),imagesc(sim_index(:,:,i)),colormap(hot),axis off;
+for i = 52
+    thresh = std_threshold.*std(DeltaFoverF(i,:));
+    [pks,locs] = findpeaks(DeltaFoverF(i,:),'MinPeakHeight',thresh);
+    spikeCount = 0;
+    if(~isempty(pks))
+        for ii = 1:length(locs)
+            thisLoc = locs(ii);
+            if(thisLoc-window>1 && thisLoc+window<length(DeltaFoverF))%%peak can't occur at the very end or very beginning of the data set
+                spikeCount = spikeCount+1;
+                %extract a 4ms window around the spike peak
+                 calcium_avg(:,spikeCount) = DeltaFoverF(thisLoc-(window/2):thisLoc+window);
+            end
+        end
+    end
 end
-
-figure,
-for i = 1:30
-    subplot(6,5,i),imagesc(corr{i});colormap(jet),axis off
-end
-figure,
-for i = 1:30
-subplot(6,5,i),Cell_Map_Dice(AverageImage,Connected_ROI{i},ROIcentroid,NodeSize,EdgeSize)
-end
-%%
-addpath('Figures');
-figure('Name','DeltaF/F'); stack_plot(DeltaFoverF,1.5,15); 
-figure('Name','Convolved Spikes'); plot(dDeltaFoverF');
-figure('Name','Threshold Detection');DeltaFoverFplotter(dDeltaFoverF,std_threshold,static_threshold)
-figure('Name','Spike Plot'); Show_Spikes(Spikes);
-% figure('Name','Temporal Shuffled Spike Plot'); shuffledTspikePlot = Show_Spikes(Spikes_shuffled);
-% figure('Name','Event Shuffled Spike Plot'); shuffledEspikePlot = Show_Spikes(Event_shuffled);
-% figure('Name','Total Shuffled Spike Plot'); shuffledAspikePlot = Show_Spikes(Total_shuffled);
-figure('Name','Fluorescence Map'); spike_map(DeltaFoverF);caxis([0 1]),set(gcf,'Position',[100 100 400 400])
-figure('Name','Population Intensity');height = 10;rateImage = firing_rate(Spikes,height,time);caxis([0 0.5]);set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);
-figure('Name','Coactivity Index'); B = bar(coactive_cells,4);ax = gca;ax.TickDir = 'out';ax.Box = 'off';
-figure('Name','Dice-Similarity Index');h = htmp(corr,10);caxis([0 0.2]);set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);
-figure('Name','Shuffled Dice-Similarity Index');h = htmp(shuff_corr,10);caxis([0 0.4]);set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);
-figure('Name','Cosine-Similarity Index'); h = htmp(sim_index);caxis([.7 1]);set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);
-figure('Name','Shuffled Cosine-Similarity Index'); h = htmp(shufsim_index);caxis([0 1]);set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);
-figure('Name','Network Map'); NodeSize = 2;EdgeSize = 2;Cell_Map_Dice(AverageImage,Connected_ROI,ROIcentroid,NodeSize,EdgeSize)
