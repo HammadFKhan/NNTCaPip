@@ -7,18 +7,18 @@ if exist('badComponents','var')
 end
 %% Analysis
 addpath(genpath('main'));
-std_threshold = 10;
+std_threshold = 8;
 static_threshold = .01;
 Spikes = Spike_Detector_Single(dDeltaFoverF,std_threshold,static_threshold);
 %Excude inactive cells
 % numSpikes = sum(Spikes,2);
 % keepSpikes = find(numSpikes>(.01*mean(numSpikes)));
 % Spikes = Spikes(keepSpikes,:);
-[coactive_cells,detected_spikes] = coactive_index(Spikes,length(Spikes));
+[coactive_cells,detected_spikes] = coactive_index(Spikes,500);
 cell_count = length(ROI);
 time = time_adjust(size(DeltaFoverF,2),30.048);
 for i = 1:size(DeltaFoverF,1)
-    calcium_avg{i} = STA(DeltaFoverF(i,:),2,400);%std, window (frames)
+    calcium_avg{i} = STA(DeltaFoverF(i,:),2,100);%std, window (frames)
 end
 
 % Perform shuffling and pairwise if data is small enough
