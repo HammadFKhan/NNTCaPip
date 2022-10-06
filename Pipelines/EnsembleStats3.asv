@@ -14,11 +14,25 @@ end
 %%
 for i = 1:length(Ensemble)
    ensembleRecruitment(i) = Ensemble(i).stat.ensembleRecruitment;
-   minRecruitment(i) = Ensemble(i).stat.minRecruitment; if isempty(Ensemble(i).stat.minRecruitment), minRecruitment(i)= 0; end
-   if isempty(Ensemble(i).stat.maxRecruitment), maxRecruitment(i)= 0; endmaxRecruitment(i) = Ensemble(i).stat.maxRecruitment; 
-   ensembleSizeMean(i) = mean(Ensemble(i).stat.ensembleSize);if isempty(Ensemble(i).stat.ensembleSize),ensembleSizeMean(i)= 0; end
+   if isempty(Ensemble(i).stat.minRecruitment) 
+       Ensemble(i).stat.minRecruitment = 0; 
+   end
+   minRecruitment(i) = Ensemble(i).stat.minRecruitment; 
+   if isempty(Ensemble(i).stat.maxRecruitment)
+       Ensemble(i).stat.maxRecruitment = 0; 
+   end
+   maxRecruitment(i) = Ensemble(i).stat.maxRecruitment; 
+   if isempty(Ensemble(i).stat.ensembleSize)   
+       Ensemble(i).stat.ensembleSize = 0; 
+   end
+   ensembleSizeMean(i) = mean(Ensemble(i).stat.ensembleSize);
 end
-
+%%
+for i = 1:length(Ensemble)
+    simI_tot{i} = mean(Ensemble(i).stat.sim_index);
+    actuveCentroi
+end
+    
 %%
 data6 = test(25:end);
 figure,boxplot(data,'PlotStyle','compact'),ylim([0 0.5]),box off,hold on
