@@ -30,8 +30,9 @@ end
 %%
 for i = 1:length(Ensemble)
     simI_tot{i} = mean(Ensemble(i).stat.sim_index);
+    activityCentroidtot{i} = Ensemble(i).stat.activityCentroidVariance;
 end
-    
+activityCentroidtot = vertcat(activityCentroidtot{:});
 %%
 data6 = test(25:end);
 figure,boxplot(data,'PlotStyle','compact'),ylim([0 0.5]),box off,hold on
