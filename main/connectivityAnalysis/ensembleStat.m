@@ -12,6 +12,7 @@ rankedActivityCoords = Ensemble.rankedActivityCoords;
 
 activityCentroid = vertcat(Ensemble.ActivityCentroid{:});
 activityCentroidVariance = vertcat(Ensemble.ActivityCentroidVariance{:});
+
 % Output to structure
 Ensemble.ensembleSize = ensembleSize;
 Ensemble.ensembleNum = ensembleNum;
