@@ -134,13 +134,13 @@ for fileNum = 1:numFiles
     overlap = [6,6];                        % amount of overlap in each dimension (optional, default: [6,6])
     
     patches = construct_patches(sizY(1:end-1),patch_size,overlap);
-    K = 5;                  % number of components to be found per patch
-    tau = 6;                 % std of gaussian kernel (size of neuron)
+    K = 10;                  % number of components to be found per patch
+    tau = [];                 % std of gaussian kernel (size of neuron)
     p = 2;                   % order of autoregressive system (p = 0 no dynamics, p=1 just decay, p = 2, both rise and decay)
     merge_thr = 0.8;         % merging threshold
     
     options = CNMFSetParms(...
-        'init_method','greedy',...              % Segmentation type ('greedy' for soma 'sparse_NMF' for dendrites
+        'init_method','sparse_NMF',...              % Segmentation type ('greedy' for soma 'sparse_NMF' for dendrites
         'beta',0.5,...,                             % NMF converging coefficient (higher is stricter) (default:0.9)
         'snmf_max_iter',80,...                      % max # of sparse NMF iterations (default:50)
         'd1',sizY(1),'d2',sizY(2),...               % FOV size (512x512 typically)
@@ -155,7 +155,7 @@ for fileNum = 1:numFiles
         'spatial_method','regularized',...          % spatial threshold
         'cnn_thr',0.6,...                           % classifier threshold (default:0.2)
         'patch_space_thresh',0.25,...               % merge patch threshold
-        'min_SNR',2,...                             % minimum signal SNR
+        'min_SNR',3,...                             % minimum signal SNR
         'search_method','dilate');                 % method for determining footprint of spatial components 'ellipse' or 'dilate' (default: 'dilate')
     
     %% Run on patches
