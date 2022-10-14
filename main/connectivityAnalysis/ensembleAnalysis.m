@@ -56,6 +56,10 @@ thresh = .7;
 idx = find(round(xdata,2)==thresh);
 while rocEnsembles(idx)>200
     idx = idx-1;
+    if idx == 0 % exception handling if threshold is never reached
+        idx = 1;
+    end
+    break;
 end
 thresh = xdata(idx);
 disp(['Restricting ensembles to ' num2str(thresh) ' similarity']);
