@@ -5,6 +5,12 @@ if exist('badComponents','var')
 [DeltaFoverF,dDeltaFoverF,ROI,ROIcentroid,Noise_Power,A] = ...
     removeROI(DeltaFoverF,dDeltaFoverF,ROI,ROIcentroid,Noise_Power,A,unique(badComponents));
 end
+%% Fix centroids
+ROIcentroid = [];
+for i = 1:length(ROI)
+    blah = vertcat(ROI{i}{:});
+    ROIcentroid(i,:) = floor(mean(blah,1));
+end
 %% Analysis
 addpath(genpath('main'));
 std_threshold = 8;
@@ -41,64 +47,14 @@ if size(DeltaFoverF,2)<2000
 end
 % Pairwise Velocity Analysis
 % velocityPairwise(VR_data,Spikes)
-% Ensemble Analysis
+%% Ensemble Analysis
 % figure,[Coor,json_file] = plot_contours(A,C,ops,0); % contour plot of spatial footprints
 factorCorrection = 5*floor(size(Spikes,2)/5); % Correct for frame size aquisition
 Ensemble = ensembleAnalysis(Spikes(:,1:factorCorrection),ROI,ROIcentroid);
-% Ensemble = ensembleNetworks(Ensemble);
-% Plot Ensemble
-% ensembleVid(Ensemble,AverageImage,ROIcentroid,files);
-% Displays ensemble overlay
-[~,I] = sort(cellfun(@length,Ensemble.NodeList),'descend'); %sort max node size
-rankEdges = Ensemble.NumEdges(:,I);
-rankEnsembles = Ensemble.NodeList(:,I); 
-[grad,~]=colorGradient([1 0 0] ,[0 0 0],5)
-Ensemble.rankEnsembles = rankEnsembles;
-figure,
-for i = 1:3
-    axis off
-    color = jet(3);
-    EnsembleMap(AverageImage,ROIcentroid,rankEnsembles{i},5,grad(i,:))
-    set(gcf,'Position',[100 100 500 500])
-    drawnow
-    hold on
-end
-% Combine Maps
-figure,imagesc(interp2(Ensemble.sim_index,2)),colormap(jet),caxis([0.13 .4])
-K = (1/25)*ones(5);
-figure,imagesc(interp2(conv2(Ensemble.sim_index,K,'same'),2)),colormap(jet),caxis([.08 .3])
 
-%
-sizeE = cellfun(@size,rankEnsembles,'UniformOutput',false);
-sizeE = cell2mat(sizeE);
-sizeE(sizeE==1) = [];
-sizeE = sizeE/max(sizeE);
-figure,plot(sizeE),title('Ranked Ensembles')
-
-sizeEdge = cell2mat(rankEdges);
-sizeEdge = sizeEdge/max(sizeEdge);
-figure,plot(sizeEdge),title('Ranked Connections')
-% Ensemble Stats
-% EnsembleStats
-% Information Entropy
-informationEntropy = shannonEntropy(rankEnsembles);
-% Plot Centroid Boundary
-figure,hold on
-%Rank by number of Activity points
-[~,I] = sort(cellfun(@length,Ensemble.ActivityCoords),'descend'); %sort max node size
-rankedActivityCoords = Ensemble.ActivityCoords(:,I);
-Ensemble.rankedActivityCoords = rankedActivityCoords;
-checkSize = cell2mat(cellfun(@size,rankedActivityCoords,'UniformOutput',false)');
-for i = 1:size(checkSize(checkSize(:,1)>2),1)
-    x = rankedActivityCoords{i}(:,1);y = rankedActivityCoords{i}(:,2);
-    k = boundary(x,y);
-    x1 = interp1(1:length(x(k)),x(k),1:0.05:length(x(k)),'pchip');
-    y1 = interp1(1:length(y(k)),y(k),1:0.05:length(y(k)),'pchip');
-    x2 = smoothdata(x1,'gaussian',50);
-    y2 = smoothdata(y1,'gaussian',50);
-    plot(x2,y2,'Color',[0.5 0.5 0.5])
-    scatter(x,y,4,'k','filled')
-end
+%% Ensemble stats
+Ensemble = ensembleMetric(Ensemble,AverageImage,ROIcentroid);
+Ensemble = ensembleStat(Ensemble);
 
 %%
 W12_10Entropy.informationEntropy = informationEntropy;
