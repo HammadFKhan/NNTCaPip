@@ -13,7 +13,7 @@ for i = 1:length(ROI)
 end
 %% Analysis
 addpath(genpath('main'));
-std_threshold = 8;
+std_threshold = 6;
 static_threshold = .01;
 Spikes = Spike_Detector_Single(dDeltaFoverF,std_threshold,static_threshold);
 %Excude inactive cells
@@ -40,7 +40,7 @@ if size(DeltaFoverF,2)<2000
     factorCorrection = 10*floor(size(Spikes,2)/10); % Correct for frame size aquisition
     [vectorized,sim_index] = cosine_similarity(Spikes(:,1:factorCorrection),10);
     corr = correlation_dice(Spikes);
-    Connected_ROI = Connectivity_dice(corr, ROI,0.3);
+    Connected_ROI = Connectivity_dice(corr, ROI,0.1);
     [NumActiveNodes,NodeList,NumNodes,NumEdges,SpatialCentroid,SpatialCentroidVariance,...
         ActivityCentroid,ActivityCentroidVariance]...
         = Network_Analysis(ROIcentroid,Connected_ROI);
@@ -153,7 +153,7 @@ figure('Name','Dice-Similarity Index');h = htmp(corr,10);caxis([0 0.4]);set(gcf,
 figure('Name','Shuffled Dice-Similarity Index');h = htmp(shuff_corr,10);caxis([0 0.4]);set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);
 figure('Name','Cosine-Similarity Index'); h = htmp(sim_index);caxis([0.35 .9]);set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);
 figure('Name','Shuffled Cosine-Similarity Index'); h = htmp(shufsim_index);caxis([0 1]);set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);
-figure('Name','Network Map'); NodeSize = 0;EdgeSize = 1;Cell_Map_Dice(AverageImage,Connected_ROI,ROIcentroid,ROI,NodeSize,EdgeSize)
+figure('Name','Network Map'); NodeSize = 1;EdgeSize = 1;Cell_Map_Dice(AverageImage,Connected_ROI,ROIcentroid,NodeSize,EdgeSize)
 
 
 %% Rotary Encoder
