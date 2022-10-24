@@ -80,7 +80,7 @@ if EdgeSize>0
                 %         Color = 'k';
                 x = line([x1,x2],[y1,y2],'LineWidth',LineWidth,'Color',Color); hold on
                 x.Color(4) = 0.6;
-            elseif corr >= 0.15 && corr <= 0.7
+            elseif corr >= 0.0 && corr <= 0.7
                 LineWidth = EdgeSize;
                 Color = [.83 0.45 0.05];
                 x1 = Cell1(1,1);
