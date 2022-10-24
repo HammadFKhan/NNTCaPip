@@ -51,11 +51,27 @@ end
 axis([0 6 -0.1 6])
 set(gca,'TickDir','out');
 %% Interdendritic activity (cross-population behavior)
-factorCorrection = 10*floor(size(Spikes,2)/10); % Correct for frame size aquisition
+addpath(genpath('main'));
+std_threshold = 7;
+static_threshold = .01;
+Spikes = Spike_Detector_Single(dDeltaFoverF,std_threshold,static_threshold);
+[coactive_cells,detected_spikes] = coactive_index(Spikes,floor(length(Spikes)*.05));
 % [vectorized,sim_index] = cosine_similarity(Spikes(:,1:factorCorrection),10);
 corr = correlation_dice(Spikes);
-Connected_ROI = Connectivity_dice(corr, ROI,0.15);
+Connected_ROI = Connectivity_dice(corr, ROI,0.15/10);
 % [NumActiveNodes,NodeList,NumNodes,NumEdges,SpatialCentroid,SpatialCentroidVariance,...
 %     ActivityCentroid,ActivityCentroidVariance]...
 %     = Network_Analysis(ROIcentroid,Connected_ROI);
-figure,Dendritic_Map(AverageImage,Connected_ROI,ROIcentroid,ROI,0,1)
+figure,Dendritic_Map(AverageImage,Connected_ROI,ROIcentroid,ROI,1,0),title('Pairwise Coopertivity')
+%% Dendritic Population Coopertivity 
+factorCorrection = 5*floor(size(Spikes,2)/5); % Correct for frame size aquisition
+Ensemble = ensembleAnalysis(Spikes(:,1:factorCorrection),ROI,ROIcentroid);
+corrEnsemble = correlation_dice(Ensemble.ensemble);
+Connected_ROI = Connectivity_dice(corrEnsemble, ROI,0.15);
+% [NumActiveNodes,NodeList,NumNodes,NumEdges,SpatialCentroid,SpatialCentroidVariance,...
+%     ActivityCentroid,ActivityCentroidVariance]...
+%     = Network_Analysis(ROIcentroid,Connected_ROI);
+figure,Dendritic_Map(AverageImage,Connected_ROI,ROIcentroid,ROI,1,1)
+%% Ensemble stats
+Ensemble = ensembleMetric(Ensemble,AverageImage,ROIcentroid);
+Ensemble = ensembleStat(Ensemble);
