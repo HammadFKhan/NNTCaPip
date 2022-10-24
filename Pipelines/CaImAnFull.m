@@ -137,7 +137,7 @@ for fileNum = 1:numFiles
     K = 10;                  % number of components to be found per patch
     tau = [];                 % std of gaussian kernel (size of neuron)
     p = 2;                   % order of autoregressive system (p = 0 no dynamics, p=1 just decay, p = 2, both rise and decay)
-    merge_thr = 0.8;         % merging threshold
+    merge_thr = 0.5;         % merging threshold
     
     options = CNMFSetParms(...
         'init_method','sparse_NMF',...              % Segmentation type ('greedy' for soma 'sparse_NMF' for dendrites
