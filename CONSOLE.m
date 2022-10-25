@@ -1,9 +1,10 @@
 %% NNT Calcium Pipeline
 % Github Version 4.1
 %% Remove ROIs
-if exist('badComponents','var')
+if exist('badComponents','var') && ~exist('badComFlag','var')
 [DeltaFoverF,dDeltaFoverF,ROI,ROIcentroid,Noise_Power,A] = ...
     removeROI(DeltaFoverF,dDeltaFoverF,ROI,ROIcentroid,Noise_Power,A,unique(badComponents));
+badComFlag = 1;
 end
 %% Fix centroids
 ROIcentroid = [];
@@ -13,7 +14,7 @@ for i = 1:length(ROI)
 end
 %% Analysis
 addpath(genpath('main'));
-std_threshold = 6;
+std_threshold = 7;
 static_threshold = .01;
 Spikes = Spike_Detector_Single(dDeltaFoverF,std_threshold,static_threshold);
 %Excude inactive cells
