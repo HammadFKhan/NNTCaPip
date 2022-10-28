@@ -10,13 +10,14 @@ for i = 1:length(ROI)
     ROIcentroid(i,:) = [x y];
 end
 %%
+DenCoop = [];
 count = 1;
-for j = 1:length(IntraDendriticIndex)
+for j = 1:length(IntraDendriticIndex) % intradendritic index format as each neuron is a cell with N array of dendrite pairs
     window = 300;
     idx = perms(IntraDendriticIndex{j});
     idx = unique(idx(:,[1 2]),'rows'); %take only the first two columns
     for i = 1:size(idx,1)
-        thresh = 2.*std(DeltaFoverF(idx(i,1),:));
+        thresh = 2.5.*std(DeltaFoverF(idx(i,1),:));
         [pks,locs] = findpeaks(DeltaFoverF(idx(i,1),:),'MinPeakHeight',thresh);
         spikeCount = 0;
         if(~isempty(pks))
@@ -35,21 +36,35 @@ for j = 1:length(IntraDendriticIndex)
     end
 end
 %%
+neuronID = 6;
+primaryBranch = DenCoop(neuronID).branch{1};
+sisterBranch = DenCoop(neuronID).branch{2};
 figure,
-for i = 1:15
-subplot(3,5,i),plot(DenCoop(13).branch{2}(:,i)),axis off,ylim([0 6])
+for i = 1:size(primaryBranch,2)
+subplot(ceil(sqrt(size(primaryBranch,2))),ceil(sqrt(size(primaryBranch,2))),i),...
+    plot(primaryBranch(:,i)),axis off,ylim([0 6])
 end
+
+figure,
+for i = 1:size(sisterBranch,2)
+subplot(ceil(sqrt(size(sisterBranch,2))),ceil(sqrt(size(sisterBranch,2))),i)...
+    ,plot(sisterBranch(:,i),'r'),axis off,ylim([0 6])
+end
+
 %% plot correlation of deltaF of branch pairs
+primaryBranch = [];sisterBranch = [];
 figure,
 for i = 1:length(DenCoop)
     t1 = max(DenCoop(i).branch{1},[],1);
+    t2 = max(DenCoop(i).branch{2},[],1);
     primaryBranch(i) = mean(t1);
     sisterBranch(i) = mean(t2);
-    t2 = max(DenCoop(i).branch{2},[],1);
     scatter(t1,t2,'fill','k'),hold on
 end
 axis([0 6 -0.1 6])
 set(gca,'TickDir','out');
+figure,boxplot(primaryBranch);box off,set(gca,'TickDir','out');ylim([0 5]);
+figure,boxplot(sisterBranch);box off,set(gca,'TickDir','out'),ylim([0 5]);
 %% Interdendritic activity (cross-population behavior)
 addpath(genpath('main'));
 std_threshold = 7;
@@ -58,11 +73,11 @@ Spikes = Spike_Detector_Single(dDeltaFoverF,std_threshold,static_threshold);
 [coactive_cells,detected_spikes] = coactive_index(Spikes,floor(length(Spikes)*.05));
 % [vectorized,sim_index] = cosine_similarity(Spikes(:,1:factorCorrection),10);
 corr = correlation_dice(Spikes);
-Connected_ROI = Connectivity_dice(corr, ROI,0.15/10);
+Connected_ROI = Connectivity_dice(corr, ROI,0.15);
 % [NumActiveNodes,NodeList,NumNodes,NumEdges,SpatialCentroid,SpatialCentroidVariance,...
 %     ActivityCentroid,ActivityCentroidVariance]...
 %     = Network_Analysis(ROIcentroid,Connected_ROI);
-figure,Dendritic_Map(AverageImage,Connected_ROI,ROIcentroid,ROI,1,0),title('Pairwise Coopertivity')
+figure,Dendritic_Map(AverageImage,Connected_ROI,ROIcentroid,ROI,1,1),title('Pairwise Coopertivity')
 %% Dendritic Population Coopertivity 
 factorCorrection = 5*floor(size(Spikes,2)/5); % Correct for frame size aquisition
 Ensemble = ensembleAnalysis(Spikes(:,1:factorCorrection),ROI,ROIcentroid);
