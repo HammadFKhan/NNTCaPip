@@ -17,6 +17,7 @@ if batchFlag
     filetype = 'tif'; % type of files to be processed
     % Types currently supported .tif/.tiff, .h5/.hdf5, .raw, .avi, and .mat files
     file = subdir(fullfile(foldername,['*.',filetype]));   % list of filenames (will search all subdirectories)
+    if isempty(file),disp('No Tiff files where detected in this directory!'), return; end % handing for incorrect files
 else
     [filename, foldername] = uigetfile({'*.tiff;*.tif'}, 'Pick a image video file');
     if isequal(filename,0) || isequal(foldername,0)
@@ -74,11 +75,16 @@ else
 end
 %% Big loop for all files
 for fileNum = 1:numFiles
+    fullname = file(fileNum).name;
+    [~,file_name,~] = fileparts(fullname);
     fr = 30;                                         % frame rate
-    tsub = 10;                                        % degree of downsampling (for 30Hz imaging rate you can try also larger, e.g. 8-10)
-    ds_filename = [foldername,'/',file_name,'_ds_data.mat'];
+    tsub = 8;                                        % degree of downsampling (for 30Hz imaging rate you can try also larger, e.g. 8-10)
+    ds_filename = [foldername,file_name,'_ds_data.mat']; % check incremented file name for image
     if ~exist(ds_filename,'file') %check if downsampled data file already exists
         data = matfile(ds_filename,'Writable',true);
+        if ~strcmp(fullname,file(fileNum).name) 
+            error('Data pointer and file name does not match!'),return; % quick compare for data pointer
+        end 
         [~,fileInfo] = bigread2(file(fileNum).name); % Read in the tif file just for indexing
         data.fileInfo = fileInfo;
         data_type = fileInfo.dataType;
@@ -134,13 +140,13 @@ for fileNum = 1:numFiles
     overlap = [6,6];                        % amount of overlap in each dimension (optional, default: [6,6])
     
     patches = construct_patches(sizY(1:end-1),patch_size,overlap);
-    K = 10;                  % number of components to be found per patch
-    tau = [];                 % std of gaussian kernel (size of neuron)
+    K = 15;                  % number of components to be found per patch
+    tau = [];                 % std of gaussian kernel (size of neuron) default:5
     p = 2;                   % order of autoregressive system (p = 0 no dynamics, p=1 just decay, p = 2, both rise and decay)
     merge_thr = 0.5;         % merging threshold
     
     options = CNMFSetParms(...
-        'init_method','sparse_NMF',...              % Segmentation type ('greedy' for soma 'sparse_NMF' for dendrites
+        'init_method','greedy',...              % Segmentation type ('greedy' for soma 'sparse_NMF' for dendrites
         'beta',0.5,...,                             % NMF converging coefficient (higher is stricter) (default:0.9)
         'snmf_max_iter',80,...                      % max # of sparse NMF iterations (default:50)
         'd1',sizY(1),'d2',sizY(2),...               % FOV size (512x512 typically)
@@ -153,10 +159,10 @@ for fileNum = 1:numFiles
         'merge_thr',merge_thr,...                   % merging threshold (default:0.4)
         'gSig',tau,...                              % body size (default:0.4)
         'spatial_method','regularized',...          % spatial threshold
-        'cnn_thr',0.6,...                           % classifier threshold (default:0.2)
+        'cnn_thr',0.3,...                           % classifier threshold (default:0.2)
         'patch_space_thresh',0.25,...               % merge patch threshold
         'min_SNR',3,...                             % minimum signal SNR
-        'search_method','dilate');                 % method for determining footprint of spatial components 'ellipse' or 'dilate' (default: 'dilate')
+        'search_method','ellipse');                 % method for determining footprint of spatial components 'ellipse' or 'dilate' (default: 'dilate')
     
     %% Run on patches
     
@@ -182,6 +188,10 @@ for fileNum = 1:numFiles
     
     %% view contour plots of selected and rejected components (optional)
     throw = ~keep;
+    if ~any(keep) % checks for edge case when all components are thrown
+        keep = throw;
+        warning('CNN bad component detected!');
+    end
     Coor_k = [];
     Coor_t = [];
     
@@ -299,5 +309,6 @@ for fileNum = 1:numFiles
         warning('Contour figure not saved')
     end
     disp('Saved!')
+    file_name = []; % set file as null to avoid overwrite
 end
 end
