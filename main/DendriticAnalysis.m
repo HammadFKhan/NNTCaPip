@@ -12,7 +12,7 @@ end
 %%
 DenCoop = [];
 count = 1;
-for j = 1:length(IntraDendriticIndex) % intradendritic index format as each neuron is a cell with N array of dendrite pairs
+for j = [2,3] % intradendritic index format as each neuron is a cell with N array of dendrite pairs
     window = 300;
     idx = perms(IntraDendriticIndex{j});
     idx = unique(idx(:,[1 2]),'rows'); %take only the first two columns
