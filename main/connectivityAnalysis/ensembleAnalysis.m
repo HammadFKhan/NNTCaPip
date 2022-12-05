@@ -38,7 +38,7 @@ if checkPadding>0
 else
     [vectorized,sim_index] = cosine_similarity(ensemble(:,1:factorCorrection),ensembleWin);
 end
-fprintf('done')
+fprintf('done\n')
 % Generate ROC curve
 thresh = 1;
 [r,~] = find(tril(sim_index>thresh,-1));
@@ -76,8 +76,8 @@ end
 if thresh == 0.25 % returns function if thereshold is too low
     disp(['Weak ensembles detected at ' num2str(thresh*100) '% threshold']);
     warning('High false positives detected, stopping analysis...')
-%     Ensemble = [];
-%     return;
+    Ensemble = [];
+    return;
 end
 disp(['Ensembles detected at ' num2str(thresh*100) '% threshold']);
 
