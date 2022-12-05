@@ -13,6 +13,7 @@ for i = 1:length(ROI)
     ROIcentroid(i,:) = floor(mean(blah,1));
 end
 %% Analysis
+set(0,'DefaultFigureWindowStyle','normal')
 addpath(genpath('main'));
 std_threshold = 7;
 static_threshold = .01;
