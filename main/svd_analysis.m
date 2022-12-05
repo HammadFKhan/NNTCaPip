@@ -62,16 +62,21 @@ X = data - avgSim*ones(1,size(data,2));
 % set(gca,'FontSize',14);
 
 %% Alpha Projection (PCA)
-% figure,hold on
+figure,hold on
 for i = 1:size(X,1)
     x(i) = V(:,1)'*X(i,:)';
     y(i) = V(:,2)'*X(i,:)';
     z(i) = V(:,3)'*X(i,:)';
 end
 % sz = 10; 
-scatter3(x,y,z,200,'b.'),view(-50,50);
+scatter3(x(1:100),y(1:100),z(1:100),200,'b.'),view(-50,50);
 xlabel('PC1'),ylabel('PC2'),zlabel('PC3');
 grid on
+figure,hold on
+scatter(x(1000:1500),y(1000:1500),100,'r.');
+xlabel('PC1'),ylabel('PC2')
+grid on
+
 %%
 % figure,
 % 
