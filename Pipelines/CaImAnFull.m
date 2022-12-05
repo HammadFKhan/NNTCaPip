@@ -29,7 +29,6 @@ else
 end
 
 
-FOV = size(read_file(file(1).name,1,1));
 numFiles = length(file);
 
 %% motion correct (and save registered h5 files as 2d matrices (to be used in the end)..)
@@ -43,6 +42,8 @@ output_type = 'h5';                               % format to save registered fi
 if non_rigid; append = '_nr'; else; append = '_rig'; end        % use this to save motion corrected files
 
 for fileNum = 1:numFiles
+    disp(['Reading file ' file(fileNum).name '...']);
+    FOV = size(read_file(file(fileNum).name,1,1));
     options_mc = NoRMCorreSetParms('d1',FOV(1),'d2',FOV(2),'grid_size',[128,128],'init_batch',200,...
         'overlap_pre',32,'mot_uf',4,'bin_width',200,'max_shift',24,'max_dev',8,'us_fac',50,...
         'use_parallel',true,'output_type',output_type);
@@ -75,6 +76,7 @@ else
 end
 %% Big loop for all files
 for fileNum = 1:numFiles
+    disp(['Reading file ' file(fileNum).name '...']);
     fullname = file(fileNum).name;
     [~,file_name,~] = fileparts(fullname);
     fr = 30;                                         % frame rate
@@ -83,7 +85,8 @@ for fileNum = 1:numFiles
     if ~exist(ds_filename,'file') %check if downsampled data file already exists
         data = matfile(ds_filename,'Writable',true);
         if ~strcmp(fullname,file(fileNum).name) 
-            error('Data pointer and file name does not match!'),return; % quick compare for data pointer
+            error('Data pointer and file name does not match!'),
+            return; % quick compare for data pointer
         end 
         [~,fileInfo] = bigread2(file(fileNum).name); % Read in the tif file just for indexing
         data.fileInfo = fileInfo;
@@ -140,7 +143,7 @@ for fileNum = 1:numFiles
     overlap = [6,6];                        % amount of overlap in each dimension (optional, default: [6,6])
     
     patches = construct_patches(sizY(1:end-1),patch_size,overlap);
-    K = 15;                  % number of components to be found per patch
+    K = 25;                  % number of components to be found per patch
     tau = [];                 % std of gaussian kernel (size of neuron) default:5
     p = 2;                   % order of autoregressive system (p = 0 no dynamics, p=1 just decay, p = 2, both rise and decay)
     merge_thr = 0.5;         % merging threshold
