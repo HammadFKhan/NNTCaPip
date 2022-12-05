@@ -18,9 +18,11 @@ for i = 1:L
 end
 totalLsSim = vertcat(totalLsSim{:});
 totalnLsSim = vertcat(totalnLsSim{:});
-figure,boxplot(totalnLsSim),box off,ylim([0 0.5])
+figure,boxplot(totalLsSim),box off,ylim([0 0.8]),title('Ls'),set(gca,'TickDir','out');
+figure,boxplot(totalnLsSim),box off,ylim([0 0.8]),title('nLs'),set(gca,'TickDir','out');
 
-% Neurons per ensemble
+
+%% Neurons per ensemble
 totalLsEnsembleSize = [];
 totalnLsEnsembleSize = [];
 
@@ -29,15 +31,15 @@ for i = 1:L
     LsEnsembleSize = cellfun('size',LsEnsembleSize,1);
     nLsEnsembleSize = S(i).FOV.nolateSpikeEnsemble.rankEnsembles;
     nLsEnsembleSize = cellfun('size',nLsEnsembleSize,1);
-    totalLsEnsembleSize{i} = LsEnsembleSize(LsEnsembleSize>1)';
-    totalnLsEnsembleSize{i} = nLsEnsembleSize(nLsEnsembleSize>1)';
+    totalLsEnsembleSize{i} = LsEnsembleSize(LsEnsembleSize>2)';
+    totalnLsEnsembleSize{i} = nLsEnsembleSize(nLsEnsembleSize>2)';
 end
 totalLsEnsembleSize = vertcat(totalLsEnsembleSize{:});
 totalnLsEnsembleSize = vertcat(totalnLsEnsembleSize{:});
-figure,boxplot(totalLsEnsembleSize),box off,ylim([0 30])
+figure,boxplot(totalLsEnsembleSize),box off,ylim([0 30]),title('Ls'),set(gca,'TickDir','out');
+figure,boxplot(totalnLsEnsembleSize),box off,ylim([0 30]),title('nLs'),set(gca,'TickDir','out');
 
-
-% Connections per ensemble
+%% Connections per ensemble
 totalLsConnections = [];
 totalnLsConnections = [];
 
@@ -51,15 +53,18 @@ for i = 1:L
 end
 totalLsConnections = vertcat(totalLsConnections{:});
 totalnLsConnections = vertcat(totalnLsConnections{:});
-figure,boxplot(totalLsConnections),box off,ylim([0 80])
-% Ensemble Recruitment
+figure,boxplot(totalLsConnections),box off,ylim([0 30]),title('Ls'),set(gca,'TickDir','out');
+figure,boxplot(totalnLsConnections),box off,ylim([0 30]),title('nLS'),set(gca,'TickDir','out');
+
+%% Ensemble Recruitment
 for i = 1:L
     lsRecruitment(i) = S(i).FOV.lateSpikeEnsemble.ensembleRecruitment;
     nlsRecruitment(i) = S(i).FOV.nolateSpikeEnsemble.ensembleRecruitment;
 end
-figure,boxplot(lsRecruitment),box off, ylim([0 0.1])
+figure,boxplot(lsRecruitment),box off, ylim([0 0.1]),title('Ls'),set(gca,'TickDir','out');
+figure,boxplot(nlsRecruitment),box off, ylim([0 0.1]),title('nLs'),set(gca,'TickDir','out');
 
-% Ensemble Weight
+%% Ensemble Weight
 for i = 1:L
     lsrankEnsembles = S(i).FOV.lateSpikeEnsemble.rankEnsembles;
     sizeE = cellfun(@size,lsrankEnsembles,'UniformOutput',false);
@@ -78,9 +83,10 @@ for i = 1:L
     plot(lsSizeE{i}),hold on, box off
     plot(nlsSizeE{i})
 end
-t = sort(horzcat(nlsSizeE{:}),'descend');
-t1 = sort(horzcat(lsSizeE{:}),'descend');
-figure,plot(t1),box off,axis([0 60 0 1])
+t = sort(horzcat(lsSizeE{:}),'descend');
+t1 = sort(horzcat(nlsSizeE{:}),'descend');
+figure,plot(t),box off,axis([0 200 .3 1]),hold on
+plot(t1)
 
 
 
