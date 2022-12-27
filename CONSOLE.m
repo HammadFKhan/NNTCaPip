@@ -15,6 +15,7 @@ end
 %% Analysis
 set(0,'DefaultFigureWindowStyle','normal')
 addpath(genpath('main'));
+addpath(genpath('Pipelines'));
 std_threshold = 7;
 static_threshold = .01;
 Spikes = Spike_Detector_Single(dDeltaFoverF,std_threshold,static_threshold);
@@ -22,7 +23,7 @@ Spikes = Spike_Detector_Single(dDeltaFoverF,std_threshold,static_threshold);
 % numSpikes = sum(Spikes,2);
 % keepSpikes = find(numSpikes>(.01*mean(numSpikes)));
 % Spikes = Spikes(keepSpikes,:);
-[coactive_cells,detected_spikes] = coactive_index(Spikes,500);
+[coactive_cells,detected_spikes] = coactive_index(Spikes,5000);
 cell_count = length(ROI);
 time = time_adjust(size(DeltaFoverF,2),30.048);
 for i = 1:size(DeltaFoverF,1)
@@ -39,7 +40,7 @@ if size(DeltaFoverF,2)<2000
 %     shuff_corr = correlation_dice(Event_shuffled);
 %     [shufvectorized,shufsim_index] = cosine_similarity(Total_shuffled,bin);
 %     shufsim_index = shufsim_index-mean(mean(shufsim_index,2));
-    factorCorrection = 10*floor(size(Spikes,2)/10); % Correct for frame size aquisition
+    factorCorrection = 100*floor(size(Spikes,2)/100); % Correct for frame size aquisition
     [vectorized,sim_index] = cosine_similarity(Spikes(:,1:factorCorrection),10);
     corr = correlation_dice(Spikes);
     Connected_ROI = Connectivity_dice(corr, ROI,0.1);
@@ -78,10 +79,12 @@ figure,plot(0:1/LFP.Fs:(length(LFP.Vmfilt)-1)/LFP.Fs,LFP.Vmfilt);xlim([0 length(
 figure,plot(0:1/LFP.Fs:(length(LFP.betaLFP)-1)/LFP.Fs,LFP.betaLFP);xlim([0 length(LFP.betaLFP)/LFP.Fs])
 
 %% Behavior
-Vel = EncoderVelocity2(encoder(:,1),encoder(:,2)); % position;time
+Vel = EncoderVelocity2(abs(encoder(:,1)),abs(encoder(:,2))); % position;time
 %%Generate Rest/Run Ca Spikes
-[runSpikes,runSpikesFrame] = spikeState(Vel,Spikes,time,CaFR,1); % state 1/0 for run/rest
-[restSpikes,restSpikesFrame] = spikeState(Vel,Spikes,time,CaFR,0); % state 1/0 for run/rest
+thresh = .1;
+if ~exist('CaFR','var'), CaFR = 30.048;end % sets to default framerate
+[runSpikes,runSpikesFrame] = spikeState(Vel,Spikes,time,CaFR,thresh,1); % state 1/0 for run/rest
+[restSpikes,restSpikesFrame] = spikeState(Vel,Spikes,time,CaFR,thresh,0); % state 1/0 for run/rest
 
 if iscell(runSpikes)
     runSpikes = horzcat(runSpikes{:});
@@ -89,15 +92,16 @@ end
 if iscell(restSpikes)
    restSpikes = horzcat(restSpikes{:});
 end
-
+runCa = DeltaFoverF(:,runSpikesFrame);
+restCa = DeltaFoverF(:,restSpikesFrame);
 
 %% Behavior-based Ensemble
-runfactorCorrection = 5*floor(size(runSpikes,2)/5); % Correct for frame size aquisition
-restfactorCorrection = 5*floor(size(restSpikes,2)/5); % Correct for frame size aquisition
+runfactorCorrection = 40*floor(size(runSpikes,2)/40); % Correct for frame size aquisition
+restfactorCorrection = 20*floor(size(restSpikes,2)/20); % Correct for frame size aquisition
 
-[vectorizedRun,sim_indexRun] = cosine_similarity(runSpikes(:,1:runfactorCorrection),5);
-[vectorizedRest,sim_indexRest] = cosine_similarity(restSpikes(:,1:restfactorCorrection),25);
-
+[vectorizedRun,sim_indexRun] = cosine_similarity(runSpikes(:,1:runfactorCorrection),40);
+[vectorizedRest,sim_indexRest] = cosine_similarity(restSpikes(:,1:restfactorCorrection),20);
+%%
 runEnsemble = ensembleAnalysis(runSpikes(:,1:runfactorCorrection),ROI,ROIcentroid);
 restEnsemble = ensembleAnalysis(restSpikes(:,1:restfactorCorrection),ROI,ROIcentroid);
 
@@ -106,8 +110,14 @@ ensembleMetric(restEnsemble,AverageImage,ROIcentroid)
 
 
 %% SVD/PCA of Ensembles
-comVect = [vectorizedRun vectorizedRest];
-[tProjq1, tProjq2, uProjq1, uProjq2] = featureProject(comVect,length(vectorizedRun));
+comVect = [runCa restCa];
+[X] = featureProject(comVect,length(runCa),0);
+%% K-means clustering of neural projections
+[idx,C] = kmeans(X,2);
+scatter3(X(idx==1,1),X(idx==1,2),X(idx==1,3),10,[0 0 0],'filled'); hold on; %[43 57 144]/255
+scatter3(X(idx==2,1),X(idx==2,2),X(idx==2,3),10,[1 0 0],'filled'); %[0 148 68]/255
+%scatter3(X(idx==3,1),X(idx==3,2),X(idx==3,3),10,[0 0 0],'filled'); %[0 148 68]/255
+
 %%
 runLFP = betaCaEnsemble(runSpikes,runSpikesFrame,runEnsemble,LFP,CaFR); 
 
