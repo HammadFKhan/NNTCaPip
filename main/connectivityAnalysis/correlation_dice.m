@@ -1,5 +1,5 @@
 function [corr,val] = correlation_dice(Spikes)
-
+fprintf('Calculating Dice correlation...');
 [H,~] = size(Spikes);
 corr = zeros(H);
 for i=1:H
@@ -24,4 +24,6 @@ for i = 1:H
 end
 
 corr(isnan(corr))=1;
+
+fprintf('done\n')
 end
