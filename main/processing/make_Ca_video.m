@@ -109,7 +109,7 @@ for t = 1:skp:length(rm_pix)
         posf1 = get(gca,'position');
         colorbar('location','southoutside');
         set(gca,'position',posf1);
-        title('Raw Data','Fontsize',16,'Fontweight','bold');
+        title('Raw Gaussian Data','Fontsize',16,'Fontweight','bold');
         set(gca,'XTick',[],'YTick',[]);
         pos = get(gca,'Position') + [-0.02,-0.025,0.05,0.05];
         set(gca,'Position',pos);
