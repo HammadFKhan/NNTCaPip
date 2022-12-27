@@ -1,9 +1,9 @@
-function [stateSpike,stateSpikeFrame] = spikeState(Vel,Spikes,time,CaFR,state)
+function [stateSpike,stateSpikeFrame] = spikeState(Vel,Spikes,time,CaFR,thresh,state)
 if state
-    velFlag = find(Vel(:,2)>=1); % Find indices of vel threshold
+    velFlag = find(abs(Vel(:,2))>=thresh); % Find indices of vel threshold
     disp('Analyzing Run states!')
 else
-    velFlag = find(Vel(:,2)<1); % Find indices of vel threshold
+    velFlag = find(abs(Vel(:,2))<thresh); % Find indices of vel threshold
     disp('Analyzing Rest states!')
 end
 %%Generate Rest/Run Ca Spikes
