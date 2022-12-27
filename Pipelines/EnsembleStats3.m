@@ -2,6 +2,7 @@ clear
 pathname = uigetdir(pwd,'Input Directory');
 pathname = fullfile(pathname);
 directory = dir(fullfile(pathname,'*.mat'));
+%%
 L = length(directory);
 for i = 1:L
     disp(['Parsing: ' num2str(directory(i).name)])
@@ -9,7 +10,7 @@ for i = 1:L
     StrName=fieldnames(S);
     StrName = StrName{1};
 %     [P_c{i},I_c{i},H_c(i,1),H_e(i,1),sizeE{i},sizeEdge{i}] = EntropyParser(S.(StrName));
-    [Ensemble(i).stat] = ensembleStat(S.(StrName));
+    [Ensemble(i).stat] = ensembleStat(S);
 end 
 %%
 for i = 1:length(Ensemble)
