@@ -5,12 +5,16 @@ end
 if nargin < 2 || strcmp(spacing,'')
     spacing = 1;
 end
+Fs = 30.048;
+
 x = length(DeltaFoverF(1,:));
 y = length(DeltaFoverF(:,1));
+time = (1:x)/Fs;
+
 baseline = spacing*max(DeltaFoverF,[],'all');
 for i = 1:y
     gradient = i/y;
-    plot(amplitude*DeltaFoverF(i,:)+(spacing*baseline),'LineWidth',1,'Color',[.30 .835 .384]); hold on;
+    plot(time,amplitude*DeltaFoverF(i,:)+(spacing*baseline),'LineWidth',1,'Color',[.30 .835 .384]); hold on;
     baseline = baseline + spacing*max(DeltaFoverF,[],'all');
     axis tight, box off,...
             set(gca,'YTick','','YTickLabel','');
