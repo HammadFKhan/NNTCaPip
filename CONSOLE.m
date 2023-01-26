@@ -2,9 +2,9 @@
 % Github Version 4.1
 %% Remove ROIs
 if exist('badComponents','var') && ~exist('badComFlag','var')
-[DeltaFoverF,dDeltaFoverF,ROI,ROIcentroid,Noise_Power,A] = ...
-    removeROI(DeltaFoverF,dDeltaFoverF,ROI,ROIcentroid,Noise_Power,A,unique(badComponents));
-badComFlag = 1;
+    [DeltaFoverF,dDeltaFoverF,ROI,ROIcentroid,Noise_Power,A] = ...
+        removeROI(DeltaFoverF,dDeltaFoverF,ROI,ROIcentroid,Noise_Power,A,unique(badComponents));
+    badComFlag = 1;
 end
 %% Fix centroids
 ROIcentroid = [];
@@ -16,7 +16,7 @@ end
 set(0,'DefaultFigureWindowStyle','normal')
 addpath(genpath('main'));
 addpath(genpath('Pipelines'));
-std_threshold = 7;
+std_threshold = 5;
 static_threshold = .01;
 Spikes = Spike_Detector_Single(dDeltaFoverF,std_threshold,static_threshold);
 %Excude inactive cells
@@ -65,7 +65,7 @@ W12_10Entropy.rankedEnsembles = rankEnsembles;
 W12_10Entropy.rankedEdges = rankEdges;
 W12_10Entropy.Ensemble = Ensemble;
 %% LFP pipette analysis
-addpath('C:\Users\khan332\Documents\GitHub\NNTEphysPip')
+addpath(genpath('C:\Users\khan332\Documents\GitHub\NNTEphysPip\main'))
 LFP = Ca_LFP(time,1); %caTime; loadFlag0/1; LFP.out
 %% Beta Analysis
 [peakAlign,norm,f,stats] = IntrabetaAnalysis(LFP.beta);
@@ -81,7 +81,7 @@ figure,plot(0:1/LFP.Fs:(length(LFP.betaLFP)-1)/LFP.Fs,LFP.betaLFP);xlim([0 lengt
 %% Behavior
 Vel = EncoderVelocity2(abs(encoder(:,1)),abs(encoder(:,2))); % position;time
 %%Generate Rest/Run Ca Spikes
-thresh = .1;
+thresh = .3;
 if ~exist('CaFR','var'), CaFR = 30.048;end % sets to default framerate
 [runSpikes,runSpikesFrame] = spikeState(Vel,Spikes,time,CaFR,thresh,1); % state 1/0 for run/rest
 [restSpikes,restSpikesFrame] = spikeState(Vel,Spikes,time,CaFR,thresh,0); % state 1/0 for run/rest
@@ -118,33 +118,13 @@ scatter3(X(idx==1,1),X(idx==1,2),X(idx==1,3),10,[0 0 0],'filled'); hold on; %[43
 scatter3(X(idx==2,1),X(idx==2,2),X(idx==2,3),10,[1 0 0],'filled'); %[0 148 68]/255
 %scatter3(X(idx==3,1),X(idx==3,2),X(idx==3,3),10,[0 0 0],'filled'); %[0 148 68]/255
 
-%%
+%% Beta events and fluorescence
+
+
+%% Beta events within ensembles
 runLFP = betaCaEnsemble(runSpikes,runSpikesFrame,runEnsemble,LFP,CaFR); 
 
-
 restLFP = betaCaEnsemble(restSpikes,restSpikesFrame,restEnsemble,LFP,CaFR); 
-%% Beta events within ensembles
-frameT = runSpikesFrame(runEnsemble.ensembleFrame);
-count = 1;
-for i = 1:286
-    temp = find(frameT(i)==betaEventFrame(:,3)); % checks to see if a beta event lies on the frame\
-    if temp
-        disp(['Beta event matched to idx: ' num2str(i)])
-        hold on,xline(i,'r');
-        LFP.beta.ensembleBetaMatch(count,1) = frameT(i); %frame
-        LFP.beta.ensembleBetaMatch(count,2) = temp; %beta index
-        count = count+1;
-    end
-end
-
-runLFP.beta = LFP.beta; % create a structure array looking at only behavior based beta
-runLFP.beta.betaBurst.detectedBeta = LFP.beta.betaBurst.detectedBeta(LFP.beta.ensembleBetaMatch(:,2),:);
-
-% plot beta traces
-figure,
-for i = 1:30
-    subplot(5,6,i),plot(LFP.beta.betaTrace{restLFP.beta.ensembleBetaMatch(i,2)}), axis off
-end
 
 [peakAlign,norm,f,stats] = IntrabetaAnalysis(runLFP.beta);
 [peakAlign,norm,f,stats] = IntrabetaAnalysis(restLFP.beta);
