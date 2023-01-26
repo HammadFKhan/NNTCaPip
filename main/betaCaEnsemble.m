@@ -16,7 +16,7 @@ betaEventFrame = [startFrame endFrame peakFrame]; %calculate the calcium frame i
 % Beta events within ensembles
 frameT = SpikesFrame(Ensemble.ensembleFrame); %set the correct index from ensemble->stateSpikes->Spikes
 count = 1;
-for i = 1:size(Ensemble.ensemble,2) %state dependant ensemble
+for i = 1:size(frameT,2) %state dependant ensemble
     temp = find(frameT(i)==betaEventFrame(:,3)); % checks to see if a beta event lies on the frame\
     if temp
         disp(['Beta event matched to idx: ' num2str(i)])
@@ -28,7 +28,10 @@ for i = 1:size(Ensemble.ensemble,2) %state dependant ensemble
 end
 
 % Calculate coactivity during beta event frame
-betaCaCoupling = coactive_cells(:,ensembleBetaMatch(:,2));
+win = 100; %windowing frames to integrate under
+for i = 1:size(ensembleBetaMatch,1)-1
+    betaCaCoupling(i,:) = coactive_cells(:,ensembleBetaMatch(i,1)-win:ensembleBetaMatch(i,1)+win);
+end
 
 stateLFP.beta = LFP.beta; % create a structure array looking at only behavior based beta
 stateLFP.beta.ensembleBetaMatch = ensembleBetaMatch;
