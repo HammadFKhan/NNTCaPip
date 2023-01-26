@@ -49,5 +49,7 @@ for i = 1:size(checkSize(checkSize(:,1)>2),1)
     x2 = smoothdata(x1,'gaussian',50);
     y2 = smoothdata(y1,'gaussian',50);
     plot(x2,y2,'Color',[0.5 0.5 0.5])
-    scatter(x,y,4,'k','filled')
+    scatter3(x,y,4,'k','filled')
 end
+%% Create more plots to explain centroid variance/analysis
+
