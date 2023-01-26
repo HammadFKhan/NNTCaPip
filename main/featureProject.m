@@ -28,7 +28,8 @@ if flag
     scatter(tProjq1,tProjq2,200,'b.'); hold on;
     scatter(uProjq1,uProjq2,200,'r.');
 else
-    scatter3(tProjq1,tProjq2,tProjq3,10,[247 148 29]/255,'filled'); hold on; %[43 57 144]/255
+    figure,
+    scatter3(tProjq1,tProjq2,tProjq3,10,[236 0 140]/255,'filled'); hold on; %[43 57 144]/255
     scatter3(uProjq1,uProjq2,uProjq3,10,[0 0 0]/255,'filled'); %[0 148 68]/255
 end
 
