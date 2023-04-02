@@ -80,7 +80,7 @@ for fileNum = 1:numFiles
     fullname = file(fileNum).name;
     [~,file_name,~] = fileparts(fullname);
     fr = 30;                                         % frame rate
-    tsub = 8;                                        % degree of downsampling (for 30Hz imaging rate you can try also larger, e.g. 8-10)
+    tsub = 10;                                        % degree of downsampling (for 30Hz imaging rate you can try also larger, e.g. 8-10)
     ds_filename = [foldername,file_name,'_ds_data.mat']; % check incremented file name for image
     if ~exist(ds_filename,'file') %check if downsampled data file already exists
         data = matfile(ds_filename,'Writable',true);
@@ -139,14 +139,14 @@ for fileNum = 1:numFiles
     
     %% Set parameters
     sizY = data.sizY;                       % size of data matrix
-    patch_size = [128,128];                   % size of each patch along each dimension (optional, default: [128,128])
+    patch_size = [128,128];                 % size of each patch along each dimension (optional, default: [128,128])
     overlap = [6,6];                        % amount of overlap in each dimension (optional, default: [6,6])
     
     patches = construct_patches(sizY(1:end-1),patch_size,overlap);
-    K = 25;                  % number of components to be found per patch
+    K = 40;                  % number of components to be found per patch
     tau = [];                 % std of gaussian kernel (size of neuron) default:5
     p = 2;                   % order of autoregressive system (p = 0 no dynamics, p=1 just decay, p = 2, both rise and decay)
-    merge_thr = 0.5;         % merging threshold
+    merge_thr = 0.4;         % merging threshold
     
     options = CNMFSetParms(...
         'init_method','greedy',...              % Segmentation type ('greedy' for soma 'sparse_NMF' for dendrites
@@ -164,15 +164,24 @@ for fileNum = 1:numFiles
         'spatial_method','regularized',...          % spatial threshold
         'cnn_thr',0.3,...                           % classifier threshold (default:0.2)
         'patch_space_thresh',0.25,...               % merge patch threshold
-        'min_SNR',3,...                             % minimum signal SNR
+        'min_SNR',2,...                             % minimum signal SNR
         'search_method','ellipse');                 % method for determining footprint of spatial components 'ellipse' or 'dilate' (default: 'dilate')
     
     %% Run on patches
-    
-    [A,b,C,f,S,P,RESULTS,YrA] = run_CNMF_patches(data.Y,K,patches,tau,0,options);  % do not perform deconvolution here since we have downsampled
-    
-    %% compute correlation image on a small sample of the data (optional - for visualization purposes)
-    Cn = correlation_image_max(data,8);
+    CNMFmod = 0;
+    if CNMFmod
+        data.Y1 = customSpatialFilt(double(data.Y),options);
+        [A,b,C,f,S,P,RESULTS,YrA] = run_CNMF_patches(data.Y1,K,patches,tau,0,options);  % do not perform deconvolution here since we have downsampled
+        Cn = correlation_image_max(data.Y1,8);
+    else
+        [A,b,C,f,S,P,RESULTS,YrA] = run_CNMF_patches(data.Y,K,patches,tau,0,options);  % do not perform deconvolution here since we have downsampled
+        Cn = correlation_image_max(data.Y,8);
+    end
+
+%     [results, center, Cn, PNR, save_avi] = greedyROI_endoscope(single(Y), 100, options);
+%     [Ain, Cin, bin, fin, center] = initialize_components(data.Y, K, tau, options);
+% [center, Cn, ~] = initComponents_endoscope(Y, K, patch_par, debug_on, save_avi);
+
     %% classify components
     
     rval_space = classify_comp_corr(data,A,C,b,f,options);
@@ -259,7 +268,7 @@ for fileNum = 1:numFiles
     end
     %% Plot
     % Save Data for video plotting
-    data.b = b;data.f = f;data.A = A_keep; data.C = C_keep;data.R = R_keep;
+    data.b = b;data.f = f;data.A = A_keep; data.C = C_keep;data.R = R_keep; data.params = options;
     savfig = figure(1);
     ax1 = subplot(121); [Coor,json_file] = plot_contours(A_keep,Cn,options,0); title('Selected components','fontweight','bold','fontsize',14);
     ax2 = subplot(122); plot_contours(A_throw,Cn,options,0);title('Rejected components','fontweight','bold','fontsize',14);
