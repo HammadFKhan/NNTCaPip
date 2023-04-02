@@ -1,4 +1,4 @@
-function Ensemble = ensembleAnalysis(Spikes,ROI,ROIcentroid)
+function Ensemble = ensembleAnalysis(Spikes,ROIcentroid)
 surrogate = 1000;
 % Calculate threshold for coactive activations
 disp(['Shuffling data ' num2str(surrogate) ' times to find optimal ensemble cutoff']);
@@ -8,7 +8,7 @@ shufSpikes = tempShuffle(Spikes,surrogate);
 bin = ceil(max(coactive_cells)*100);
 figure,hold on,bar(coactive_cells),bar(shufcoactive_cells);
 % figure,hold on,histogram(coactive_cells,100),histogram(shufcoactive_cells,100);
-ensembleCan = 5*find(coactive_cells>(2.5*std(shufcoactive_cells)+mean(shufcoactive_cells))); % 99% distribution threshold
+ensembleCan = 5*find(coactive_cells>(2*std(shufcoactive_cells)+mean(shufcoactive_cells))); % 99% distribution threshold
 disp(['Ensemble Candidates: ' num2str(length(ensembleCan))])
 % Grab window around ensembles
 ensembleWin = 5;
@@ -81,7 +81,7 @@ if thresh == 0.25 % returns function if thereshold is too low
 end
 disp(['Ensembles detected at ' num2str(thresh*100) '% threshold']);
 
-r = unique(r);
+% r = unique(r);
 fEnsemble = find(diff(r)~=1)+1; % Find ensemble index location
 if isempty(fEnsemble) % means there is only 1 ensemble with contineous index
     fEnsemble = length(r)+1; % 1 ensemble that ends at the end of index r
@@ -90,6 +90,7 @@ else
     ensembleIndentified = 1 + length(fEnsemble);
 end
 fprintf('Combining ensemble trains...\n')
+count = 1;
 for i = 1:ensembleIndentified
     % Once ensemble periods are detected find nodes
     if i == 1 
@@ -102,11 +103,20 @@ for i = 1:ensembleIndentified
     fprintf(['Connectivity analysis for activation ' num2str(i) '.\n']);
     corr = correlation_dice(ensembleId);
     thresh = 0.6;
-    Connected_ROI{i} = Connectivity_dice(corr, ROI,thresh);
+    Connected_ROI{i} = Connectivity_dice(corr,thresh);
     [NumActiveNodes,NodeList{i},NumNodes{i},NumEdges{i},SpatialCentroid{i},SpatialCentroidVariance{i},...
         ActivityCentroid{i},ActivityCentroidVariance{i}, ActivityCoords{i}]...
         = Network_Analysis(ROIcentroid,Connected_ROI{i});
+%     if NodeList{i}~=0
+%         ensembleStability(:,count) = coactive_index(ensemble(NodeList{i},:),length(ensemble)/5);
+%     end
+    count = count+1;
 end
+% Norm ensemble stability
+% for i = 1:size(ensembleStability,2)
+%     ensembleStability(:,i) = ensembleStability(:,i)/(max(ensembleStability(:,i))-min(ensembleStability(:,i)));
+% end
+ensembleStability = [];
 fprintf('done\n')
 Ensemble.ensemble = ensemble;
 Ensemble.ensembleCan = ensembleCan;
