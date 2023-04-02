@@ -1,22 +1,35 @@
 function [X] = featureProject(featureData,navgtarget,flag)
+if nargin<2 || strcmp('navgtarget','')
+    navgtarget = 1;
+end
+if nargin<3 || strcmp('flag','')
+    flag = 1;
+end
+
+%Covariance of the data
 featureData = double(featureData');
-covmatrix = (featureData'*featureData);
+covmatrix = (featureData'*featureData); 
 covmatrix = covmatrix/size(featureData,1);
+
 figure();
 imagesc(covmatrix);
 colormap(jet);
 colorbar;
+%Find eigen values across the matrix
 [V,D] = eig(covmatrix);
+
 figure,
 semilogx(flip(diag(D)),'k','Linewidth',2),grid on;hold on;
 q(:,1) = V(:,size(featureData,2));
 q(:,2) = V(:,size(featureData,2)-1);
 q(:,3) = V(:,size(featureData,2)-2);
+
 figure();
 plot(q);
 ylabel('Voltage (\mu V)')
 xlabel('Time');
 
+% Calculate and project first three component eigenvectors
 tProjq1 = featureData(1:navgtarget,:)*q(:,1);
 tProjq2 = featureData(1:navgtarget,:)*q(:,2);
 tProjq3 = featureData(1:navgtarget,:)*q(:,3);
