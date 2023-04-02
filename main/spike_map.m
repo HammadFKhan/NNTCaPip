@@ -1,7 +1,8 @@
 function spike_map(DeltaFoverF,time)
-if nargin < 2; time = [];end
-ax = time;
+% if nargin < 2; time = [];end
+% ax = time;
 % [grad,~]=colorGradient([0 0 0],[1 1 1],128);
+time = 1:(size(DeltaFoverF,2)/30.048);
 colormap(jet);
 normDelta = zeros(size(DeltaFoverF,1),size(DeltaFoverF,2));
 for i = 1:size(DeltaFoverF,1)
