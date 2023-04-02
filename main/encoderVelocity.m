@@ -6,6 +6,7 @@ for trial = 1:length(VR_data.Position)
     VRposition =  discretize(position,edgesPos);
     time = VR_data.Time{trial};
     edgesTime = 0:binWidth:time(end); %Bin width on the track
+    
     VRtimebin = discretize(time,edgesTime);
     
     % Checks binning routine
