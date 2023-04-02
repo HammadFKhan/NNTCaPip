@@ -1,15 +1,27 @@
+%% Remove ROIs
+if exist('badComponents','var') && ~exist('badComFlag','var')
+    [DeltaFoverF,dDeltaFoverF,ROI,ROIcentroid,Noise_Power,A] = ...
+        removeROI(DeltaFoverF,dDeltaFoverF,ROI,ROIcentroid,Noise_Power,A,unique(badComponents));
+    badComFlag = 1;
+end
+%%
+ROIcentroid = [];ROInew = [];
+for i = 1:length(ROI)
+    trans = rand(1)*350;
+    blah = vertcat(ROI{i}{:});
+%     blah = ceil(blah+trans);
+    polyin = polyshape(blah(:,1),blah(:,2));
+    [x,y] = centroid(polyin);
+    ROIcentroid(i,:) = [x y];
+    for ii = 1:size(blah,1)
+        ROInew{i,1}{ii,1} = blah(ii,:);
+    end
+end
+
 %% Dendritic Coopertivity metric
 % Generate a pseudo calcium fluorescence matrix (part of a covariance
 % matrix) that generates traces during periods when a speific dendritic
 % branch activates (can do 2-3 max) 
-ROIcentroid = [];
-for i = 1:length(ROI)
-    blah = vertcat(ROI{i}{:});
-    polyin = polyshape(blah(:,1),blah(:,2));
-    [x,y] = centroid(polyin);
-    ROIcentroid(i,:) = [x y];
-end
-%%
 DenCoop = [];
 count = 1;
 for j = [2,3] % intradendritic index format as each neuron is a cell with N array of dendrite pairs
@@ -71,22 +83,18 @@ std_threshold = 7;
 static_threshold = .01;
 Spikes = Spike_Detector_Single(dDeltaFoverF,std_threshold,static_threshold);
 [coactive_cells,detected_spikes] = coactive_index(Spikes,floor(length(Spikes)*.05));
-% [vectorized,sim_index] = cosine_similarity(Spikes(:,1:factorCorrection),10);
+
+% Dendritic Population Coopertivity 
 corr = correlation_dice(Spikes);
-Connected_ROI = Connectivity_dice(corr, ROI,0.15);
-% [NumActiveNodes,NodeList,NumNodes,NumEdges,SpatialCentroid,SpatialCentroidVariance,...
-%     ActivityCentroid,ActivityCentroidVariance]...
-%     = Network_Analysis(ROIcentroid,Connected_ROI);
-figure,Dendritic_Map(AverageImage,Connected_ROI,ROIcentroid,ROI,1,1),title('Pairwise Coopertivity')
-%% Dendritic Population Coopertivity 
 factorCorrection = 5*floor(size(Spikes,2)/5); % Correct for frame size aquisition
 Ensemble = ensembleAnalysis(Spikes(:,1:factorCorrection),ROI,ROIcentroid);
 corrEnsemble = correlation_dice(Ensemble.ensemble);
 Connected_ROI = Connectivity_dice(corrEnsemble, ROI,0.15);
-% [NumActiveNodes,NodeList,NumNodes,NumEdges,SpatialCentroid,SpatialCentroidVariance,...
-%     ActivityCentroid,ActivityCentroidVariance]...
-%     = Network_Analysis(ROIcentroid,Connected_ROI);
-figure,Dendritic_Map(AverageImage,Connected_ROI,ROIcentroid,ROI,1,1)
-%% Ensemble stats
+% Ensemble stats
 Ensemble = ensembleMetric(Ensemble,AverageImage,ROIcentroid);
 Ensemble = ensembleStat(Ensemble);
+%% Plot
+figure,imagesc(corr),colormap(jet),caxis([0 max(tril(corr,-1),[],'all')])
+figure,Dendritic_Map(AverageImage,Connected_ROI,ROIcentroid,ROI,1,1),title('Pairwise Coopertivity')
+figure,imagesc(corrEnsemble),colormap(jet),caxis([0 max(tril(corrEnsemble,-1),[],'all')]),colorbar
+figure,Dendritic_Map(AverageImage,Connected_ROI,ROIcentroid,ROI,1,1)
