@@ -1,6 +1,6 @@
 function make_Ca_video(A,C,R,b,f,Y,d1,d2,param)
-
 % use that to make movies for dendritic/axonal imaging data
+% make_Ca_video(A,C,R,b,f,double(Y),size(Y,1),size(Y,2),params);
 
 if nargin < 9
     param = [];
@@ -94,7 +94,7 @@ nR = quantile(Y_rec(:),0.02);
 mR = quantile(Y_rec(:),0.999);
 mY = quantile(Y(:),0.99);
 nN = quantile(Y_noise(:),0.01);
-mN = quantile(Y_noise(:),.999);
+mN = quantile(Y_noise(:),.99);
 for t = 1:skp:length(rm_pix)
     i = rm_pix(t);
     if reconstruct
@@ -109,7 +109,7 @@ for t = 1:skp:length(rm_pix)
         posf1 = get(gca,'position');
         colorbar('location','southoutside');
         set(gca,'position',posf1);
-        title('Raw Gaussian Data','Fontsize',16,'Fontweight','bold');
+        title('Raw Data','Fontsize',16,'Fontweight','bold');
         set(gca,'XTick',[],'YTick',[]);
         pos = get(gca,'Position') + [-0.02,-0.025,0.05,0.05];
         set(gca,'Position',pos);
