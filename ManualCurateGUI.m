@@ -165,7 +165,7 @@ function slider1_Callback(hObject, eventdata, handles)
 
 %get new slider value
 x=get(handles.slider1,'Value');
-
+x = ceil(x);
 %update the text box to new slider value
 set(handles.edit1,'string',num2str(x));
 
