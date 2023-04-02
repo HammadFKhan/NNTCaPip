@@ -3,7 +3,7 @@
 %% Remove ROIs
 if exist('badComponents','var') && ~exist('badComFlag','var')
     [DeltaFoverF,dDeltaFoverF,ROI,ROIcentroid,Noise_Power,A] = ...
-        removeROI(DeltaFoverF,dDeltaFoverF,ROI,ROIcentroid,Noise_Power,A,unique(badComponents));
+        removeROI(DeltaFoverF,dDeltaFoverF,ROI,ROIcentroid,Noise_Power,A,unique(122));
     badComFlag = 1;
 end
 %% Fix centroids
@@ -16,49 +16,63 @@ end
 set(0,'DefaultFigureWindowStyle','normal')
 addpath(genpath('main'));
 addpath(genpath('Pipelines'));
-std_threshold = 5;
-static_threshold = .01;
+std_threshold = 2;
+static_threshold = .005;
 Spikes = Spike_Detector_Single(dDeltaFoverF,std_threshold,static_threshold);
 %Excude inactive cells
 % numSpikes = sum(Spikes,2);
 % keepSpikes = find(numSpikes>(.01*mean(numSpikes)));
 % Spikes = Spikes(keepSpikes,:);
-[coactive_cells,detected_spikes] = coactive_index(Spikes,5000);
+[coactive_cells,detected_spikes] = coactive_index(Spikes,size(Spikes,2));
 cell_count = length(ROI);
 time = time_adjust(size(DeltaFoverF,2),30.048);
 for i = 1:size(DeltaFoverF,1)
-    calcium_avg{i} = STA(DeltaFoverF(i,:),2,100);%std, window (frames)
+    calcium_avg{i} = STA(DeltaFoverF(i,:),2,250);%std, window (frames)
 end
 
 % Perform shuffling and pairwise if data is small enough
 if size(DeltaFoverF,2)<2000    
-%     Spikes_shuffled = tempShuffle(Spikes,1000);
-%     Event_shuffled = spatialShuffle(Spikes,1000);
-%     surrogate = 10;
-%     Total_shuffled = allShuffle(Spikes,1000);
-%     [shufcoactive_cells,detected_spikes] = coactive_index(Spikes_shuffled,length(Spikes_shuffled));
-%     shuff_corr = correlation_dice(Event_shuffled);
-%     [shufvectorized,shufsim_index] = cosine_similarity(Total_shuffled,bin);
-%     shufsim_index = shufsim_index-mean(mean(shufsim_index,2));
+    Spikes_shuffled = tempShuffle(Spikes,1000);
+    Event_shuffled = spatialShuffle(Spikes,1000);
+    surrogate = 10;
+    Total_shuffled = allShuffle(Spikes,1000);
+    [shufcoactive_cells,detected_spikes] = coactive_index(Spikes_shuffled,length(Spikes_shuffled));
+    shuff_corr = correlation_dice(Event_shuffled);
+    [shufvectorized,shufsim_index] = cosine_similarity(Total_shuffled,bin);
+    shufsim_index = shufsim_index-mean(mean(shufsim_index,2));
     factorCorrection = 100*floor(size(Spikes,2)/100); % Correct for frame size aquisition
-    [vectorized,sim_index] = cosine_similarity(Spikes(:,1:factorCorrection),10);
+    [vectorized,sim_index] = cosine_similarity(Spikes(:,1:factorCorrection),50);
     corr = correlation_dice(Spikes);
-    Connected_ROI = Connectivity_dice(corr, ROI,0.1);
+    Connected_ROI = Connectivity_dice(corr,0.1);
     [NumActiveNodes,NodeList,NumNodes,NumEdges,SpatialCentroid,SpatialCentroidVariance,...
         ActivityCentroid,ActivityCentroidVariance]...
         = Network_Analysis(ROIcentroid,Connected_ROI);
 end
 % Pairwise Velocity Analysis
 % velocityPairwise(VR_data,Spikes)
+%%
+calcium_avg = [];
+trialWin = 603;
+for trial = 1:9
+    for i = 1:size(DeltaFoverF,1)
+        try
+            calcium_avg(i,:,trial) = STA(DeltaFoverF(i,(trial-1)*trialWin+1:trialWin*trial),1,240);
+        catch ME
+            continue;
+        end
+    end
+end
+
+trialAvg = reshape(calcium_avg,size(calcium_avg,1),[]);
+figure,imagesc(trialAvg),colormap(hot),caxis([0,max(trialAvg,[],'all')/1.5]),colorbar
 %% Ensemble Analysis
 % figure,[Coor,json_file] = plot_contours(A,C,ops,0); % contour plot of spatial footprints
 factorCorrection = 5*floor(size(Spikes,2)/5); % Correct for frame size aquisition
-Ensemble = ensembleAnalysis(Spikes(:,1:factorCorrection),ROI,ROIcentroid);
+Ensemble = ensembleAnalysis(Spikes(:,1:factorCorrection),ROIcentroid);
 
-%% Ensemble stats
+% Ensemble stats
 Ensemble = ensembleMetric(Ensemble,AverageImage,ROIcentroid);
 Ensemble = ensembleStat(Ensemble);
-
 %%
 W12_10Entropy.informationEntropy = informationEntropy;
 W12_10Entropy.rankedEnsembles = rankEnsembles;
@@ -111,7 +125,7 @@ ensembleMetric(restEnsemble,AverageImage,ROIcentroid)
 
 %% SVD/PCA of Ensembles
 comVect = [runCa restCa];
-[X] = featureProject(comVect,length(runCa),0);
+[X] = featureProject(comVect);
 %% K-means clustering of neural projections
 [idx,C] = kmeans(X,2);
 scatter3(X(idx==1,1),X(idx==1,2),X(idx==1,3),10,[0 0 0],'filled'); hold on; %[43 57 144]/255
@@ -138,14 +152,14 @@ figure('Name','Spike Plot'); Show_Spikes(Spikes);
 % figure('Name','Temporal Shuffled Spike Plot'); shuffledTspikePlot = Show_Spikes(Spikes_shuffled);
 % figure('Name','Event Shuffled Spike Plot'); shuffledEspikePlot = Show_Spikes(Event_shuffled);
 % figure('Name','Total Shuffled Spike Plot'); shuffledAspikePlot = Show_Spikes(Total_shuffled);
-figure('Name','Fluorescence Map'); spike_map(fluorescenceTrials(:,:,3));caxis([0 1]),set(gcf,'Position',[100 100 400 400])
-figure('Name','Population Intensity');height = 10;rateImage = firing_rate(Spikes,height,time);caxis([0 0.5]);set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);
+figure('Name','Fluorescence Map'); spike_map(DeltaFoverF);caxis([0 1])
+figure('Name','Population Intensity');height = 10;rateImage = firing_rate(Spikes,height,time);caxis([0 0.5]);
 figure('Name','Coactivity Index'); B = bar(coactive_cells,4);ax = gca;ax.TickDir = 'out';ax.Box = 'off';
 figure('Name','Dice-Similarity Index');h = htmp(corr,10);caxis([0 0.4]);set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);
 figure('Name','Shuffled Dice-Similarity Index');h = htmp(shuff_corr,10);caxis([0 0.4]);set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);
-figure('Name','Cosine-Similarity Index'); h = htmp(sim_index);caxis([0.35 .9]);set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);
+figure('Name','Cosine-Similarity Index'); h = htmp(sim_index);caxis([0.0 .8]);set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);
 figure('Name','Shuffled Cosine-Similarity Index'); h = htmp(shufsim_index);caxis([0 1]);set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);
-figure('Name','Network Map'); NodeSize = 1;EdgeSize = 1;Cell_Map_Dice(AverageImage,Connected_ROI,ROIcentroid,NodeSize,EdgeSize)
+figure('Name','Network Map'); NodeSize = 5;EdgeSize = 1;Cell_Map_Dice(AverageImage,Connected_ROI,ROIcentroid,NodeSize,EdgeSize)
 
 
 %% Rotary Encoder
