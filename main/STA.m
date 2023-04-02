@@ -6,7 +6,7 @@ function calcium_avg = STA(DeltaFoverF,std_threshold,window)
 
 %for each detected spike, extract a window 2ms before and after the peak
 for i = 1:length(DeltaFoverF(:,1))
-    thresh = std_threshold.*std(DeltaFoverF(i,:));
+    thresh = std_threshold*std(DeltaFoverF(i,:));
     [pks,locs] = findpeaks(DeltaFoverF(i,:),'MinPeakHeight',thresh);
     spikeCount = 0;
     if(~isempty(pks))
