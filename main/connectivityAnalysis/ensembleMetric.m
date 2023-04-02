@@ -6,14 +6,16 @@ rankEdges = Ensemble.NumEdges(:,I);
 rankEnsembles = Ensemble.NodeList(:,I); 
 [grad,~]=colorGradient([0 0 1] ,[0 0 0],5)
 Ensemble.rankEnsembles = rankEnsembles;
-figure,
-for i = 1:3
-    axis off
-    color = jet(3);
-    EnsembleMap(AverageImage,ROIcentroid,rankEnsembles{i},6,grad(i,:))
-    set(gcf,'Position',[100 100 500 500])
-    drawnow
-    hold on
+if ~isempty(AverageImage) && ~isempty(ROIcentroid) && length(rankEnsembles)>2
+    figure,
+    for i = 1:5
+        axis off
+        color = jet(3);
+        EnsembleMap(AverageImage,ROIcentroid,rankEnsembles{i},6,grad(i,:))
+        set(gcf,'Position',[100 100 500 500])
+        drawnow
+        hold on
+    end
 end
 % Combine Maps
 figure,imagesc(interp2(Ensemble.sim_index,2)),colormap(jet),caxis([0.13 .4])
@@ -33,7 +35,7 @@ figure,plot(sizeEdge),title('Ranked Connections')
 % Ensemble Stats
 % EnsembleStats
 % Information Entropy
-Ensemble.informationEntropy = shannonEntropy(rankEnsembles);
+Ensemble.informationEntropy = shannonEntropy(rankEnsembles,size(Ensemble.ensemble,1));
 % Plot Centroid Boundary
 figure,hold on
 %Rank by number of Activity points
@@ -49,7 +51,7 @@ for i = 1:size(checkSize(checkSize(:,1)>2),1)
     x2 = smoothdata(x1,'gaussian',50);
     y2 = smoothdata(y1,'gaussian',50);
     plot(x2,y2,'Color',[0.5 0.5 0.5])
-    scatter3(x,y,4,'k','filled')
+    scatter(x,y,4,'k','filled')
 end
 %% Create more plots to explain centroid variance/analysis
 
