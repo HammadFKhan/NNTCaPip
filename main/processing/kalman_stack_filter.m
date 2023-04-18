@@ -19,7 +19,7 @@ function Img_p= kalman_stack_filter(Img,G, V)
     %initialization
     Ik = Img_s(:, 1); % use the first image as prediction seed
     Ek = V; % use the estimated variance
-    Img_p = zeros(size(Img));
+    Img_p = zeros(size(Img),'uint16');
     Img_p(:,:,1) = Img(:,:,1);
     % iteration
     for k = 1:dimz-1
