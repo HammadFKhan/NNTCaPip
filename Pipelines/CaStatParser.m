@@ -14,17 +14,21 @@ sparseSDactivity = [];
 Simactivity = []; sparseSimactivity = [];
 
 for i = 1:L
-    SDbuffer = correlation_dice(S(i).FOV.Ensemble.ensemble);
-    Simbuffer = S(i).FOV.Ensemble.sim_index;
+    SDbuffer = correlation_dice(S(2).FOV.Ensemble.ensemble);
+    Simbuffer = S(2).FOV.Ensemble.sim_index;
     rCorr(i,:) = [mean(SDbuffer,'all'), std(tril(SDbuffer,-1),[],'all')];
-%     figure,imagesc(SDbuffer),colormap(hot),caxis([0 max(tril(SDbuffer,-1),[],'all')/1.5]),colorbar
+    figure,imagesc(SDbuffer),colormap(hot),caxis([0 max(tril(SDbuffer,-1),[],'all')/1.5]),colorbar
 %     figure,imagesc(Simbuffer),colormap(hot),caxis([0 max(tril(Simbuffer,-1),[],'all')/1.5]),colorbar
 %     figure,histogram(SDbuffer(SDbuffer>0.1),'DisplayStyle','stairs'),title(['N: ' num2str(i)])
     SDactivity = [SDactivity;mean(SDbuffer)'];
     Simactivity = [Simactivity;mean(Simbuffer)'];
+    
+    mean(SDbuffer(SDbuffer>0))
+    
     sparseSimactivity = [Simactivity;mean(Simbuffer(Simbuffer>0))];
     sparseSDactivity = [sparseSDactivity;mean(SDbuffer(SDbuffer>0))]; %include nonzero matrix analysis as well
 end
+%%
 figure,customBoxplot(SDactivity),title('SD activity')
 figure,customBoxplot(sparseSDactivity),title('Sparse SD activity');
 figure,customBoxplot(Simactivity),title('Sim activity')
