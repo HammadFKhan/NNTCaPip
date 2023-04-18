@@ -3,7 +3,7 @@
 %% Remove ROIs
 if exist('badComponents','var') && ~exist('badComFlag','var')
     [DeltaFoverF,dDeltaFoverF,ROI,ROIcentroid,Noise_Power,A] = ...
-        removeROI(DeltaFoverF,dDeltaFoverF,ROI,ROIcentroid,Noise_Power,A,unique(122));
+        removeROI(DeltaFoverF,dDeltaFoverF,ROI,ROIcentroid,Noise_Power,A,unique(badComponents));
     badComFlag = 1;
 end
 %% Fix centroids
@@ -17,8 +17,8 @@ set(0,'DefaultFigureWindowStyle','normal')
 addpath(genpath('main'));
 addpath(genpath('Pipelines'));
 std_threshold = 2;
-static_threshold = .005;
-Spikes = Spike_Detector_Single(dDeltaFoverF,std_threshold,static_threshold);
+static_threshold = 0;
+Spikes = Spike_Detector_Single(diff(DeltaFoverF),std_threshold,static_threshold);
 %Excude inactive cells
 % numSpikes = sum(Spikes,2);
 % keepSpikes = find(numSpikes>(.01*mean(numSpikes)));
@@ -40,8 +40,8 @@ if size(DeltaFoverF,2)<2000
     shuff_corr = correlation_dice(Event_shuffled);
     [shufvectorized,shufsim_index] = cosine_similarity(Total_shuffled,bin);
     shufsim_index = shufsim_index-mean(mean(shufsim_index,2));
-    factorCorrection = 100*floor(size(Spikes,2)/100); % Correct for frame size aquisition
-    [vectorized,sim_index] = cosine_similarity(Spikes(:,1:factorCorrection),50);
+    factorCorrection = 10*floor(size(Spikes,2)/10); % Correct for frame size aquisition
+    [vectorized,sim_index] = cosine_similarity(Spikes(:,1:factorCorrection),10);
     corr = correlation_dice(Spikes);
     Connected_ROI = Connectivity_dice(corr,0.1);
     [NumActiveNodes,NodeList,NumNodes,NumEdges,SpatialCentroid,SpatialCentroidVariance,...
@@ -50,21 +50,7 @@ if size(DeltaFoverF,2)<2000
 end
 % Pairwise Velocity Analysis
 % velocityPairwise(VR_data,Spikes)
-%%
-calcium_avg = [];
-trialWin = 603;
-for trial = 1:9
-    for i = 1:size(DeltaFoverF,1)
-        try
-            calcium_avg(i,:,trial) = STA(DeltaFoverF(i,(trial-1)*trialWin+1:trialWin*trial),1,240);
-        catch ME
-            continue;
-        end
-    end
-end
 
-trialAvg = reshape(calcium_avg,size(calcium_avg,1),[]);
-figure,imagesc(trialAvg),colormap(hot),caxis([0,max(trialAvg,[],'all')/1.5]),colorbar
 %% Ensemble Analysis
 % figure,[Coor,json_file] = plot_contours(A,C,ops,0); % contour plot of spatial footprints
 factorCorrection = 5*floor(size(Spikes,2)/5); % Correct for frame size aquisition
@@ -94,9 +80,10 @@ figure,plot(0:1/LFP.Fs:(length(LFP.betaLFP)-1)/LFP.Fs,LFP.betaLFP);xlim([0 lengt
 
 %% Behavior
 Vel = EncoderVelocity2(abs(encoder(:,1)),abs(encoder(:,2))); % position;time
-%%Generate Rest/Run Ca Spikes
-thresh = .3;
+%% Generate Rest/Run Ca Spikes
+thresh = 2;
 if ~exist('CaFR','var'), CaFR = 30.048;end % sets to default framerate
+if ~exist('time','var'), timeT = 1/CaFR:1/CaFR:(size(DeltaFoverF,2)/CaFR);end
 [runSpikes,runSpikesFrame] = spikeState(Vel,Spikes,time,CaFR,thresh,1); % state 1/0 for run/rest
 [restSpikes,restSpikesFrame] = spikeState(Vel,Spikes,time,CaFR,thresh,0); % state 1/0 for run/rest
 
