@@ -8,10 +8,10 @@ shufSpikes = tempShuffle(Spikes,surrogate);
 bin = ceil(max(coactive_cells)*100);
 figure,hold on,bar(coactive_cells),bar(shufcoactive_cells);
 % figure,hold on,histogram(coactive_cells,100),histogram(shufcoactive_cells,100);
-ensembleCan = 5*find(coactive_cells>(2*std(shufcoactive_cells)+mean(shufcoactive_cells))); % 99% distribution threshold
+ensembleWin = 5;
+ensembleCan = ensembleWin*find(coactive_cells>(5*std(shufcoactive_cells)+mean(shufcoactive_cells))); % 99% distribution threshold
 disp(['Ensemble Candidates: ' num2str(length(ensembleCan))])
 % Grab window around ensembles
-ensembleWin = 5;
 ensemble = [];
 ensembleFrame = []; % reference for what frames were merged for ensemble analysis
 for i = 1:length(ensembleCan)
@@ -39,6 +39,37 @@ else
     [vectorized,sim_index] = cosine_similarity(ensemble(:,1:factorCorrection),ensembleWin);
 end
 fprintf('done\n')
+avgSim = mean(mean(sim_index,2));
+X = sim_index - avgSim*ones(1,size(sim_index,2));
+[U,S,V] = svd(X,'econ');
+plotind = 1;
+figure,
+for r = [1:25]
+Xapprox = U(:,r)*S(r,r)*V(:,r)';
+subplot(5,5,plotind), plotind = plotind+1;
+imagesc(Xapprox),colormap(flip(gray)),caxis([0 0.15]);
+end
+
+% Weighted Ensemble
+ensembleSimilarity = zeros(1,size(S,1));
+for i = 1:size(S,1)
+    Xapprox = U(:,i)*S(i,i)*V(:,i)';
+    ensembleSimilarity(i) = mean(Xapprox(Xapprox>0))+avgSim;
+end
+% Singular Values
+figure,subplot(1,3,1)
+semilogx(ensembleSimilarity,'k','Linewidth',2),grid on;hold on;
+xlabel('r'); ylabel('Ensemble Similarity')
+set(gca,'FontSize',14);
+subplot(1,3,2)
+semilogx(diag(S),'k','Linewidth',2),grid on;hold on;
+xlabel('r'); ylabel('Singular Value, \Sigma_r')
+set(gca,'FontSize',14);
+subplot(1,3,3)
+plot(cumsum(diag(S))/sum(diag(S)),'k','LineWidth',2),grid on;
+xlabel('r'); ylabel('Cumulative Energy');
+set(gca,'FontSize',14);
+
 % Generate ROC curve
 thresh = 1;
 [r,~] = find(tril(sim_index>thresh,-1));
@@ -81,7 +112,8 @@ if thresh == 0.25 % returns function if thereshold is too low
 end
 disp(['Ensembles detected at ' num2str(thresh*100) '% threshold']);
 
-% r = unique(r);
+
+r = unique(r);
 fEnsemble = find(diff(r)~=1)+1; % Find ensemble index location
 if isempty(fEnsemble) % means there is only 1 ensemble with contineous index
     fEnsemble = length(r)+1; % 1 ensemble that ends at the end of index r
@@ -91,6 +123,7 @@ else
 end
 fprintf('Combining ensemble trains...\n')
 count = 1;
+ensembleStability = [];
 for i = 1:ensembleIndentified
     % Once ensemble periods are detected find nodes
     if i == 1 
@@ -107,20 +140,25 @@ for i = 1:ensembleIndentified
     [NumActiveNodes,NodeList{i},NumNodes{i},NumEdges{i},SpatialCentroid{i},SpatialCentroidVariance{i},...
         ActivityCentroid{i},ActivityCentroidVariance{i}, ActivityCoords{i}]...
         = Network_Analysis(ROIcentroid,Connected_ROI{i});
-%     if NodeList{i}~=0
-%         ensembleStability(:,count) = coactive_index(ensemble(NodeList{i},:),length(ensemble)/5);
-%     end
+    if NodeList{i}~=0
+        try
+            ensembleStability{count} = coactive_index(ensemble(NodeList{i},:),length(ensemble)/5);
+        catch ME
+            continue;
+        end
+    end
     count = count+1;
 end
-% Norm ensemble stability
+% % Norm ensemble stability
 % for i = 1:size(ensembleStability,2)
 %     ensembleStability(:,i) = ensembleStability(:,i)/(max(ensembleStability(:,i))-min(ensembleStability(:,i)));
 % end
-ensembleStability = [];
+% ensembleStability = [];
 fprintf('done\n')
 Ensemble.ensemble = ensemble;
 Ensemble.ensembleCan = ensembleCan;
 Ensemble.ensembleFrame = ensembleFrame;
+Ensemble.ensembleStability = ensembleStability;
 Ensemble.vectorized = vectorized;
 Ensemble.sim_index = sim_index;
 % Ensemble.NetworkAnalysis = NetworkAnalysis;
