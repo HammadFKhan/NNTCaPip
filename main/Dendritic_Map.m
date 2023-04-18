@@ -62,6 +62,8 @@ hold off;
 %     1 1 1];
 % colormap(map);
 % hold on
+volFlag = 0;
+if size(ROIbases,2)>2, volFlag = 1;end
 %%
 if EdgeSize>0
     if Connected_ROI(1,:) ~= [0,0,0]
@@ -76,9 +78,15 @@ if EdgeSize>0
                 x2 = Cell2(1,1);
                 y1 = Cell1(1,2);
                 y2 = Cell2(1,2);
-                %         Color = [0.02 0.631 0.631];
-                %         Color = 'k';
-                x = line([x1,x2],[y1,y2],'LineWidth',LineWidth,'Color',Color); hold on
+                if volFlag
+                    z1 = Cell1(1,3);
+                    z2 = Cell2(1,3);
+                    x = line([x1,x2],[y1,y2],[z1,z2],'LineWidth',LineWidth,'Color',Color); hold on
+                else
+                    %         Color = [0.02 0.631 0.631];
+                    %         Color = 'k';
+                    x = line([x1,x2],[y1,y2],'LineWidth',LineWidth,'Color',Color); hold on
+                end
                 x.Color(4) = 0.6;
             elseif corr >= 0.0 && corr <= 0.7
                 LineWidth = EdgeSize;
@@ -87,10 +95,15 @@ if EdgeSize>0
                 x2 = Cell2(1,1);
                 y1 = Cell1(1,2);
                 y2 = Cell2(1,2);
-                %         Color = [0.02 0.631 0.631];
-                %         Color = 'k';
-                x = line([x1,x2],[y1,y2],'LineWidth',LineWidth,'Color',Color); hold on
-                %
+                if volFlag
+                    z1 = Cell1(1,3);
+                    z2 = Cell2(1,3);
+                    x = line([x1,x2],[y1,y2],[z1,z2],'LineWidth',LineWidth,'Color',Color); hold on
+                else
+                    %         Color = [0.02 0.631 0.631];
+                    %         Color = 'k';
+                    x = line([x1,x2],[y1,y2],'LineWidth',LineWidth,'Color',Color); hold on
+                end
             end
             %         x1 = Cell1(1,1);
             %         x2 = Cell2(1,1);
@@ -106,7 +119,11 @@ end
 if NodeSize>0
     for i = 1:length(ROI)
         blah = vertcat(ROI{i}{:});
-        line(blah(:,1),blah(:,2))
+        if volFlag
+            line(blah(:,1),blah(:,2))
+        else
+            line(blah(:,1),blah(:,2))
+        end
     end
 end
 % scatter(centerY, centerX,sz,'MarkerFaceColor',color,'MarkerFaceAlpha',1,'MarkerEdgeAlpha',0);
