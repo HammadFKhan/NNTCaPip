@@ -24,7 +24,7 @@ end
 % branch activates (can do 2-3 max) 
 DenCoop = [];
 count = 1;
-for j = [2,3] % intradendritic index format as each neuron is a cell with N array of dendrite pairs
+for j = 1:length(IntraDendriticIndex) % intradendritic index format as each neuron is a cell with N array of dendrite pairs
     window = 300;
     idx = perms(IntraDendriticIndex{j});
     idx = unique(idx(:,[1 2]),'rows'); %take only the first two columns
@@ -48,7 +48,7 @@ for j = [2,3] % intradendritic index format as each neuron is a cell with N arra
     end
 end
 %%
-neuronID = 6;
+neuronID = 10;
 primaryBranch = DenCoop(neuronID).branch{1};
 sisterBranch = DenCoop(neuronID).branch{2};
 figure,
@@ -75,8 +75,10 @@ for i = 1:length(DenCoop)
 end
 axis([0 6 -0.1 6])
 set(gca,'TickDir','out');
-figure,boxplot(primaryBranch);box off,set(gca,'TickDir','out');ylim([0 5]);
-figure,boxplot(sisterBranch);box off,set(gca,'TickDir','out'),ylim([0 5]);
+figure,boxplot(primaryBranch);box off,set(gca,'TickDir','out');ylim([0 5]);title('Primary Branch')
+figure,boxplot(sisterBranch);box off,set(gca,'TickDir','out'),ylim([0 5]);title('Sister Branch')
+% Coupling coefficient
+figure,boxplot(abs(primaryBranch-sisterBranch));box off,set(gca,'TickDir','out'),ylim([0 5]);title('Coupling Coefficient')
 %% Interdendritic activity (cross-population behavior)
 addpath(genpath('main'));
 std_threshold = 7;
@@ -87,7 +89,7 @@ Spikes = Spike_Detector_Single(dDeltaFoverF,std_threshold,static_threshold);
 % Dendritic Population Coopertivity 
 corr = correlation_dice(Spikes);
 factorCorrection = 5*floor(size(Spikes,2)/5); % Correct for frame size aquisition
-Ensemble = ensembleAnalysis(Spikes(:,1:factorCorrection),ROI,ROIcentroid);
+Ensemble = ensembleAnalysis(Spikes(:,1:factorCorrection),ROIcentroid);
 corrEnsemble = correlation_dice(Ensemble.ensemble);
 Connected_ROI = Connectivity_dice(corrEnsemble, ROI,0.15);
 % Ensemble stats
