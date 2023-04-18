@@ -1,5 +1,5 @@
 function Connected_ROI = Connectivity_dice(corr,thres)
-if nargin < 3; thres = .5;end
+if nargin < 2; thres = .1;end
 
 [r,c] = find(tril(corr,-1)>thres);
 if ~isempty(r)
