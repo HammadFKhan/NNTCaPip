@@ -21,7 +21,7 @@ if errorType == 0
 else
     y = mean(y,1);
     error = std(y);
-    error = 1*error/sqrt(length(y));
+    error = 3*error/sqrt(length(y));
     curve1 = y + error;
     curve2 = y - error;
     x2 = [x, fliplr(x)];
