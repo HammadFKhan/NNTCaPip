@@ -59,6 +59,7 @@ if ~isfield(params, 'med_app'), med_app = 1; else med_app = params.med_app; end
 
 if ~isfield(params,'rem_prct') || isempty(params.rem_prct); params.rem_prct = 20; end
 %%
+fprintf('Beginning spatial filtering...')
 psf = fspecial('gaussian', round(params.gSiz(1)), params.gSig(1));
 ind_nonzero = (psf(:)>=max(psf(:,1)));
 psf = psf-mean(psf(ind_nonzero));
@@ -75,3 +76,4 @@ Ysig = get_noise_fft(HY, params);
 PNR = reshape(HY./Ysig, params.d1, params.d2,[]);
 PNR0 = PNR;
 PNR(PNR<params.min_pnr/5) = 0;
+fprintf('done\n')
