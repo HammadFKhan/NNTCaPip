@@ -8,10 +8,10 @@ rankEnsembles = Ensemble.NodeList(:,I);
 Ensemble.rankEnsembles = rankEnsembles;
 if ~isempty(AverageImage) && ~isempty(ROIcentroid) && length(rankEnsembles)>2
     figure,
-    for i = 1:5
+    for i = 2
         axis off
         color = jet(3);
-        EnsembleMap(AverageImage,ROIcentroid,rankEnsembles{i},6,grad(i,:))
+        EnsembleMap(AverageImage,ROIcentroid,rankEnsembles{i},6,[0 128/255 1/255])
         set(gcf,'Position',[100 100 500 500])
         drawnow
         hold on
