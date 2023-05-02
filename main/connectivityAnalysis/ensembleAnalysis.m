@@ -26,7 +26,6 @@ for i = 1:length(ensembleCan)
     else
         ensemble = horzcat(ensemble,Spikes(:,ensembleCan(i)-ensembleWin:ensembleCan(i)+ensembleWin));
         ensembleFrame = horzcat(ensembleFrame,ensembleCan(i)-ensembleWin:ensembleCan(i)+ensembleWin);
-        
     end
 end
 checkPadding = size(ensemble,1)-size(ensemble,2);
@@ -123,7 +122,7 @@ else
 end
 fprintf('Combining ensemble trains...\n')
 count = 1;
-ensembleStability = [];
+ensembleStability = {};
 for i = 1:ensembleIndentified
     % Once ensemble periods are detected find nodes
     if i == 1 
@@ -140,14 +139,14 @@ for i = 1:ensembleIndentified
     [NumActiveNodes,NodeList{i},NumNodes{i},NumEdges{i},SpatialCentroid{i},SpatialCentroidVariance{i},...
         ActivityCentroid{i},ActivityCentroidVariance{i}, ActivityCoords{i}]...
         = Network_Analysis(ROIcentroid,Connected_ROI{i});
-    if NodeList{i}~=0
+    if ~isempty(NodeList{i})
         try
-            ensembleStability{count} = coactive_index(ensemble(NodeList{i},:),length(ensemble)/5);
+            ensembleStability{count} = coactive_index(ensemble(NodeList{i},:),length(ensemble));
+            count = count+1;
         catch ME
             continue;
         end
     end
-    count = count+1;
 end
 % % Norm ensemble stability
 % for i = 1:size(ensembleStability,2)
