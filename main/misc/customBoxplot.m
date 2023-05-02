@@ -25,7 +25,7 @@ if length(size(data))>1
             t = data(:,i);
             buff = [buff;t(t>0)];
             labels = repmat({num2str(i)},length(buff),1);
-            scatter(i*ones(length(t(t>0)),1),t(t>0),'filled','jitter','on','jitterAmount',0.2)
+            scatter(i*ones(length(t(t>0)),1),t(t>0),'filled','jitter','on','jitterAmount',0.1)
         end
     end
 else
