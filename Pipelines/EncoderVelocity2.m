@@ -1,5 +1,5 @@
 function Vel = EncoderVelocity2(position,time)
-binWinTime = 2;
+binWinTime = 1;
 edgesPos = 0:1:abs(ceil(position(end)));
 VRposition =  discretize(position,edgesPos);
 edgesTime = 0:binWinTime:time(end); %Bin width on the track
