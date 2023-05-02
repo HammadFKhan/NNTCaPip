@@ -16,7 +16,7 @@ end
 set(0,'DefaultFigureWindowStyle','normal')
 addpath(genpath('main'));
 addpath(genpath('Pipelines'));
-std_threshold = 2;
+std_threshold = 2.5;
 static_threshold = 0;
 Spikes = Spike_Detector_Single(diff(DeltaFoverF),std_threshold,static_threshold);
 %Excude inactive cells
