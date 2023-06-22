@@ -144,7 +144,7 @@ for fileNum = 1:numFiles
     overlap = [6,6];                        % amount of overlap in each dimension (optional, default: [6,6])
     
     patches = construct_patches(sizY(1:end-1),patch_size,overlap);
-    K = 15;                  % number of components to be found per patch
+    K = 30;                  % number of components to be found per patch
     tau = [];                 % std of gaussian kernel (size of neuron) default:5
     p = 2;                   % order of autoregressive system (p = 0 no dynamics, p=1 just decay, p = 2, both rise and decay)
     merge_thr = 0.4;         % merging threshold
@@ -166,10 +166,12 @@ for fileNum = 1:numFiles
         'cnn_thr',0.3,...                           % classifier threshold (default:0.2)
         'patch_space_thresh',0.25,...               % merge patch threshold
         'min_SNR',2,...                             % minimum signal SNR
-        'search_method','ellipse');                 % method for determining footprint of spatial components 'ellipse' or 'dilate' (default: 'dilate')
+        'search_method','ellipse',...                % method for determining footprint of spatial components 'ellipse' or 'dilate' (default: 'dilate')
+        'decay_time',0.2);
+        
     
     %% Run on patches
-    CNMFmod = 0;
+    CNMFmod = 0; % Custom modification of CNMF kernal for 3d volumetric data/high noise data (ie. bessel imaging)
     if CNMFmod
         data.Y1 = customSpatialFilt(double(data.Y),options);
         [A,b,C,f,S,P,RESULTS,YrA] = run_CNMF_patches(data.Y1,K,patches,tau,0,options);  % do not perform deconvolution here since we have downsampled
@@ -257,9 +259,9 @@ for fileNum = 1:numFiles
     
     for i = 1:N
         spkmin = options.spk_SNR*GetSn(F_dff(i,:));
-        lam = choose_lambda(exp(-1/(options.fr*options.decay_time)),GetSn(F_dff(i,:)),options.lam_pr);
-        [cc,spk,opts_oasis] = deconvolveCa(F_dff(i,:),model_ar,'method','thresholded','optimize_pars',true,'maxIter',20,...
-            'window',150,'lambda',lam,'smin',spkmin);
+        lam = choose_lambda(exp(-1/(options.fr*options.decay_time/2)),GetSn(F_dff(i,:)),options.lam_pr);
+        [cc,spk,opts_oasis] = deconvolveCa(F_dff(i,:),model_ar,'method','foopsi','optimize_pars',true,'maxIter',20,...
+            'window',100,'lambda',lam,'smin',spkmin);
         bl(i) = opts_oasis.b;
         C_dec(i,:) = cc(:)' + bl(i);
         S_dec(i,:) = spk(:);
