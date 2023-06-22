@@ -9,7 +9,7 @@ bin = ceil(max(coactive_cells)*100);
 figure,hold on,bar(coactive_cells),bar(shufcoactive_cells);
 % figure,hold on,histogram(coactive_cells,100),histogram(shufcoactive_cells,100);
 ensembleWin = 5;
-ensembleCan = ensembleWin*find(coactive_cells>(5*std(shufcoactive_cells)+mean(shufcoactive_cells))); % 99% distribution threshold
+ensembleCan = ensembleWin*find(coactive_cells>(2.5*std(shufcoactive_cells)+mean(shufcoactive_cells))); % 99% distribution threshold
 disp(['Ensemble Candidates: ' num2str(length(ensembleCan))])
 % Grab window around ensembles
 ensemble = [];
@@ -42,13 +42,15 @@ avgSim = mean(mean(sim_index,2));
 X = sim_index - avgSim*ones(1,size(sim_index,2));
 [U,S,V] = svd(X,'econ');
 plotind = 1;
-figure,
-for r = [1:25]
-Xapprox = U(:,r)*S(r,r)*V(:,r)';
-subplot(5,5,plotind), plotind = plotind+1;
-imagesc(Xapprox),colormap(flip(gray)),caxis([0 0.15]);
+try
+    figure,
+    for r = [1:25]
+        Xapprox = U(:,r)*S(r,r)*V(:,r)';
+        subplot(5,5,plotind), plotind = plotind+1;
+        imagesc(Xapprox),colormap(flip(gray)),caxis([0 0.15]);
+    end
+catch
 end
-
 % Weighted Ensemble
 ensembleSimilarity = zeros(1,size(S,1));
 for i = 1:size(S,1)
@@ -173,6 +175,8 @@ Ensemble.ActivityCoords =  ActivityCoords;
 Ensemble.ensembleIndentified = ensembleIndentified;
 Ensemble.Connected_ROI =  Connected_ROI;
 Ensemble.loc = r;
+Ensemble.coactive_cells = coactive_cells;
+Ensemble.shufcoactive_cells = shufcoactive_cells;
 disp(['Ensembles Identified: ' num2str(ensembleIndentified)])
 end
 
