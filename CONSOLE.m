@@ -67,6 +67,8 @@ W12_10Entropy.Ensemble = Ensemble;
 %% LFP pipette analysis
 addpath(genpath('C:\Users\khan332\Documents\GitHub\NNTEphysPip\main'))
 LFP = Ca_LFP(time,1); %caTime; loadFlag0/1; LFP.out
+%% LFP modulation index
+modulationIndex = LFPmodulationIndex(DeltaFoverF,Ensemble,LFP);
 %% Beta Analysis
 [peakAlign,norm,f,stats] = IntrabetaAnalysis(LFP.beta);
 figure
