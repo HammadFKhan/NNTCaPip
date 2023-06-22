@@ -2,6 +2,7 @@ function Ensemble = ensembleMetric(Ensemble,AverageImage,ROIcentroid)
 % ensembleVid(Ensemble,AverageImage,ROIcentroid,files);
 % Displays ensemble overlay
 [~,I] = sort(cellfun(@length,Ensemble.NodeList),'descend'); %sort max node size
+Ensemble.rankedIdx = I;
 rankEdges = Ensemble.NumEdges(:,I);
 rankEnsembles = Ensemble.NodeList(:,I); 
 [grad,~]=colorGradient([0 0 1] ,[0 0 0],5)
