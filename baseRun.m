@@ -15,7 +15,7 @@ clear
 clc
 close all;
 set(0,'DefaultFigureWindowStyle','normal')
-addpath(genpath('main'));
+addpath(genpath('main'))
 addpath(genpath('Pipelines'))
 batchFlag = 0; % Sets if data is to be processed in batches (almost always)
 CaImAnFull(batchFlag); 
