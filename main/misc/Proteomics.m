@@ -23,3 +23,13 @@ strNMDAlabels = categorical(strNMDAlabel);
 figure,bar(strNMDAlabels, strNMDA)
 box off
 set(gca,'TickDir','out')
+%%
+CTXMonNMDA = NMDA(:,1:5);
+STRMonNMDA = NMDA(:,6:10);
+CTXPFFNMDA = NMDA(:,11:16);
+STRPFFNMDA = NMDA(:,17:22);
+cg = clustergram([CTXMonNMDA(:,[1 2 3 4 5]) CTXPFFNMDA(:,2:6)],'Rowlabels',NMDAlabels,'standardize','row');
+cg.Colormap = redbluecmap
+
+cg = clustergram([STRMonNMDA STRPFFNMDA(:,1:5)],'Rowlabels',NMDAlabels,'standardize','row');
+cg.Colormap = redbluecmap
