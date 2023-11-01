@@ -46,7 +46,7 @@ for i = 4
     figure,barplot(1.5*gL4{i}),ylim([0 30]),box off,set(gca,'TickDir','out'),title(['L4' num2str(i)]);
 end
 %% erase NAN
-for i = 1:5
+for i = 1:4
     buff = gL5{i};
     buff(isnan(buff)) = [];
     gL5new{i} = buff;
