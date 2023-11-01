@@ -88,14 +88,6 @@ t1 = sort(horzcat(nlsSizeE{:}),'descend');
 figure,plot(t),box off,axis([0 200 .3 1]),hold on
 plot(t1)
 
-
-
-
-
-
-
-
-
 %% Neuron IDs for each FOV ensemble
 for i = 1:L
     FOV(i).name = directory(i).name;
