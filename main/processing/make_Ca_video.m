@@ -50,14 +50,14 @@ bk_ind = nr + (1:size(b,2));
 A = [A,b];
 C = [C;f];
 R = [R;f];
-Yr = double(Yr);
+% Yr = double(Yr);
 
 ind = [ind,size(A,2)];
-Ym = zeros(d1,d2,T);
+% Ym = zeros(2*d1,4*d2,T);
 A = A';
 C = C';
-R = R';
-cnt = 0;
+% R = R';
+% cnt = 0;
 % for i = 1:4
 %     for j = 1:2
 %         cnt = cnt + 1;
@@ -126,12 +126,20 @@ for t = 1:skp:length(rm_pix)
         ax3 = subplot(1,3,3);
         imagesc(Y_noise(2:end-1,2:end-1,i),[nN,mN]); axis equal; axis tight;colormap(ax3,gray)
         title('Reconstructed','Fontsize',16,'Fontweight','bold'); axis off;
-        pos = get(gca,'Position') + [-0.01,-0.025,0.05,0.05];
         hc = colorbar('location','southoutside');
         set(gca,'position',pos);
+        
+%         subplot(3,3,4:9); imagesc(Ym(2:end-1,2:end-1,i),[0,.5]); axis equal; axis tight; axis off;colormap(gray)
+%         if t == 1
+%             pos_full = get(gca,'Position');
+%             pos_full = pos_full + [-0.065,-0.05,0.12,0.14];
+%         end
+%         title('Extracted Components','Fontsize',16,'Fontweight','bold');
+%         set(gca,'XTick',[],'YTick',[],'Position',pos_full);
+        drawnow; pause(0.01);
     end
     
-    %         subplot(3,3,4:9); imagesc(Ym(2:end-1,2:end-1,i),[0,1]); axis equal; axis tight; axis off;colormap(gray)
+%             subplot(3,3,4:9); imagesc(Ym(2:end-1,2:end-1,i),[0,1]); axis equal; axis tight; axis off;colormap(gray)
     %         if t == 1
     %             pos_full = get(gca,'Position');
     %             pos_full = pos_full + [-0.065,-0.05,0.12,0.14];
