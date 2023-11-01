@@ -1,4 +1,4 @@
-function [lateSpikeEnsemble, nolateSpikeEnsemble] = travelingWaveEnsemble(spikeTrials,lateSpikeTrials,nolateSpikeTrials,ROI,ROIcentroid,AverageImage)
+function [lateSpikeEnsemble, nolateSpikeEnsemble] = travelingWaveEnsemble(spikeTrials,lateSpikeTrials,nolateSpikeTrials,ROIcentroid,AverageImage)
 % Parse spike trials into late/no late spike and then calculate the
 % ensemble space that it occupies. Using this we can then reproject into
 % the broad ensemble space and (hopefully) cluster the data
@@ -27,7 +27,7 @@ end
 % Now extract representative ensembles
 % Late Spike
 FactorCorrection = 5*floor(size(lateSpikes,2)/5); % Correct for frame size aquisition
-lateSpikeEnsemble = ensembleAnalysis(lateSpikes(:,1:FactorCorrection),ROI,ROIcentroid);
+lateSpikeEnsemble = ensembleAnalysis(lateSpikes(:,1:FactorCorrection),ROIcentroid);
 [~,I] = sort(cellfun(@length,lateSpikeEnsemble.NodeList),'descend'); %sort max node size
 rankEdges = lateSpikeEnsemble.NumEdges(:,I);
 rankEnsembles = lateSpikeEnsemble.NodeList(:,I); 
@@ -35,19 +35,21 @@ rankEnsembles = lateSpikeEnsemble.NodeList(:,I);
 lateSpikeEnsemble.rankEnsembles = rankEnsembles;
 lateSpikeEnsemble.rankEdges = rankEdges;
 lateSpikeEnsemble.Spikes = lateSpikes;
-figure,
-for i = 1:5
-    axis off
-    color = jet(3);
-    EnsembleMap(AverageImage,ROIcentroid,lateSpikeEnsemble.rankEnsembles{i},5,grad(i,:))
-    set(gcf,'Position',[100 100 500 500])
-    drawnow
-    hold on
+try
+    figure,
+    for i = 2:5
+        axis off
+        color = jet(3);
+        EnsembleMap(AverageImage,ROIcentroid,lateSpikeEnsemble.rankEnsembles{i},5,grad(i,:))
+        set(gcf,'Position',[100 100 500 500])
+        drawnow
+        hold on
+    end
+catch
 end
-
 % No Late Spike
 FactorCorrection = 5*floor(size(nolateSpikes,2)/5); % Correct for frame size aquisition
-nolateSpikeEnsemble = ensembleAnalysis(nolateSpikes(:,1:FactorCorrection),ROI,ROIcentroid);
+nolateSpikeEnsemble = ensembleAnalysis(nolateSpikes(:,1:FactorCorrection),ROIcentroid);
 [~,I] = sort(cellfun(@length,nolateSpikeEnsemble.NodeList),'descend'); %sort max node size
 rankEdges = nolateSpikeEnsemble.NumEdges(:,I);
 rankEnsembles = nolateSpikeEnsemble.NodeList(:,I); 
@@ -55,14 +57,17 @@ rankEnsembles = nolateSpikeEnsemble.NodeList(:,I);
 nolateSpikeEnsemble.rankEnsembles = rankEnsembles;
 nolateSpikeEnsemble.rankEdges = rankEdges;
 nolateSpikeEnsemble.Spikes = nolateSpikes;
-figure,
-for i = 1:5
-    axis off
-    color = jet(3);
-    EnsembleMap(AverageImage,ROIcentroid,nolateSpikeEnsemble.rankEnsembles{i},4,grad(i,:))
-    set(gcf,'Position',[100 100 500 500])
-    drawnow
-    hold on
+try
+    figure,
+    for i = 1:5
+        axis off
+        color = jet(3);
+        EnsembleMap(AverageImage,ROIcentroid,nolateSpikeEnsemble.rankEnsembles{i},4,grad(i,:))
+        set(gcf,'Position',[100 100 500 500])
+        drawnow
+        hold on
+    end
+catch
 end
 
 % Combine Maps
