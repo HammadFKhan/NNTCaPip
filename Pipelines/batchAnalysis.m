@@ -11,7 +11,12 @@ numFile = length(file);
 for fileNum = 1:numFile
     filename = file(fileNum).name;
     load(filename)
-%     
+    % Check for bad components
+    if exist('badComponents','var') && ~exist('badComFlag','var')
+        [DeltaFoverF,dDeltaFoverF,ROI,ROIcentroid,Noise_Power,A] = ...
+            removeROI(DeltaFoverF,dDeltaFoverF,ROI,ROIcentroid,Noise_Power,A,unique(badComponents));
+        badComFlag = 1;
+    end
     % Fix centroids
     ROIcentroid = [];
     for i = 1:length(ROI)
@@ -22,9 +27,12 @@ for fileNum = 1:numFile
     set(0,'DefaultFigureWindowStyle','normal')
     addpath(genpath('main'));
     addpath(genpath('Pipelines'));
-    std_threshold = 7;
+    %     std_threshold = 6;
+    %     static_threshold = .00;
+    %     Spikes = Spike_Detector_Single((dDeltaFoverF),std_threshold,static_threshold);
+    std_threshold = 3;      % from Carrilo-Reid and Jordan Hamm's papers
     static_threshold = .01;
-    Spikes = Spike_Detector_Single(dDeltaFoverF,std_threshold,static_threshold);
+    Spikes = rasterizeDFoF(DeltaFoverF,std_threshold,static_threshold);
     %Excude inactive cells
     % numSpikes = sum(Spikes,2);
     % keepSpikes = find(numSpikes>(.01*mean(numSpikes)));
@@ -39,7 +47,14 @@ for fileNum = 1:numFile
             continue;
         end
     end
-    
+    spikeTrials = [];
+    trialLength = 330;
+    figure,
+    for i = 1:size(Spikes,2)/trialLength
+        spikeTrials{i} = Spikes(:,((i-1)*trialLength+1):i*trialLength);
+        Show_Spikes(spikeTrials{i});
+%         DeltaTrials(:,:,i) = DeltaFoverF(:,((i-1)*trialLength+1):i*trialLength);
+    end
     % Perform shuffling and pairwise if data is small enough
     if size(DeltaFoverF,2)<2000
         %     Spikes_shuffled = tempShuffle(Spikes,1000);
@@ -58,8 +73,9 @@ for fileNum = 1:numFile
             ActivityCentroid,ActivityCentroidVariance]...
             = Network_Analysis(ROIcentroid,Connected_ROI);
     end
-    % Pairwise Velocity Analysis
-    % velocityPairwise(VR_data,Spikes)
+    
+    
+
     % Ensemble Analysis
     % figure,[Coor,json_file] = plot_contours(A,C,ops,0); % contour plot of spatial footprints
     factorCorrection = 5*floor(size(Spikes,2)/5); % Correct for frame size aquisition
@@ -70,14 +86,29 @@ for fileNum = 1:numFile
     Ensemble = ensembleStat(Ensemble);
     close all
     
-    if ~exist([file(fileNum).folder '\Dendritic'],'dir')
-        mkdir([file(fileNum).folder '\Dendritic']);
+    %% Run the analysis again but using the sensory driven response window
+    SpikesSen = [];
+    for i = 1:length(spikeTrials)
+        win = [60 240];
+        SpikesSen = horzcat(SpikesSen,spikeTrials{i}(:,win(1):win(2)));
+    end
+    factorCorrection = 5*floor(size(SpikesSen,2)/5); % Correct for frame size aquisition
+    Ensemblesensory = ensembleAnalysis(SpikesSen(:,1:factorCorrection),ROIcentroid);
+    
+    % Ensemble stats
+    Ensemblesensory = ensembleMetric(Ensemblesensory,AverageImage,ROIcentroid);
+    Ensemblesensory = ensembleStat(Ensemblesensory);
+    close all
+    
+    %% Save data
+    if ~exist([file(fileNum).folder '\output'],'dir')
+        mkdir([file(fileNum).folder '\output']);
     end
     [folder_name,file_name,~] = fileparts(file(fileNum).name);
     if exist(fullfile([folder_name, '\output'],[file_name,'.mat']),'file')
         file_name = [file_name '_' datestr(now,30) '_'];
     end
-    savepath = fullfile([folder_name, '\Dendritic'],[file_name,'.mat']);
-    save(savepath,'files', 'Ensemble','Spikes','ROI', 'ROIcentroid' ,'DeltaFoverF');
+    savepath = fullfile([folder_name, '\output'],[file_name,'.mat']);
+    save(savepath,'files', 'Ensemble','spikeTrials','Ensemblesensory','Spikes','ROI', 'ROIcentroid' ,'DeltaFoverF');
     clearvars -except file numFile fileNum filetype foldername
 end
