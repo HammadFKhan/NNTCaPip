@@ -1,4 +1,4 @@
-function [X] = featureProject(featureData,navgtarget,flag)
+function [X,Q] = featureProject(featureData,navgtarget,flag)
 if nargin<2 || strcmp('navgtarget','')
     navgtarget = 1;
 end
@@ -20,9 +20,9 @@ colorbar;
 
 figure,
 semilogx(flip(diag(D)),'k','Linewidth',2),grid on;hold on;
-q(:,1) = V(:,size(featureData,2));
-q(:,2) = V(:,size(featureData,2)-1);
-q(:,3) = V(:,size(featureData,2)-2);
+q(:,1) = -V(:,size(featureData,2));
+q(:,2) = -V(:,size(featureData,2)-1);
+q(:,3) = -V(:,size(featureData,2)-2);
 
 figure();
 plot(q);
@@ -40,6 +40,7 @@ if flag
     figure()
     scatter(tProjq1,tProjq2,200,'b.'); hold on;
     scatter(uProjq1,uProjq2,200,'r.');
+    legend('Feature 1', 'Feature 2')
 else
     figure,
     scatter3(tProjq1,tProjq2,tProjq3,10,[236 0 140]/255,'filled'); hold on; %[43 57 144]/255
@@ -49,5 +50,5 @@ end
 ylabel('bk')
 xlabel('ak');
 X = [featureData*q(:,1),featureData*q(:,2),featureData*q(:,3)];
-
+Q = q;
 end
