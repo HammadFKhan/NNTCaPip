@@ -5,7 +5,7 @@ count = 1;
 fprintf('Correlating trials...')
 for i = trials%t2
     corr = correlation_dice(spikeTrials{i});
-    Connected_ROI{count} = Connectivity_dice(corr,ROI,0.3);
+    Connected_ROI{count} = Connectivity_dice(corr,0.3);
     count = count+1;
 end
 fprintf('done.\n')
