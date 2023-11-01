@@ -52,7 +52,7 @@ fprintf('done\n');
 fprintf('Applying Kalman filter...')
 Img_p= kalman_stack_filter(vol);
 fprintf('done\n')
-
+plotOn = 0;
 %%
 if plotOn
     figure,
