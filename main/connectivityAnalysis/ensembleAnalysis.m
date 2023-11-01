@@ -136,7 +136,7 @@ for i = 1:ensembleIndentified
     end
     fprintf(['Connectivity analysis for activation ' num2str(i) '.\n']);
     corr = correlation_dice(ensembleId);
-    thresh = 0.6;
+    thresh = 0.4;
     Connected_ROI{i} = Connectivity_dice(corr,thresh);
     [NumActiveNodes,NodeList{i},NumNodes{i},NumEdges{i},SpatialCentroid{i},SpatialCentroidVariance{i},...
         ActivityCentroid{i},ActivityCentroidVariance{i}, ActivityCoords{i}]...
