@@ -1,5 +1,5 @@
 function Vel = EncoderVelocity2(position,time)
-binWinTime = 1;
+binWinTime = 2;
 edgesPos = 0:1:abs(ceil(position(end)));
 VRposition =  discretize(position,edgesPos);
 edgesTime = 0:binWinTime:time(end); %Bin width on the track
@@ -19,8 +19,9 @@ disp(['Binning routine adjusted: ' num2str(count)]);
 clear count
 % Checks for NaN values
 nanValues = find(isnan(VRtimebin));
-VRtimebin(isnan(VRtimebin)) = VRtimebin(nanValues(1)-1,1); % Assigns last value to NaN
-
+try
+    VRtimebin(isnan(VRtimebin)) = VRtimebin(nanValues(1)-1,1); % Assigns last value to NaN
+end
 dP = diff(position);
 dP = vertcat(0,dP);
 for i = 1:VRtimebin(end)
