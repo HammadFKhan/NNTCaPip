@@ -8,15 +8,14 @@ rankEnsembles = Ensemble.NodeList(:,I);
 [grad,~]=colorGradient([0 0 1] ,[0 0 0],5)
 Ensemble.rankEnsembles = rankEnsembles;
 if ~isempty(AverageImage) && ~isempty(ROIcentroid) && length(rankEnsembles)>2
-    figure,
-    for i = 2
-        axis off
-        color = jet(3);
-        EnsembleMap(AverageImage,ROIcentroid,rankEnsembles{i},6,[0 128/255 1/255])
-        set(gcf,'Position',[100 100 500 500])
-        drawnow
-        hold on
-    end
+figure,
+ensembleId = 1:2;
+axis off
+color = jet(3);
+EnsembleMap(AverageImage,ROIcentroid,vertcat(Ensemble.rankEnsembles{ensembleId}),6,[0 0 1])
+set(gcf,'Position',[100 100 500 500])
+drawnow
+hold on
 end
 % Combine Maps
 figure,imagesc(interp2(Ensemble.sim_index,2)),colormap(jet),caxis([0.13 .4])
