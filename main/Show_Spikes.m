@@ -7,7 +7,7 @@ baseline = 0;
 time = (1:x)/Fs;
 for i = 1:y
     for ii = 1:x
-        if Spikes(i,ii) == 1
+        if Spikes(i,ii) ==1
             spikePlot(i,ii) = Spikes(i,ii)+baseline;
         else
             spikePlot(i,ii) = NaN;
