@@ -81,7 +81,7 @@ figure,boxplot(sisterBranch);box off,set(gca,'TickDir','out'),ylim([0 5]);title(
 figure,boxplot(abs(primaryBranch-sisterBranch));box off,set(gca,'TickDir','out'),ylim([0 5]);title('Coupling Coefficient')
 %% Interdendritic activity (cross-population behavior)
 addpath(genpath('main'));
-std_threshold = 7;
+std_threshold = 6;
 static_threshold = .01;
 Spikes = Spike_Detector_Single(dDeltaFoverF,std_threshold,static_threshold);
 [coactive_cells,detected_spikes] = coactive_index(Spikes,floor(length(Spikes)*.05));
@@ -91,7 +91,7 @@ corr = correlation_dice(Spikes);
 factorCorrection = 5*floor(size(Spikes,2)/5); % Correct for frame size aquisition
 Ensemble = ensembleAnalysis(Spikes(:,1:factorCorrection),ROIcentroid);
 corrEnsemble = correlation_dice(Ensemble.ensemble);
-Connected_ROI = Connectivity_dice(corrEnsemble, ROI,0.15);
+Connected_ROI = Connectivity_dice(corrEnsemble,0.15);
 % Ensemble stats
 Ensemble = ensembleMetric(Ensemble,AverageImage,ROIcentroid);
 Ensemble = ensembleStat(Ensemble);
