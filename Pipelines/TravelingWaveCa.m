@@ -123,12 +123,14 @@ Ensemble.rankedActivityCoords = rankedActivityCoords;
 % ensembleVid(nolateSpikeEnsemble,AverageImage,ROIcentroid,'nolateSpikeEnsemble')
 % Now look at trial specific changes
 % Standard trial length is 360 frames ** old data set had 240 frames
-%
+%%
 spikeTrials = [];
 trialLength = 360;
 for i = 1:size(Spikes,2)/trialLength
     spikeTrials{i} = Spikes(:,((i-1)*trialLength+1):i*trialLength);
+    DeltaTrials(:,:,i) = DeltaFoverF(:,((i-1)*trialLength+1):i*trialLength);
 end
+
 % check for edge case when calcium and trial numbers don't match
 if length(spikeTrials)<trialData.responsiveTrials.trialNum(end)
     trialData.responsiveTrials.lateSpikeTrialsOld = trialData.responsiveTrials.lateSpikeTrials;
@@ -147,8 +149,14 @@ end
 
 
 figure,
-for i = trialData.responsiveTrials.noLateSpikeTrials
-    Show_Spikes(spikeTrials{i}),hold on
+for i = 10:44
+    blah = spikeTrials{i};
+    idx = 200+randperm(61,61);
+    blah(:,90:150) = blah(:,idx);
+    blah(:,1:90) = 0;
+    blah(:,180:360)=0;
+    %     Show_Spikes(spikeTrials{i}),hold on
+    Show_Spikes(blah),hold on
 end
 % generate ROC for connectivity
 % thresh = 0;
@@ -196,7 +204,7 @@ end
 
 % Late vs no Late spike ensembles
 [lateSpikeEnsemble, nolateSpikeEnsemble] =...
-    travelingWaveEnsemble(spikeTrials,trialData.responsiveTrials.lateSpikeTrials,trialData.responsiveTrials.noLateSpikeTrials,ROI,ROIcentroid,AverageImage);
+    travelingWaveEnsemble(spikeTrials,trialData.responsiveTrials.lateSpikeTrials,trialData.responsiveTrials.noLateSpikeTrials,ROIcentroid,AverageImage);
 
 % manifold analysis and entropy
 lateSpikeEnsemble = ensembleMetric(lateSpikeEnsemble,AverageImage,ROIcentroid);
