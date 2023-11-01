@@ -46,7 +46,7 @@ for fileNum = 1:numFiles
     disp(['Reading file ' file(fileNum).name '...']);
     FOV = size(read_file(file(fileNum).name,1,1));
     options_mc = NoRMCorreSetParms('d1',FOV(1),'d2',FOV(2),'grid_size',[128,128],'init_batch',200,...
-        'overlap_pre',32,'mot_uf',4,'bin_width',200,'max_shift',24,'max_dev',8,'us_fac',50,...
+        'overlap_pre',32,'mot_uf',4,'bin_width',200,'max_shift',24,'max_dev',8,'us_fac',50,'iter',2,...
         'use_parallel',true,'output_type',output_type);
     
     template = [];
@@ -144,7 +144,7 @@ for fileNum = 1:numFiles
     overlap = [6,6];                        % amount of overlap in each dimension (optional, default: [6,6])
     
     patches = construct_patches(sizY(1:end-1),patch_size,overlap);
-    K = 30;                  % number of components to be found per patch
+    K = 35;                  % number of components to be found per patch
     tau = [];                 % std of gaussian kernel (size of neuron) default:5
     p = 2;                   % order of autoregressive system (p = 0 no dynamics, p=1 just decay, p = 2, both rise and decay)
     merge_thr = 0.4;         % merging threshold
