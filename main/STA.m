@@ -3,7 +3,7 @@ function calcium_avg = STA(DeltaFoverF,std_threshold,window)
 %% find all spikes and align to the peak
 %find negative peaks in filtered data with an amplitude of at least 4 std and 1ms  in
 %separation
-
+calcium_avg = [];
 %for each detected spike, extract a window 2ms before and after the peak
 for i = 1:length(DeltaFoverF(:,1))
     thresh = std_threshold*std(DeltaFoverF(i,:));
@@ -20,4 +20,5 @@ for i = 1:length(DeltaFoverF(:,1))
         end
     end
 end
+
 end
