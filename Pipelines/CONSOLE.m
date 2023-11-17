@@ -10,38 +10,49 @@ clearvars -except ds_filename
 data = matfile(ds_filename);
 parameters.experiment = 'cue'; % self - internally generated, cue - cue initiated
 parameters.opto = 0; % 1 - opto ON , 0 - opto OFF
-parameters.windowBeforePull = 1.5; % in seconds
-parameters.windowAfterPull = 1.5; % in seconds
-parameters.windowBeforeCue = 1.5; % in seconds
-parameters.windowAfterCue = 1.5; % in seconds
-parameters.windowBeforeMI = 1.5; % in seconds
-parameters.windowAfterMI = 1.5; % in seconds
+parameters.windowBeforePull = 0.5; % in seconds
+parameters.windowAfterPull = 4.5; % in seconds
+parameters.windowBeforeCue = 0.5; % in seconds
+parameters.windowAfterCue = 4.5; % in seconds
+parameters.windowBeforeMI = 0.5; % in seconds
+parameters.windowAfterMI = 4.5; % in seconds
 parameters.Fs = 1000; % Eventual downsampled data
 parameters.ts = 1/parameters.Fs;
 amplifierTime = downsample(data.amplifierTime,round(5000/parameters.Fs),1); % time in seconds
 [Behaviour] = readLever(parameters,amplifierTime);
 [IntanBehaviour] = readLeverIntanImaging(parameters,amplifierTime,data.analogChannels(1,:),data.digitalChannels,Behaviour,1);
-
-
-
+IntanBehaviour.parameters = parameters;
+% Calculate ITI time for trials and reward/no reward sequence
+temp1 = arrayfun(@(x) x.LFPtime(1), IntanBehaviour.cueHitTrace);
+temp1 = vertcat(temp1,ones(1,IntanBehaviour.nCueHit)); %  write 1 for reward given
+temp2 = arrayfun(@(x) x.LFPtime(1), IntanBehaviour.cueMissTrace);
+temp2 = vertcat(temp2,zeros(1,IntanBehaviour.nCueMiss)); %  write 0 for no reward given
+temp = [temp1,temp2];
+[~,idx] = sort(temp(1,:)); %sort by occurance
+IntanBehaviour.ITI = temp(:,idx);
 %% Remove ROIs
 if exist('badComponents','var') && ~exist('badComFlag','var')
     [DeltaFoverF,dDeltaFoverF,ROI,ROIcentroid,Noise_Power,A] = ...
-        removeROI(DeltaFoverF,dDeltaFoverF,ROI,ROIcentroid,Noise_Power,A,unique(badComponents));
+        removeROI(DeltaFoverF,dDeltaFoverF,ROI,ROIcentroid,Noise_Power,A,unique(156));
     badComFlag = 1;
 end
-%% Fix centroids
+% Fix centroids
 ROIcentroid = [];
 for i = 1:length(ROI)
     blah = vertcat(ROI{i}{:});
     ROIcentroid(i,:) = floor(mean(blah,1));
 end
-%% Analysis
+%% preAnalysis (setup paths and grab sutter metadata)
 set(0,'DefaultFigureWindowStyle','normal')
 addpath(genpath('main'));
 addpath(genpath('Pipelines'));
+[fileInfo] = CaImAnReadIn([]); %grabs metadata
+%% Volume Detection (volumetric concatenation
+if volumeCa
+    l5Idx = 1:size(DeltaFoverF,1);
+    l5DeltaFoverF = DeltaFoverF;
+end
 %% Spike detection from dF/F
-
 std_threshold = 3;      % from Carrilo-Reid and Jordan Hamm's papers
 static_threshold = .01;
 Spikes = rasterizeDFoF(DeltaFoverF,std_threshold,static_threshold);
@@ -53,143 +64,94 @@ figure('Name','Spiking Raster');Show_Spikes(Spikes);
 % Spikes = Spikes(keepSpikes,:);
 [coactive_cells,detected_spikes] = coactive_index(Spikes,size(Spikes,2));
 cell_count = length(ROI);
-time = time_adjust(size(DeltaFoverF,2),30.048);
+caFR = 15.0282; %% 30.0647;
+time = time_adjust(size(DeltaFoverF,2),caFR);
 for i = 1:size(DeltaFoverF,1)
     calcium_avg{i} = STA(DeltaFoverF(i,:),2,250);%std, window (frames)
 end
 % Pairwise Velocity Analysis
 % velocityPairwise(VR_data,Spikes)
-
+%% Behavioural analysis of calcium and spikes
+Calcium = leverCaModulation(l23DeltaFoverF,l23Spikes,IntanBehaviour,time);
 %% Ensemble Analysis
-% figure,[Coor,json_file] = plot_contours(A,C,ops,0); % contour plot of spatial footprints
-factorCorrection = 5*floor(size(Spikes,2)/5); % Correct for frame size aquisition
-Ensemble = ensembleAnalysis(Spikes(:,1:factorCorrection),ROIcentroid);
-
-% Ensemble stats
-Ensemble = ensembleMetric(Ensemble,AverageImage,ROIcentroid);
-Ensemble = ensembleStat(Ensemble);
-%% LFP pipette analysis
-addpath(genpath('C:\Users\khan332\Documents\GitHub\NNTEphysPip\main'))
-LFP = Ca_LFP(time,1); %caTime; loadFlag0/1; LFP.out
-%% LFP modulation index
-modulationIndex = LFPmodulationIndex(DeltaFoverF,Ensemble,LFP);
-%% Beta Analysis
-[peakAlign,norm,f,stats] = IntrabetaAnalysis(LFP.beta);
-figure
-for i = 1:144
-    subplot(12,12,i),plot(LFP.beta.betaTrace{i}),axis off
-end
-
-figure,plot(0:1/LFP.Fs:(length(LFP.Vmfilt)-1)/LFP.Fs,LFP.Vmfilt);xlim([0 length(LFP.Vmfilt)/LFP.Fs])
-
-figure,plot(0:1/LFP.Fs:(length(LFP.betaLFP)-1)/LFP.Fs,LFP.betaLFP);xlim([0 length(LFP.betaLFP)/LFP.Fs])
-
-%% Behavior
-Vel = EncoderVelocity2(abs(encoder(:,1)),abs(encoder(:,2))); % position;time
-%% Generate Rest/Run Ca Spikes
-thresh = 2;
-if ~exist('CaFR','var'), CaFR = 30.048;end % sets to default framerate
-if ~exist('time','var'), timeT = 1/CaFR:1/CaFR:(size(DeltaFoverF,2)/CaFR);end
-[runSpikes,runSpikesFrame] = spikeState(Vel,Spikes,time,CaFR,thresh,1); % state 1/0 for run/rest
-[restSpikes,restSpikesFrame] = spikeState(Vel,Spikes,time,CaFR,thresh,0); % state 1/0 for run/rest
-
-if iscell(runSpikes)
-    runSpikes = horzcat(runSpikes{:});
-end
-if iscell(restSpikes)
-   restSpikes = horzcat(restSpikes{:});
-end
-runCa = DeltaFoverF(:,runSpikesFrame);
-restCa = DeltaFoverF(:,restSpikesFrame);
-
-%% Behavior-based Ensemble
-runfactorCorrection = 40*floor(size(runSpikes,2)/40); % Correct for frame size aquisition
-restfactorCorrection = 20*floor(size(restSpikes,2)/20); % Correct for frame size aquisition
-
-[vectorizedRun,sim_indexRun] = cosine_similarity(runSpikes(:,1:runfactorCorrection),40);
-[vectorizedRest,sim_indexRest] = cosine_similarity(restSpikes(:,1:restfactorCorrection),20);
+idx = size(Calcium.hit.Spikes);
+hitSpikes = reshape(Calcium.hit.Spikes,idx(1),idx(2)*idx(3));
+idx = size(Calcium.miss.Spikes);
+missSpikes = reshape(Calcium.miss.Spikes,idx(1),idx(2)*idx(3));
+idx = size(Calcium.MIFA.Spikes);
+FASpikes = reshape(Calcium.MIFA.Spikes,idx(1),idx(2)*idx(3));
+% Hit Ensemble
+factorCorrection = 5*floor(size(hitSpikes,2)/5); % Correct for frame size aquisition
+hitEnsemble = ensembleAnalysis2(hitSpikes(:,1:factorCorrection),ROIcentroid);
+hitEnsemble = ensembleMetric(hitEnsemble,AverageImage,ROIcentroid);
+hitEnsemble = ensembleStat(hitEnsemble);
+% Miss Ensemble
+factorCorrection = 5*floor(size(missSpikes,2)/5); % Correct for frame size aquisition
+missEnsemble = ensembleAnalysis2(missSpikes(:,1:factorCorrection),ROIcentroid);
+missEnsemble = ensembleMetric(missEnsemble,AverageImage,ROIcentroid);
+missEnsemble = ensembleStat(missEnsemble);
+% FA Ensemble
+factorCorrection = 5*floor(size(FASpikes,2)/5); % Correct for frame size aquisition
+FAEnsemble = ensembleAnalysis2(FASpikes(:,1:factorCorrection),ROIcentroid);
+FAEnsemble = ensembleMetric(FAEnsemble,AverageImage,ROIcentroid);
+FAEnsemble = ensembleStat(FAEnsemble);
 %%
-runEnsemble = ensembleAnalysis(runSpikes(:,1:runfactorCorrection),ROI,ROIcentroid);
-restEnsemble = ensembleAnalysis(restSpikes(:,1:restfactorCorrection),ROI,ROIcentroid);
-
-ensembleMetric(runEnsemble,AverageImage,ROIcentroid)
-ensembleMetric(restEnsemble,AverageImage,ROIcentroid)
-
-
-%% SVD/PCA of Ensembles
-comVect = [runCa restCa];
-[X] = featureProject(comVect);
-%% K-means clustering of neural projections
-[idx,C] = kmeans(X,2);
-scatter3(X(idx==1,1),X(idx==1,2),X(idx==1,3),10,[0 0 0],'filled'); hold on; %[43 57 144]/255
-scatter3(X(idx==2,1),X(idx==2,2),X(idx==2,3),10,[1 0 0],'filled'); %[0 148 68]/255
-%scatter3(X(idx==3,1),X(idx==3,2),X(idx==3,3),10,[0 0 0],'filled'); %[0 148 68]/255
-
-%% Beta events and fluorescence
-
-
-%% Beta events within ensembles
-runLFP = betaCaEnsemble(runSpikes,runSpikesFrame,runEnsemble,LFP,CaFR); 
-
-restLFP = betaCaEnsemble(restSpikes,restSpikesFrame,restEnsemble,LFP,CaFR); 
-
-[peakAlign,norm,f,stats] = IntrabetaAnalysis(runLFP.beta);
-[peakAlign,norm,f,stats] = IntrabetaAnalysis(restLFP.beta);
-
-%% Plot all the Figures
-addpath('Figures');
-figure('Name','DeltaF/F'); stack_plot(DeltaFoverF,1.5,15); 
-figure('Name','Convolved Spikes'); plot(dDeltaFoverF');
-figure('Name','Threshold Detection');DeltaFoverFplotter(dDeltaFoverF,std_threshold,static_threshold)
-figure('Name','Spike Plot'); Show_Spikes(Spikes);
-% figure('Name','Temporal Shuffled Spike Plot'); shuffledTspikePlot = Show_Spikes(Spikes_shuffled);
-% figure('Name','Event Shuffled Spike Plot'); shuffledEspikePlot = Show_Spikes(Event_shuffled);
-% figure('Name','Total Shuffled Spike Plot'); shuffledAspikePlot = Show_Spikes(Total_shuffled);
-figure('Name','Fluorescence Map'); spike_map(DeltaFoverF);caxis([0 1])
-figure('Name','Population Intensity');height = 10;rateImage = firing_rate(Spikes,height,time);caxis([0 0.5]);
-figure('Name','Coactivity Index'); B = bar(coactive_cells,4);ax = gca;ax.TickDir = 'out';ax.Box = 'off';
-figure('Name','Dice-Similarity Index');h = htmp(corr,10);caxis([0 0.4]);set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);
-figure('Name','Shuffled Dice-Similarity Index');h = htmp(shuff_corr,10);caxis([0 0.4]);set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);
-figure('Name','Cosine-Similarity Index'); h = htmp(sim_index);caxis([0.0 .8]);set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);
-figure('Name','Shuffled Cosine-Similarity Index'); h = htmp(shufsim_index);caxis([0 1]);set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);
-figure('Name','Network Map'); NodeSize = 5;EdgeSize = 1;Cell_Map_Dice(AverageImage,Connected_ROI,ROIcentroid,NodeSize,EdgeSize)
-
-
-%% Rotary Encoder
-figure('Name','Pulse Data');plot(encoder_data.rotate_pulse);
-figure('Name','Angular Distance');bar(encoder_data.ang_distance);
-figure('Name','Angular Velocity');bar(encoder_data.ang_velocity,'FaceColor',[.16 .835 .384],'EdgeColor','none');
-figure('Name','Avg. Angular Velocity');avgV = movmean(encoder_data.ang_velocity,2);bar(avgV,'FaceColor',[.16 .835 .384],'EdgeColor','none');
+timeWin = [size(hitEnsemble.ensemble,2),size(missEnsemble.ensemble,2),size(FAEnsemble.ensemble,2)];
+timeWin = 1:floor(min(timeWin)/10)*10;
+tEnsemble = horzcat(hitEnsemble.ensemble(:,timeWin),missEnsemble.ensemble(:,timeWin),FAEnsemble.ensemble(:,timeWin));
+[tVectorized,tsimIndex] = cosine_similarity(tEnsemble,5);
+[X] = featureProject(tsimIndex, 1, 0);
+%%
+hitWin = 1:size(tsimIndex,2)/3;
+missWin = 1+hitWin(end):(hitWin(end)+size(tsimIndex,2)/3);
+FAWin = 1+missWin(end):(missWin(end)+size(tsimIndex,2)/3);
+figure,
+scatter3(X(hitWin,1),X(hitWin,2),X(hitWin,3),20,'filled'),hold on
+scatter3(X(missWin,1),X(missWin,2),X(missWin,3),20,'filled','r')
+scatter3(X(FAWin,1),X(FAWin,2),X(FAWin,3),20,'filled','k')
+%%
+figure,bar([hitEnsemble.ensembleNum,missEnsemble.ensembleNum,FAEnsemble.ensembleNum]),box off
+set(gca,'TickDir','out','fontsize',14),ylabel('# of Ensembles')
+figure,bar([mean(hitEnsemble.ensembleSize),mean(missEnsemble.ensembleSize),mean(FAEnsemble.ensembleSize)]),box off
+set(gca,'TickDir','out','fontsize',14),ylabel('# Neurons/Ensembles')
 
 %%
-A    = M2;
-imwrite(A(:, :, 1), 'test.tiff');
-for k = 2:size(A, 3)
-  imwrite(A(:, :, k), 'test.tiff', 'WriteMode', 'append');
+hitWin = 1:size(tsimIndex,2)/3;
+missWin = 1+hitWin(end):(hitWin(end)+size(tsimIndex,2)/3);
+FAWin = 1+missWin(end):(missWin(end)+size(tsimIndex,2)/3);
+ensembleStab = [mean(tsimIndex(hitWin,hitWin),2),mean(tsimIndex(missWin,missWin),2),mean(tsimIndex(FAWin,FAWin),2)];
+figure,customBoxplot(ensembleStab),box off
+set(gca,'TickDir','out','fontsize',14),ylabel('Ensemble Stability')
+%% Volume analysis
+%%% Fraction of shared L2/3 and L5 neurons within an ensemble
+Ensemble = FAEnsemble;
+for n = 1:Ensemble.ensembleNum
+    temp = Ensemble.rankEnsembles{n};
+    l23Member = sum(ismember(temp,l23Idx));
+    l5Member = sum(ismember(temp,L5Idx));
+    ensembleLayerFrac(n,:) = [l23Member/(l23Member+l5Member),l5Member/(l23Member+l5Member)];
 end
-image_movie = mat2gray(M2);
-implay(image_movie);
-%%
-[tProjq1, tProjq2, uProjq1, uProjq2] = featureProject(vectorized,139);
-%% Trial by Trial analysis ##Only use with batch processed files##
-addpath(genpath('Figures'));
-[batchSpikes,batch_corr] = TrialByTrial(batchData([1,2,4])); % Function call
-bin = 20;
-[vectorized,sim_index] = cosine_similarity(batchSpikes,bin);
-[z,mu,sigma] = zscore(sim_index);
-figure('Name','Cosine-Similarity Index'); h = htmp(sim_index,100);
-caxis([0 0.7]);
-set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 3]);
- figure('Name','Dice Correlation')
- for i = 1:size(batch_corr,3)
-     subplot(2,3,i),h = htmp(batch_corr(:,:,i),20);caxis([0 0.4]);
- end
- 
-plot_raster(1:120,Spikes(5,1:120))
-% Have you tried using Multidimensional Scaling (MDS) to emebed the
-% centroids in a 2 dimensional space for visualization?
+figure,pie(mean(ensembleLayerFrac))
+%% Ensembles shared across task variables
+% Calculate most occurance neurons across ensembles
+Ensemble = FAEnsemble;
+temp = cellfun(@(x) length(x),Ensemble.rankEnsembles);
+tEnsemble = vertcat(Ensemble.rankEnsembles{temp>2});
+[uE,~,ix] = unique(tEnsemble);
+C = accumarray(ix,1);
+[~,idx] = sort(C,'descend');
+sharedEFA = [uE(idx),C(idx)]; % Number of reoccuring neurons across ensembles
 
-% This should visualize how the centroids related to each other. You could�
-% also then compute the Delauney Triangulation of the projected graph, to
-% identify neighbors.
+%%% now we have to calculate reoccurance from within and between conditions
+% As an aside we can just loop through the values and find which values are
+% members in which conditions then use the frequency of such neurons within
+% conditions as weighted values. Ie. If a neuron is shared between many
+% ensembles and is consistent across task variables then it is essentially
+% TASK INVARIANT meaning it encoding lots of different variables 
 
+sharedEhm = ismember(sharedEhit(:,1),sharedEmiss(:,1)); %shared ensembles between hit and miss
+sharedEhf = ismember(sharedEhit(:,1),sharedEFA(:,1)); %shared ensembles between hit and FA
+sharedEfm = ismember(sharedEFA(:,1),sharedEmiss(:,1));
+
+sharedEacrossTask = [sum(sharedEhm)/length(sharedEhm),sum(sharedEhf)/length(sharedEhf),sum(sharedEfm)/length(sharedEfm)];
+figure,bar(sharedEacrossTask)
