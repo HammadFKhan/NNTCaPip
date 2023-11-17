@@ -9,7 +9,7 @@ bin = ceil(max(coactive_cells)*100);
 figure,hold on,bar(coactive_cells),bar(shufcoactive_cells);
 % figure,hold on,histogram(coactive_cells,100),histogram(shufcoactive_cells,100);
 ensembleWin = 5;
-ensembleCan = ensembleWin*find(coactive_cells>(2.5*std(shufcoactive_cells)+mean(shufcoactive_cells))); % 99% distribution threshold
+ensembleCan = ensembleWin*find(coactive_cells>(3*std(shufcoactive_cells)+mean(shufcoactive_cells))); % 99% distribution threshold
 disp(['Ensemble Candidates: ' num2str(length(ensembleCan))])
 % Grab window around ensembles
 ensemble = [];
@@ -35,7 +35,7 @@ if checkPadding>0
     [vectorized,sim_index] = cosine_similarity(horzcat(ensemble,zeros(size(ensemble,1),checkPadding)),1);
     sim_index = sim_index(1:size(ensembleCan,2),1:size(ensembleCan,2));
 else
-    [vectorized,sim_index] = cosine_similarity(ensemble(:,1:factorCorrection),ensembleWin);
+    [vectorized,sim_index] = cosine_similarity(ensemble(:,1:factorCorrection),5);
 end
 fprintf('done\n')
 avgSim = mean(mean(sim_index,2));
@@ -44,10 +44,10 @@ X = sim_index - avgSim*ones(1,size(sim_index,2));
 plotind = 1;
 try
     figure,
-    for r = [1:25]
+    for r = [1:3]
         Xapprox = U(:,r)*S(r,r)*V(:,r)';
-        subplot(5,5,plotind), plotind = plotind+1;
-        imagesc(Xapprox),colormap(flip(gray)),caxis([0 0.15]);
+        subplot(1,3,plotind), plotind = plotind+1;
+        imagesc(Xapprox),colormap(jet),caxis([0 0.1]);
     end
 catch
 end
@@ -136,7 +136,7 @@ for i = 1:ensembleIndentified
     end
     fprintf(['Connectivity analysis for activation ' num2str(i) '.\n']);
     corr = correlation_dice(ensembleId);
-    thresh = 0.4;
+    thresh = 0.5;
     Connected_ROI{i} = Connectivity_dice(corr,thresh);
     [NumActiveNodes,NodeList{i},NumNodes{i},NumEdges{i},SpatialCentroid{i},SpatialCentroidVariance{i},...
         ActivityCentroid{i},ActivityCentroidVariance{i}, ActivityCoords{i}]...
