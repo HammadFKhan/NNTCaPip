@@ -13,16 +13,28 @@ for i = 1:length(ROI)
         continue;
     end
 end
+%%
+figure,[Coor,json_file] = plot_contours(A,C,ops,0); title('Selected components','fontweight','bold','fontsize',14);
+
 %% Analysis
 set(0,'DefaultFigureWindowStyle','normal')
 addpath(genpath('main'));
 addpath(genpath('Pipelines'));
-std_threshold = 2.5;
+std_threshold = 3;
 static_threshold = .01;
-Spikes = Spike_Detector_Single(diff(DeltaFoverF),std_threshold,static_threshold);
+Spikes = rasterizeDFoF(DeltaFoverF,std_threshold,static_threshold);
 figure,stack_plot(DeltaFoverF,1,3,1) % Show fluorescence for each cell
 figure,Show_Spikes(Spikes) % Plot binary raster plot
 %% Ensemble Analysis
 % figure,[Coor,json_file] = plot_contours(A,C,ops,0); % contour plot of spatial footprints
-factorCorrection = 5*floor(size(Spikes,2)/5); % Correct for frame size aquisition
-Ensemble = ensembleAnalysis(Spikes(:,1:factorCorrection),ROIcentroid);
+factorCorrection = 5*floor(size(Spikes(:,20000:end),2)/5); % Correct for frame size aquisition
+Ensemble = ensembleAnalysis2(Spikes(:,1:factorCorrection),ROIcentroid);
+
+%% Save data
+[~,fname] = fileparts(files);
+pathname = 'F:\DataD_Drive_backup\Ensemble_redo\UninjectedGcamp';
+savepath = pathname;
+sessionName = [savepath,'\Control_', fname, '.mat'];
+% save(sessionName,"IntanBehaviour","fpath","parameters","-v7.3");
+save(sessionName,"pathname","Ensemble","files","-v7.3"); %,"betaWaves","thetaWaves","gammaWaves",
+disp('Data Saved!')
