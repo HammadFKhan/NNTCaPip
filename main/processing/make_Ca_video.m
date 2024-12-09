@@ -89,11 +89,12 @@ Y_noise = reshape(Y_noise,d1,d2,T);
 ind_rec = setdiff(1:size(C,2)-1,bk_ind);
 Y_rec =  A(ind_rec,:)'*C(:,ind_rec)';
 Y_rec = reshape(Y_rec,d1,d2,T);
+%Y_noise = Y_rec+(param.Ysig*35);
 cbm = max(Y_rec(:));
 nR = quantile(Y_rec(:),0.02);
 mR = quantile(Y_rec(:),0.999);
 mY = quantile(Y(:),0.99);
-nN = quantile(Y_noise(:),0.01);
+nN = quantile(Y_noise(:),0.03);
 mN = quantile(Y_noise(:),.99);
 for t = 1:skp:length(rm_pix)
     i = rm_pix(t);
@@ -127,6 +128,7 @@ for t = 1:skp:length(rm_pix)
         imagesc(Y_noise(2:end-1,2:end-1,i),[nN,mN]); axis equal; axis tight;colormap(ax3,gray)
         title('Reconstructed','Fontsize',16,'Fontweight','bold'); axis off;
         hc = colorbar('location','southoutside');
+        pos = get(gca,'Position') + [-0.01,-0.025,0.05,0.05];
         set(gca,'position',pos);
         
 %         subplot(3,3,4:9); imagesc(Ym(2:end-1,2:end-1,i),[0,.5]); axis equal; axis tight; axis off;colormap(gray)
