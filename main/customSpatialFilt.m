@@ -1,4 +1,4 @@
-function PNR = customSpatialFilt(Y,params)
+function [PNR,Ysig] = customSpatialFilt(Y,params)
 %%
 use_sum = false;
 if nargin < 4 || isempty(ROI_list)
@@ -59,13 +59,28 @@ if ~isfield(params, 'med_app'), med_app = 1; else med_app = params.med_app; end
 
 if ~isfield(params,'rem_prct') || isempty(params.rem_prct); params.rem_prct = 20; end
 %%
-fprintf('Beginning spatial filtering...')
 psf = fspecial('gaussian', round(params.gSiz(1)), params.gSig(1));
 ind_nonzero = (psf(:)>=max(psf(:,1)));
 psf = psf-mean(psf(ind_nonzero));
 psf(~ind_nonzero) = 0;
 
-% filter the data
+% filter the data -> added recursive call if needed (additional sauce on
+% the image)
+numRefine = 1; %How many refinement steps do we want
+PNR0 = Y;
+plotOn = 0;
+for n = 1:numRefine
+    %%
+    fprintf('Beginning spatial filtering...')
+    [PNR,Ysig] = spatialFilterdata(PNR0,psf,params);
+    PNR0 = PNR;
+    if plotOn
+        figure(1),subplot(1,numRefine,n),imagesc(mean(PNR,3)),axis square
+    end
+end
+
+
+function [PNR,Ysig0] = spatialFilterdata(Y,psf,params)
 HY = imfilter(Y, psf, 'replicate');
 HY = reshape(HY, params.d1*params.d2, []);
 % HY_med = median(HY, 2);
@@ -73,7 +88,7 @@ HY = reshape(HY, params.d1*params.d2, []);
 HY = bsxfun(@minus, HY, median(HY, 2));
 HY_max = max(HY, [], 2);
 Ysig = get_noise_fft(HY, params);
+Ysig0 = reshape(Ysig, params.d1, params.d2,[]);
 PNR = reshape(HY./Ysig, params.d1, params.d2,[]);
-PNR0 = PNR;
-PNR(PNR<params.min_pnr/5) = 0;
+PNR(PNR<params.min_pnr/2) = 0;
 fprintf('done\n')
