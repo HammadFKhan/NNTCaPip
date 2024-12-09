@@ -32,7 +32,7 @@ for fileNum = 1:numFile
     %     Spikes = Spike_Detector_Single((dDeltaFoverF),std_threshold,static_threshold);
     std_threshold = 3;      % from Carrilo-Reid and Jordan Hamm's papers
     static_threshold = .01;
-    Spikes = rasterizeDFoF(DeltaFoverF,std_threshold,static_threshold);
+    Spikes = rasterizeDFoF(dDeltaFoverF,std_threshold,static_threshold);
     %Excude inactive cells
     % numSpikes = sum(Spikes,2);
     % keepSpikes = find(numSpikes>(.01*mean(numSpikes)));
@@ -47,14 +47,14 @@ for fileNum = 1:numFile
             continue;
         end
     end
-    spikeTrials = [];
-    trialLength = 330;
-    figure,
-    for i = 1:size(Spikes,2)/trialLength
-        spikeTrials{i} = Spikes(:,((i-1)*trialLength+1):i*trialLength);
-        Show_Spikes(spikeTrials{i});
-%         DeltaTrials(:,:,i) = DeltaFoverF(:,((i-1)*trialLength+1):i*trialLength);
-    end
+%     spikeTrials = [];
+%     trialLength = 330;
+%     figure,
+%     for i = 1:size(Spikes,2)/trialLength
+%         spikeTrials{i} = Spikes(:,((i-1)*trialLength+1):i*trialLength);
+%         Show_Spikes(spikeTrials{i});
+% %         DeltaTrials(:,:,i) = DeltaFoverF(:,((i-1)*trialLength+1):i*trialLength);
+%     end
     % Perform shuffling and pairwise if data is small enough
     if size(DeltaFoverF,2)<2000
         %     Spikes_shuffled = tempShuffle(Spikes,1000);
@@ -86,29 +86,36 @@ for fileNum = 1:numFile
     Ensemble = ensembleStat(Ensemble);
     close all
     
-    %% Run the analysis again but using the sensory driven response window
-    SpikesSen = [];
-    for i = 1:length(spikeTrials)
-        win = [60 240];
-        SpikesSen = horzcat(SpikesSen,spikeTrials{i}(:,win(1):win(2)));
-    end
-    factorCorrection = 5*floor(size(SpikesSen,2)/5); % Correct for frame size aquisition
-    Ensemblesensory = ensembleAnalysis(SpikesSen(:,1:factorCorrection),ROIcentroid);
+%     %% Run the analysis again but using the sensory driven response window
+%     SpikesSen = [];
+%     for i = 1:length(spikeTrials)
+%         win = [60 240];
+%         SpikesSen = horzcat(SpikesSen,spikeTrials{i}(:,win(1):win(2)));
+%     end
+%     factorCorrection = 5*floor(size(SpikesSen,2)/5); % Correct for frame size aquisition
+%     Ensemblesensory = ensembleAnalysis(SpikesSen(:,1:factorCorrection),ROIcentroid);
+%     
+%     % Ensemble stats
+%     Ensemblesensory = ensembleMetric(Ensemblesensory,AverageImage,ROIcentroid);
+%     Ensemblesensory = ensembleStat(Ensemblesensory);
+%     close all
     
-    % Ensemble stats
-    Ensemblesensory = ensembleMetric(Ensemblesensory,AverageImage,ROIcentroid);
-    Ensemblesensory = ensembleStat(Ensemblesensory);
-    close all
-    
-    %% Save data
-    if ~exist([file(fileNum).folder '\output'],'dir')
-        mkdir([file(fileNum).folder '\output']);
-    end
-    [folder_name,file_name,~] = fileparts(file(fileNum).name);
-    if exist(fullfile([folder_name, '\output'],[file_name,'.mat']),'file')
-        file_name = [file_name '_' datestr(now,30) '_'];
-    end
-    savepath = fullfile([folder_name, '\output'],[file_name,'.mat']);
-    save(savepath,'files', 'Ensemble','spikeTrials','Ensemblesensory','Spikes','ROI', 'ROIcentroid' ,'DeltaFoverF');
-    clearvars -except file numFile fileNum filetype foldername
+%     %% Save data
+%     if ~exist([file(fileNum).folder '\output'],'dir')
+%         mkdir([file(fileNum).folder '\output']);
+%     end
+%     [folder_name,file_name,~] = fileparts(file(fileNum).name);
+%     if exist(fullfile([folder_name, '\output'],[file_name,'.mat']),'file')
+%         file_name = [file_name '_' datestr(now,30) '_'];
+%     end
+%     savepath = fullfile([folder_name, '\output'],[file_name,'.mat']);
+%     save(savepath,'files', 'Ensemble','spikeTrials','Ensemblesensory','Spikes','ROI', 'ROIcentroid' ,'DeltaFoverF');
+%     clearvars -except file numFile fileNum filetype foldername
+[~,fname] = fileparts(filename);
+pathname = 'F:\DataD_Drive_backup\Ensemble_redo\UninjectedGcamp';
+savepath = pathname;
+sessionName = [savepath,'\Control_', fname, '.mat'];
+% save(sessionName,"IntanBehaviour","fpath","parameters","-v7.3");
+save(sessionName,"pathname","Ensemble","files","-v7.3"); %,"betaWaves","thetaWaves","gammaWaves",
+disp('Data Saved!')
 end
