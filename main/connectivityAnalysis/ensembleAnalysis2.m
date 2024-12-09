@@ -176,6 +176,7 @@ Ensemble.Connected_ROI =  Connected_ROI;
 Ensemble.loc = r;
 Ensemble.coactive_cells = coactive_cells;
 Ensemble.shufcoactive_cells = shufcoactive_cells;
+Ensemble.Spikes = Spikes;
 disp(['Ensembles Identified: ' num2str(ensembleIdentified)])
 end
 
