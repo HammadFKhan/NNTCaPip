@@ -24,19 +24,19 @@ for n = 1:length(Behaviour.hitTrace)
     sp = max(1, min(length(spksTime), sp));
 
     neurons{n} = spks(:,st:sp); % grab all neurons for the trial
-%     for sQN = 1:(length(unique(Behaviour.hitTrace(n).pullCount))-1) % substract 1 because we dont want zeros
-%         [~,idx] = min(abs(Behaviour.hitTrace(n).rawtime-Behaviour.hitTrace(n).t0));
-%         tT = find(Behaviour.hitTrace(n).pullCount==sQN);
-%         tT(tT<idx) = [];
-%         tT = tT(1);
-%         % Index of pull
-%         targetTime = (Behaviour.hitTrace(n).rawtime(tT))*arduinoDrift;
-%         pl = round(interp1(spksTime, 1:length(spksTime), targetTime, 'nearest', 'extrap'));
-%         % Ensure indices are within bounds (interp1 with 'extrap' might produce out-of-bounds indices)
-%         pl = max(1, min(length(spksTime), pl));
-%         pl = pl-st;
-%         Spikes.PSTH.hit.pl(n,sQN) = pl;
-%     end
+    for sQN = 1:(length(unique(Behaviour.hitTrace(n).pullCount))-1) % substract 1 because we dont want zeros
+        [~,idx] = min(abs(Behaviour.hitTrace(n).rawtime-Behaviour.hitTrace(n).t0));
+        tT = find(Behaviour.hitTrace(n).pullCount==sQN);
+        tT(tT<idx) = [];
+        tT = tT(1);
+        % Index of pull
+        targetTime = (Behaviour.hitTrace(n).rawtime(tT))*arduinoDrift;
+        pl = round(interp1(spksTime, 1:length(spksTime), targetTime, 'nearest', 'extrap'));
+        % Ensure indices are within bounds (interp1 with 'extrap' might produce out-of-bounds indices)
+        pl = max(1, min(length(spksTime), pl));
+        pl = pl-st;
+        Spikes.PSTH.hit.pl(n,sQN) = pl;
+    end
 end
 
 trialLen = mode(cellfun(@(x) size(x,2),neurons));
@@ -113,7 +113,7 @@ for n = 1:length(Behaviour.MIHitTrace)
     % Ensure indices are within bounds (interp1 with 'extrap' might produce out-of-bounds indices)
     sp = max(1, min(length(spksTime), sp));
     neurons{n} = spks(:,st:sp);
-    for sQN = 1:(length(unique(Behaviour.MIHitTrace(n).cleanedPullCounts))-1) % substract 1 because we dont want zeros
+    for sQN = 1:(length(unique(Behaviour.hitTrace(n).cleanedPullCounts))-1) % substract 1 because we dont want zeros
         [~,idx] = min(abs(Behaviour.MIHitTrace(n).rawtime-Behaviour.MIHitTrace(n).t0));
         tT = find(Behaviour.MIHitTrace(n).cleanedPullCounts==sQN);
         tT(tT<idx) = [];
